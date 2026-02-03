@@ -990,14 +990,12 @@ body {
 
   /* Canvas goes full width and scrolls horizontally if needed */
   #canvas-container {
-    width: 1000px;
+    width: 800px;
    /* align-self: stretch;*/
     display: block;
 
     overflow-x: auto;
     overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    touch-action: pan-x;
   }
 
   /* Side panel drops below canvas and expands */
@@ -1154,4 +1152,5 @@ body {
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
+
 }
