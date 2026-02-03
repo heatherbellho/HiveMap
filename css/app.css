@@ -306,7 +306,12 @@ button.save:hover {
   max-width: none; 
   display: block; 
 }
-
+@media (max-width: 1400px) {
+  #hiveCanvas {
+    width:800px;
+    height: auto;
+  }
+}
 .panel-group {
   margin-bottom: 18px;
   padding: 12px;
@@ -1154,3 +1159,4 @@ body {
     cursor: pointer;
 
 }
+
