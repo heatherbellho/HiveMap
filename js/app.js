@@ -66,6 +66,7 @@ if (due.length > 0) {
   btn.style.display = "none";
   badge.style.display = "none";
 }
+document.getElementById("appVersion").textContent = App.Version;
 
 
 };

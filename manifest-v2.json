@@ -1,7 +1,7 @@
 {
   "name": "Hive Map",
   "short_name": "HiveMap",
-  "description": "Visual hive management with inspection history",
+  "description": "Visual hive management with inspection history.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#fff9eb",
@@ -9,12 +9,12 @@
   "orientation": "any",
   "icons": [
     {
-      "src": "/hive-map/icons/192-hive-map.png",
+      "src": "icons/192_hive-map.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/hive-map/icons/512-hive-map.png",
+      "src": "icons/512_hive-map.png",
       "sizes": "512x512",
       "type": "image/png"
     }
