@@ -115,7 +115,7 @@
       <div class="dropdown-item" id="toolsStatus">Statuses</div>
     <!--  <div class="dropdown-item" id="toolsHiveSizes">Edit Hive Sizes</div> -->
     <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
-    <div class="dropdown-item" id="toolsConfigureInspection">Configure Inspection Fields</div>
+    <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
 
       <div class="dropdown-item" id="toolsHelp">Help</div>
     </div>
@@ -162,7 +162,7 @@
       <div id="saveReminder">
         !! Remember to <strong>Export All Data</strong> before closing the page (save to Google Drive/Hive Map) !!
       </div>
-      <div><small>&copy; 2026 Hive Map - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
+      <div style="padding: 12px;"><small>&copy; 2026 Hive Map - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
     </div>
   </div>
 
@@ -232,6 +232,19 @@
           <button type="button" id="addBoxBtn" class="small-add">+</button>
         </div>
       </div>
+
+      <div class="modal-section modal-section-size">
+        <h4 class="section-title">Tile Size</h4>
+
+        <div class="size-row">
+          <label>Width</label>
+          <input id="editHiveWidth" type="number" min="10">
+
+          <label>Height</label>
+          <input id="editHiveHeight" type="number" min="10">
+        </div>
+      </div>
+
 
       <div class="modal-section">
         <h4 class="section-title">Inspection History</h4>
@@ -355,7 +368,7 @@
     <div class="modal-column">
       <div class="modal-section">
 
-        <label for="hiveSizeSelect">Size</label>
+        <label for="hiveSizeSelect">Tile Size</label>
         <select id="hiveSizeSelect">
           <option value="40x40">Standard Hive (40×40)</option>
           <option value="40x20">Nuc (40×20)</option>
@@ -381,8 +394,8 @@
   </main>
 
   <footer class="modal-footer">
-    <button id="confirmCreateHiveBtn" class="primary">Add</button>
-    <button id="cancelCreateHiveBtn" class="secondary">Cancel</button>
+    <button id="confirmCreateHiveBtn" class="btn-save">Save</button>
+    <button id="cancelCreateHiveBtn" class="btn-cancel">Cancel</button>
   </footer>
 </div>
 

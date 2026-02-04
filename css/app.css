@@ -296,9 +296,10 @@ button.save:hover {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 12px;
   min-height: 30px;
-  border-bottom: 1px solid #ccc;
+  border: 1px solid #ccc;
+  border-radius: 6px;
   margin-bottom: 10px;
 }
 #hiveCanvas { 
@@ -1035,7 +1036,9 @@ body {
   z-index: 1000 !important;
   min-width: 320px !important;
   max-width: 480px;
+  max-height: 90vh;
   display: none;
+  overflow-y: auto;
 }
 
 /* Modal inner content */
@@ -1299,4 +1302,17 @@ body {
 #tooltip { pointer-events: none !important; }
 canvas {
   touch-action: manipulation !important;
+}
+.modal-section-size .size-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-section-size .size-row label {
+  margin: 0;
+}
+
+.modal-section-size .size-row input {
+  width: 70px; /* adjust as needed */
 }

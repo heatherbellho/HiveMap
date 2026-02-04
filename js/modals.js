@@ -87,6 +87,9 @@ App.Modals.openHiveModal = function (hiveGroup) {
   document.getElementById("lastInspection").value = "";
   document.getElementById("nextInspection").value = data.nextInspectionDate || "";
   document.getElementById("notes").value = "";
+  const rect = hiveGroup._objects[0];
+  document.getElementById("editHiveWidth").value = rect.width;
+  document.getElementById("editHiveHeight").value = rect.height;
 
   // Latest inspection
   const latest = data.inspections[data.inspections.length - 1] || {};
@@ -147,6 +150,38 @@ App.Modals.closeHiveModal = function () {
   selectedHive = null;
 };
 
+App.Modals.confirmEditHive = function (hive) {
+  const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
+  const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
+
+  const rect = hive._objects[0];
+  rect.set({
+    width: newWidth,
+    height: newHeight
+  });
+
+  // Recenter label
+  const label = hive._objects[1];
+  label.set({
+    left: 0,
+    top: 0
+  });
+
+  // Recalculate group bounds
+  hive._calcBounds();
+  hive._updateObjectsCoords();
+  hive.setCoords();
+
+  // Save layout
+  App.Canvas.saveLayout();
+
+  // Optional but recommended
+  resizeAndFitCanvas();
+
+  canvas.requestRenderAll();
+
+  App.Modals.closeEditHiveModal();
+};
 
 // ------------------------------------------------------------
 // Save hive data from modal
@@ -156,6 +191,47 @@ App.Modals.saveHiveData = function () {
 
   const hiveData = selectedHive.hiveData;
 
+  // -----------------------------
+  // 1. UPDATE SIZE
+  // -----------------------------
+// -----------------------------
+// 1. UPDATE SIZE (without moving hive)
+// -----------------------------
+const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
+const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
+
+// Save current absolute position BEFORE resizing
+const oldLeft = selectedHive.left;
+const oldTop = selectedHive.top;
+
+const rect = selectedHive._objects[0];
+rect.set({
+  width: newWidth,
+  height: newHeight
+});
+
+// Recenter label
+const label = selectedHive._objects[1];
+label.set({
+  left: 0,
+  top: 0
+});
+
+// Recalculate bounds WITHOUT shifting the group
+selectedHive._calcBounds();
+selectedHive._updateObjectsCoords();
+selectedHive.setCoords();
+
+// Restore original position
+selectedHive.left = oldLeft;
+selectedHive.top = oldTop;
+selectedHive.setCoords();
+
+
+
+  // -----------------------------
+  // 2. UPDATE HIVE DATA
+  // -----------------------------
   const name = document.getElementById("hiveName").value.trim() || "Unnamed";
   const hiveType = document.getElementById("hiveType").value;
   const date = document.getElementById("lastInspection").value;
@@ -163,18 +239,13 @@ App.Modals.saveHiveData = function () {
   const notes = document.getElementById("notes").value;
   const nextInspection = document.getElementById("nextInspection").value;
 
-
-  // Update name + type
   hiveData.name = name;
   hiveData.hiveType = hiveType;
   hiveData.nextInspectionDate = nextInspection;
 
-
-  // Ensure inspections array exists
   hiveData.inspections = hiveData.inspections || [];
   const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
 
-  // Append new inspection only if changed
   if (date !== latest.date || queenStatus !== latest.queenStatus || notes !== latest.notes) {
     hiveData.inspections.push({ date, queenStatus, notes });
   }
@@ -186,12 +257,20 @@ App.Modals.saveHiveData = function () {
   const color = App.Status.getColor(currentInspection.queenStatus || "");
   selectedHive._objects[0].set("fill", color);
 
-  selectedHive.setCoords();
-  App.Canvas.requestRender();
 
+  // -----------------------------
+  // 3. SAVE + RENDER
+  // -----------------------------
   App.Canvas.saveLayout();
   App.updateDueInspectionsBadge();
   App.Stats.update();
+
+  resizeAndFitCanvas();
+  canvas.requestRenderAll();
+
+  // -----------------------------
+  // 4. CLOSE MODAL
+  // -----------------------------
   App.Modals.closeHiveModal();
 };
 
@@ -334,14 +413,18 @@ App.Modals.addBox = function () {
 // Open
 App.Modals.openHiveSizeModal = function () {
   document.getElementById("hiveSizeModal").style.display = "block";
-  document.getElementById("hiveSizeOverlay").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
 
   // Auto-suggest next hive number
-  const used = App.Canvas.getHiveNames();
-  let n = 1;
-  while (used.includes(String(n))) n++;
+const used = App.Canvas.getHiveNames()
+  .sort((a, b) => Number(a) - Number(b));
 
-  document.getElementById("hiveNameInput").value = n;
+  let n = 1;
+while (used.includes(String(n).padStart(2, "0"))) {
+  n++;
+}
+const padded = String(n).padStart(2, "0");
+  document.getElementById("hiveNameInput").value = padded;
   document.getElementById("usedHiveNumbers").textContent =
     used.length ? "Used: " + used.join(", ") : "No hives yet";
 };
@@ -349,7 +432,7 @@ App.Modals.openHiveSizeModal = function () {
 // Close
 App.Modals.closeHiveSizeModal = function () {
   document.getElementById("hiveSizeModal").style.display = "none";
-  document.getElementById("hiveSizeOverlay").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
 };
 
 
@@ -1000,8 +1083,10 @@ App.Modals.init = function () {
   // Hive edit modal
   document.getElementById("modalCloseBtn").addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("cancelHiveBtn").addEventListener("click", App.Modals.closeHiveModal);
+  document.getElementById("cancelHiveBtnFooter").addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("saveHiveBtn").addEventListener("click", App.Modals.saveHiveData);
+  document.getElementById("saveHiveBtnFooter").addEventListener("click", App.Modals.saveHiveData);
 
   // Hive size modal
   document.getElementById("addHiveBtn").addEventListener("click", App.Modals.openHiveSizeModal);

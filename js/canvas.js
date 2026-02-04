@@ -109,7 +109,7 @@ function fitCanvasToScreen() {
   );
 
   // ⭐ Prevent giant hive when only 1 hive exists
-  const MAX_SCALE = 0.8;   // adjust to taste (0.8 = 80% zoom)
+  const MAX_SCALE = 1;   // adjust to taste (0.8 = 80% zoom)
   if (scale > MAX_SCALE) {
     scale = MAX_SCALE;
   }
@@ -184,6 +184,8 @@ App.Canvas.createHive = function (name, width, height) {
     lockScalingX: true,
     lockScalingY: true,
     lockUniScaling: true,
+    lockSkewingX: true,
+    lockSkewingY: true,
     hiveData: {
       name,
       hiveType: "Hive",
@@ -193,9 +195,11 @@ App.Canvas.createHive = function (name, width, height) {
     }
   });
 
+  // ⭐ Only rotation handle, no resize handles
   group.setControlsVisibility({
     mt:false, mb:false, ml:false, mr:false,
-    tl:false, tr:false, bl:false, br:false, mtr:true
+    tl:false, tr:false, bl:false, br:false,
+    mtr:true
   });
 
   group.on("mousedblclick", () => App.Modals.openHiveModal(group));
@@ -204,6 +208,7 @@ App.Canvas.createHive = function (name, width, height) {
   canvas.setActiveObject(group);
   App.Canvas.requestRender();
 };
+
 
 
 // ------------------------------------------------------------
@@ -278,13 +283,26 @@ App.Canvas.loadLayout = function () {
           return;
         }
 
+        // ⭐ Restore modal behaviour
         obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
+
+        // ⭐ Restore control visibility (remove resize handles)
+        obj.setControlsVisibility({
+          mt:false, mb:false, ml:false, mr:false,
+          tl:false, tr:false, bl:false, br:false,
+          mtr:true
+        });
+
+        // ⭐ Ensure scaling is locked (Fabric sometimes restores old values)
+        obj.lockScalingX = true;
+        obj.lockScalingY = true;
+        obj.lockUniScaling = true;
       }
     });
 
     App.Canvas.requestRender();
 
-    // ⭐ CRITICAL: allow layout to settle, then fit
+    // ⭐ Allow layout to settle, then fit
     setTimeout(() => {
       resizeAndFitCanvas();
     }, 50);
