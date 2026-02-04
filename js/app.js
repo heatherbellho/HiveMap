@@ -67,6 +67,7 @@ if (due.length > 0) {
   badge.style.display = "none";
 }
 document.getElementById("appVersion").textContent = App.Version;
+document.title = "HiveMap " + App.Version;
 
 
 };
