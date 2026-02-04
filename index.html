@@ -38,11 +38,13 @@
 <body>
 
 <div id="toolbar">
-
-  <!-- LEFT: context + primary actions + counts -->
-  <div class="toolbar-group toolbar-left">
+<div class="toolbar-group toolbar-apiary">
     <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
     <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
+</div>
+  <!-- LEFT: context + primary actions + counts -->
+  <div class="toolbar-group toolbar-left">
+
     <div class="dropdown-wrapper">
       <button id="apiaryMenuBtn" class="toolbar-btn">Apiary ▼</button>
       <div id="apiaryMenu" class="dropdown-menu">
@@ -160,9 +162,19 @@
 </div>
 
       <div id="saveReminder">
-        !! Remember to <strong>Export All Data</strong> before closing the page (save to Google Drive/Hive Map) !!
+        <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M1 21h22L12 2 1 21z"
+              fill="#fff"
+              stroke="#dd0000"
+              stroke-width="1" />
+        <path d="M12 8v6"
+              stroke="#000"
+              stroke-width="2"
+              stroke-linecap="round" />
+        <circle cx="12" cy="17" r="1.5" fill="#000" />
+      </svg> Remember: <strong>Tools > Export Data</strong> before closing the page.
       </div>
-      <div style="padding: 12px;"><small>&copy; 2026 Hive Map - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
+      <div style="margin: 0px 0px 18px; text-align: center;"><small>&copy; 2026 Hive Map - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
     </div>
   </div>
 

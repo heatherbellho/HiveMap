@@ -300,7 +300,7 @@ button.save:hover {
   min-height: 30px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  margin-bottom: 10px;
+  margin-bottom: 18px;
 }
 #hiveCanvas { 
   width: 1000px; /* match your logical canvas width */ 
@@ -646,19 +646,22 @@ body {
 /* LEFT: Apiary Select, Notes, Counts */
 .toolbar-left,
 .toolbar-center,
-.toolbar-right {
+.toolbar-right,
+.toolbar-apiary {
   flex: 1 1 auto;   /* allow them to shrink and wrap */
 }
 @media (max-width: 600px) {
   .toolbar-left,
   .toolbar-center,
-  .toolbar-right {
+  .toolbar-right,
+  .toolbar-apiary {
     flex: 1 1 100%;
     justify-content: center;
     margin-bottom: 8px;
   }
 
-  .toolbar-left {
+  .toolbar-left,
+  .toolbar-apiary {
     justify-content: flex-start;
   }
 
@@ -667,7 +670,8 @@ body {
   }
 }
 @media (min-width: 601px) and (max-width: 900px) {
-  .toolbar-left {
+  .toolbar-left,
+  .toolbar-apiary {
     flex: 1 1 auto;
     justify-content: flex-start;
   }
@@ -685,7 +689,8 @@ body {
   }
 }
 @media (min-width: 901px) {
-  .toolbar-left {
+  .toolbar-left,
+  .toolbar-apiary {
     flex-shrink: 0;
   }
 
@@ -706,7 +711,8 @@ body {
 @media (max-width: 900px) {
   .toolbar-left,
   .toolbar-center,
-  .toolbar-right {
+  .toolbar-right,
+  .toolbar-apiary {
     flex: 1 1 100%;
     justify-content: flex-start;
     margin-top: 6px;
@@ -976,7 +982,7 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 280px;
-  max-width: 320px;
+  /*max-width: 320px;*/
   font-family: sans-serif;
 }
 
@@ -999,13 +1005,13 @@ body {
     touch-action: auto;       /* or remove this line entirely */
   }
 
-  /* Side panel drops below canvas and expands */
+  /* Side panel drops below canvas and expands 
   #side-panel {
     width: 100%;
     max-width: none;
     min-width: auto;
     align-items: center;
-  }
+  }*/
 }
 /* ============================================================
    UNIVERSAL MODAL SYSTEM (Overrides old modal CSS)
