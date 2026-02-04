@@ -80,6 +80,17 @@ const Storage = {
 
   deleteHiveLayout(apiary) {
     localStorage.removeItem('hiveLayout_' + apiary);
-  }
+  },
+
+    /* ------------------ INSPECTION SCHEMA ------------------ */
+  getInspectionSchema() {
+    const raw = localStorage.getItem('inspectionSchema');
+    return raw ? JSON.parse(raw) : null;
+  },
+
+  saveInspectionSchema(schema) {
+    localStorage.setItem('inspectionSchema', JSON.stringify(schema));
+  },
 
 };
+window.Storage = Storage;

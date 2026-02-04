@@ -14,6 +14,8 @@ let tooltip = null;
 // ------------------------------------------------------------
 // Initialise Fabric canvas
 // ------------------------------------------------------------
+let resizeTimer = null; // debounce timer
+
 App.Canvas.init = function () {
   tooltip = document.getElementById("tooltip");
 
@@ -21,21 +23,26 @@ App.Canvas.init = function () {
     selection: true,
     preserveObjectStacking: true
   });
+canvas.upperCanvasEl.style.touchAction = "manipulation";
+canvas.lowerCanvasEl.style.touchAction = "manipulation";
 
   // Touch double‑tap to open modal
-  if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
-    let lastTap = 0;
-    canvas.on("mouse:down", e => {
-      if (!e.target || !e.target.hiveData) return;
-      const now = Date.now();
-      if (now - lastTap < 300) {
-        App.Modals.openHiveModal(e.target);
-        lastTap = 0;
-      } else {
-        lastTap = now;
-      }
-    });
-  }
+if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+  let lastTap = 0;
+
+  canvas.on("mouse:down", e => {
+    if (!e.target || !e.target.hiveData) return;
+
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      App.Modals.openHiveModal(e.target);
+      lastTap = 0;
+    } else {
+      lastTap = now;
+    }
+  });
+}
+
 
   // Tooltip
   canvas.on("mouse:move", App.Canvas.handleTooltip);
@@ -50,8 +57,102 @@ App.Canvas.init = function () {
 
   // Underline labels
   App.Canvas.underlineLabels();
+
+  // One unified resize + fit
+  resizeAndFitCanvas();
 };
 
+
+// ------------------------------------------------------------
+// AUTO‑RESIZE WITH DEBOUNCE (prevents misalignment jumps)
+// ------------------------------------------------------------
+function scheduleResize() {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    resizeAndFitCanvas();
+  }, 60); // enough time for flexbox/layout to settle
+}
+
+window.addEventListener("resize", scheduleResize);
+window.addEventListener("orientationchange", scheduleResize);
+
+
+// ------------------------------------------------------------
+// Fit all hive objects into the visible canvas area
+// ------------------------------------------------------------
+function fitCanvasToScreen() {
+  const objects = canvas.getObjects();
+  if (!objects.length) return;
+
+  const bounds = objects.reduce(
+    (acc, o) => {
+      const a = o.getBoundingRect(true, true);
+      acc.minX = Math.min(acc.minX, a.left);
+      acc.minY = Math.min(acc.minY, a.top);
+      acc.maxX = Math.max(acc.maxX, a.left + a.width);
+      acc.maxY = Math.max(acc.maxY, a.top + a.height);
+      return acc;
+    },
+    { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }
+  );
+
+  const contentWidth = bounds.maxX - bounds.minX;
+  const contentHeight = bounds.maxY - bounds.minY;
+
+  const canvasWidth = canvas.getWidth();
+  const canvasHeight = canvas.getHeight();
+
+  // Normal scale calculation
+  let scale = Math.min(
+    canvasWidth / contentWidth,
+    canvasHeight / contentHeight
+  );
+
+  // ⭐ Prevent giant hive when only 1 hive exists
+  const MAX_SCALE = 0.8;   // adjust to taste (0.8 = 80% zoom)
+  if (scale > MAX_SCALE) {
+    scale = MAX_SCALE;
+  }
+
+  const vpt = canvas.viewportTransform.slice(0);
+  vpt[0] = scale;
+  vpt[3] = scale;
+  vpt[4] = (canvasWidth - contentWidth * scale) / 2 - bounds.minX * scale;
+  vpt[5] = (canvasHeight - contentHeight * scale) / 2 - bounds.minY * scale;
+
+  canvas.setViewportTransform(vpt);
+  canvas.renderAll();
+}
+
+
+// ------------------------------------------------------------
+// SINGLE SOURCE OF TRUTH FOR RESIZING + FITTING
+// ------------------------------------------------------------
+function resizeAndFitCanvas() {
+  if (!canvas) return;
+
+  const wrapper = canvas.wrapperEl;
+
+  // Force wrapper to fill its container
+  wrapper.style.width = "100%";
+  wrapper.style.height = "100%";
+
+  // Force both Fabric canvases to fill wrapper
+  canvas.lowerCanvasEl.style.width = "100%";
+  canvas.lowerCanvasEl.style.height = "100%";
+  canvas.upperCanvasEl.style.width = "100%";
+  canvas.upperCanvasEl.style.height = "100%";
+
+  // Sync Fabric internal size
+  canvas.setWidth(wrapper.clientWidth);
+  canvas.setHeight(wrapper.clientHeight);
+
+  // Fix hit‑testing offsets
+  canvas.calcOffset();
+
+  // Re-fit hive map
+  fitCanvasToScreen();
+}
 
 // ------------------------------------------------------------
 // Create a hive (Fabric group)
@@ -163,31 +264,33 @@ App.Canvas.loadLayout = function () {
     return;
   }
 
-canvas.loadFromJSON(json, () => {
-  canvas.getObjects().forEach(obj => {
-    if (obj.type === "group" && obj.hiveData) {
+  canvas.loadFromJSON(json, () => {
 
-      // 🔹 Ensure status exists (from Step 1)
-      if (!obj.hiveData.status) {
-        obj.hiveData.status = "active";
+    canvas.getObjects().forEach(obj => {
+      if (obj.type === "group" && obj.hiveData) {
+
+        if (!obj.hiveData.status) {
+          obj.hiveData.status = "active";
+        }
+
+        if (obj.hiveData.status === "archived") {
+          obj.visible = false;
+          return;
+        }
+
+        obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
       }
+    });
 
-      // 🔹 Hide archived hives from the canvas
-      if (obj.hiveData.status === "archived") {
-        obj.visible = false;
-        return;
-      }
+    App.Canvas.requestRender();
 
-      // Normal behaviour for active hives
-      obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
-    }
+    // ⭐ CRITICAL: allow layout to settle, then fit
+    setTimeout(() => {
+      resizeAndFitCanvas();
+    }, 50);
   });
-
-  App.Canvas.requestRender();
-});
-
-
 };
+
 
 
 // ------------------------------------------------------------

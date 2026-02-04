@@ -43,7 +43,16 @@
   <div class="toolbar-group toolbar-left">
     <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
     <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
-
+    <div class="dropdown-wrapper">
+      <button id="apiaryMenuBtn" class="toolbar-btn">Apiary ▼</button>
+      <div id="apiaryMenu" class="dropdown-menu">
+        <div class="dropdown-item" id="apiaryNew">New Apiary</div>
+        <div class="dropdown-item" id="apiaryRename">Rename Apiary</div>
+        <div class="dropdown-item" id="apiaryDelete">Delete Apiary</div>
+        <div class="dropdown-item" id="hivesArchived">Archived Hives</div>
+        <div class="dropdown-item" id="apiaryPrint" style="border-top: 1px solid gray;">Print Apiary</div>
+      </div>
+    </div>
     <button id="openApiaryNotesBtn" class="toolbar-btn">Apiary Notes</button>
 
     <span id="toolbarApiaryCounts" class="toolbar-count"></span>
@@ -80,15 +89,7 @@
 
   <!-- RIGHT: empty for now -->
   <div class="toolbar-group toolbar-right">
-        <div class="dropdown-wrapper">
-      <button id="apiaryMenuBtn" class="toolbar-btn">Apiary ▼</button>
-      <div id="apiaryMenu" class="dropdown-menu">
-        <div class="dropdown-item" id="apiaryNew">New Apiary</div>
-        <div class="dropdown-item" id="apiaryRename">Rename Apiary</div>
-        <div class="dropdown-item" id="apiaryDelete">Delete Apiary</div>
-        <div class="dropdown-item" id="apiaryPrint">Print Apiary</div>
-      </div>
-    </div>
+
 
     <div class="dropdown-wrapper">
       <button id="hivesMenuBtn" class="toolbar-btn">Hives ▼</button>
@@ -99,8 +100,8 @@
         <div class="dropdown-item" id="hiveDelete">Delete Hive</div>
     <!--    <div class="dropdown-item" id="hiveReassign">Reassign Hive Number</div>
         <div class="dropdown-item" id="hivePrint">Print Hive</div>-->
-        <div class="dropdown-separator"></div>
-<div class="dropdown-item" id="hivesArchived">Archived Hives…</div>
+        
+
 
       </div>
     </div>
@@ -111,9 +112,11 @@
     <div id="toolsMenu" class="dropdown-menu">
       <div class="dropdown-item" id="toolsExport">Export Data</div>
       <div class="dropdown-item" id="toolsImport">Import All Data</div>
-      <div class="dropdown-item" id="toolsStatus">Edit Statuses</div>
+      <div class="dropdown-item" id="toolsStatus">Statuses</div>
     <!--  <div class="dropdown-item" id="toolsHiveSizes">Edit Hive Sizes</div> -->
     <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
+    <div class="dropdown-item" id="toolsConfigureInspection">Configure Inspection Fields</div>
+
       <div class="dropdown-item" id="toolsHelp">Help</div>
     </div>
   </div>
@@ -128,7 +131,7 @@
     <div id="canvas-container">
       <!-- ID must match what canvas.js uses -->
 
-        <canvas id="hiveCanvas" width="1000" height="550"></canvas>
+        <canvas id="hiveCanvas"</canvas>
       </div>
 
     <div id="side-panel">
@@ -244,6 +247,29 @@
     <button id="cancelHiveBtnFooter" class="btn-cancel">Cancel</button>
 
   </footer>
+</div>
+
+<div id="inspectionDetailsModal" class="modal" style="display:none;">
+  <div class="modal-content inspection-details-modal">
+    <div class="modal-header">
+      <h2 id="inspectionDetailsTitle">Inspection Details</h2>
+      <button id="closeInspectionDetailsBtn" class="close-btn">&times;</button>
+    </div>
+
+    <div class="modal-subheader">
+      <div><strong>Status:</strong> <span id="inspectionDetailsStatus"></span></div>
+      <div><strong>Notes:</strong> <span id="inspectionDetailsNotes"></span></div>
+    </div>
+
+    <div class="modal-body inspection-details-grid" id="inspectionDetailsFields">
+      <!-- Extended inspection fields will be injected/rendered here later -->
+    </div>
+
+    <div class="modal-footer">
+      <button id="cancelInspectionDetailsBtn" class="btn-cancel">Cancel</button>
+      <button id="saveInspectionDetailsBtn" class="btn-save">Save</button>
+    </div>
+  </div>
 </div>
 
 <!-- Archived Hives list -->
@@ -381,6 +407,28 @@
     <button id="closeDueInspectionsBtn2" class="btn-cancel">Close</button>
   </footer>
 </div>
+
+<div id="inspectionFieldConfigModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="inspectionFieldConfigTitle" style="display:none;">
+  
+  <header class="modal-header">
+    <h2 id="inspectionFieldConfigTitle">Configure Inspection Fields</h2>
+    <button id="inspectionFieldConfigCloseBtn" class="modal-close">&times;</button>
+  </header>
+
+  <main class="modal-body">
+    <div id="inspectionFieldConfigBody">
+      <!-- Step 5 UI will be injected here -->
+      <p>Loading…</p>
+    </div>
+  </main>
+
+  <div class="modal-footer">
+    <button id="inspectionFieldConfigCloseBtnFooter" class="btn-cancel">Close</button>
+    <button id="inspectionFieldConfigSaveBtnFooter" class="btn-save">Save</button>
+  </div>
+
+</div>
+
 
 <!-- HELP MODAL -->
 <div id="helpModal" class="modal modal-help" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">

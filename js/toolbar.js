@@ -115,18 +115,12 @@ document.getElementById("toolsStatus").addEventListener("click", () => {
   App.Status.openSettings();
 });
 
-// Hive sizes
-//document.getElementById("toolsHiveSizes").addEventListener("click", () => {
-  //closeAllMenus();
- // App.HiveSize.openModal();
-//});
-
-// Stats
-//document.getElementById("toolsStats").addEventListener("click", () => {
-  //closeAllMenus();
- // App.Stats.open();
-//});
-
+// Configure Inspection Fields
+document.getElementById("toolsConfigureInspection").addEventListener("click", () => {
+  closeAllMenus();
+  App.Modals.openInspectionFieldConfig();
+});
+// Help Modal
 document.addEventListener("DOMContentLoaded", () => {
   const helpBtn = document.getElementById("toolsHelp");
   const overlay = document.getElementById("overlay");

@@ -306,12 +306,7 @@ button.save:hover {
   max-width: none; 
   display: block; 
 }
-@media (max-width: 1400px) {
-  #hiveCanvas {
-    width:800px;
-    height: auto;
-  }
-}
+
 .panel-group {
   margin-bottom: 18px;
   padding: 12px;
@@ -993,14 +988,14 @@ body {
     align-items: center; /* center both sections */
   }
 
-  /* Canvas goes full width and scrolls horizontally if needed */
   #canvas-container {
-    width: 800px;
-   /* align-self: stretch;*/
+    width: 1000px;
     display: block;
 
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: visible;      /* allow vertical scroll to propagate */
+    -webkit-overflow-scrolling: touch;
+    touch-action: auto;       /* or remove this line entirely */
   }
 
   /* Side panel drops below canvas and expands */
@@ -1039,13 +1034,13 @@ body {
   padding: 0 !important;
   z-index: 1000 !important;
   min-width: 320px !important;
-  max-width: 480px !important;
+  max-width: 480px;
   display: none;
 }
 
 /* Modal inner content */
 .modal-content {
-  padding: 20px !important;
+  padding: 0px 20px 20px 20px !important;
 }
 
 /* Modal footer */
@@ -1151,12 +1146,157 @@ body {
   border-radius: 6px;
   cursor: pointer;
 }
+.btn-info {
+  background: #1b8ebc;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 .btn-cancel {
     background: #ddd;
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
-
+}
+/* Inspection Details Modal Grid */
+.inspection-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
 }
 
+/* Each field wrapper */
+.inspection-field {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Labels */
+.inspection-field label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* Inputs */
+.inspection-field input[type="text"],
+.inspection-field input[type="number"],
+.inspection-field textarea {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+}
+
+.inspection-field textarea {
+  min-height: 60px;
+  resize: vertical;
+}
+/* Force Inspection Details modal to be wide */
+#inspectionDetailsModal,
+#inspectionFieldConfigModal
+ {
+  width: 90% !important;
+  max-width: 900px !important;
+}
+/* Force the grid to actually behave like a grid */
+#inspectionDetailsFields {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.inspection-details-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+/* Allow scrolling inside the modal body */
+.inspection-details-modal .modal-body {
+  max-height: 65vh !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+.modal-section h3 {
+  margin: 0px 0px 8px 0px;
+  font-size: 1.1em;
+  color: #333;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 4px;
+}
+#inspectionFieldConfigModal .modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+#inspectionFieldConfigModal .field-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid #ccc;
+}
+#inspectionFieldConfigModal .field-name {
+  font-weight: bold;
+  margin-right: 12px;
+}
+
+#inspectionFieldConfigModal .field-type {
+  font-style: italic;
+  color: #666;
+}
+#inspectionFieldConfigModal .field-controls {
+  display: flex;
+  gap: 6px;
+}
+#inspectionFieldConfigModal .group-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.inspection-config-group {
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #999;
+}
+
+#inspectionFieldConfigModal .group-header {
+      display: flex;
+    justify-content: space-between;
+    align-items: center;
+  background: #f0f0f0;
+  padding: 6px 12px;
+}
+#inspectionFieldConfigBody {
+  width: 100%;
+}
+#main-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* or 100% if inside another container */
+  align-items: center;
+}
+
+#canvas-container {
+  flex: 1 1 auto;
+  position: relative !important;
+  width: 100vw !important;
+  max-width: 100%;
+  min-height: 70vh !important; /* or whatever height you want */
+  justify-content: center;
+  overflow: hidden !important;
+}
+
+#hiveCanvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+#tooltip { pointer-events: none !important; }
+canvas {
+  touch-action: manipulation !important;
+}

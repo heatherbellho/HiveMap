@@ -35,6 +35,7 @@ App.init = function () {
   App.Status.init();     // Queen status legend + modal
   App.Notes.init();      // Apiary notes
   App.Modals.init();     // Hive edit modal + hive size modal
+  App.Modals.inspectionSchema = Storage.getInspectionSchema() || App.Modals.defaultInspectionSchema;
   App.Export.init();     // Export/import buttons
   App.Stats.init();      // Hive status summary
   App.Canvas.init();     // Fabric canvas engine
