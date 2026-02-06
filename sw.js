@@ -1,8 +1,8 @@
-const cacheName = 'hive-map-cache-v1';
+const cacheName = 'hive-map-cache-v2.2.0';
 const filesToCache = [
   './',
   './index.html',
-  './manifest.json',
+  './manifest-v2.json',
   './icons/hive-192.png',
   './icons/hive-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js'

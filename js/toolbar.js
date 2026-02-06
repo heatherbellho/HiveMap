@@ -59,6 +59,16 @@ document.getElementById("apiaryDelete").addEventListener("click", () => {
   App.Apiaries.delete();
 });
 
+document.getElementById("apiaryListHives").addEventListener("click", () => {
+  closeAllMenus();
+  App.Modals.openHiveListModal();
+});
+
+document.getElementById("hivesArchived").addEventListener("click", () => {
+  closeAllMenus();
+  App.Modals.openArchivedHives();
+});
+
 document.getElementById("apiaryPrint").addEventListener("click", () => {
   closeAllMenus();
   App.Canvas.print();
@@ -84,10 +94,7 @@ document.getElementById("hiveDelete").addEventListener("click", () => {
   App.Canvas.deleteSelected();
 });
 
-document.getElementById("hivesArchived").addEventListener("click", () => {
-  closeAllMenus();
-  App.Modals.openArchivedHives();
-});
+
 
 // ============================================================
 //  TOOLS MENU
