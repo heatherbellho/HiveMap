@@ -202,12 +202,27 @@ App.Canvas.createHive = function (name, width, height) {
     mtr:true
   });
 
+  // ⭐ Assign apiary name at creation
+  group.hiveData.apiaryName = Storage.getCurrentApiary();
+
+  // ⭐ Double‑click to open modal
   group.on("mousedblclick", () => App.Modals.openHiveModal(group));
 
+  // ⭐ Add hive to canvas
   canvas.add(group);
   canvas.setActiveObject(group);
-  App.Canvas.requestRender();
+
+  // ⭐ Ensure correct coordinates after scaling
+  group.setCoords();
+
+  // ⭐ Force immediate render (fixes “doesn’t appear until reload”)
+  canvas.requestRenderAll();
+
+  // ⭐ Auto‑centre new hive so it’s always visible
+  canvas.viewportCenterObject(group);
+  canvas.requestRenderAll();
 };
+
 
 
 
@@ -354,6 +369,42 @@ App.Canvas.underlineLabels = function () {
   App.Canvas.requestRender();
 };
 
+// ------------------------------------------------------------
+// Return all hive objects currently on the canvas
+// ------------------------------------------------------------
+App.Canvas.getAllHives = function () {
+  if (!canvas) return [];
+  return canvas.getObjects().filter(o => o.hiveData);
+};
+
+// ------------------------------------------------------------
+// Safe getter for hiveData on a hive object (group or children)
+// ------------------------------------------------------------
+App.Canvas.getHiveData = function (obj) {
+  if (!obj) return null;
+
+  // Prefer hiveData on the group itself
+  if (obj.hiveData) return obj.hiveData;
+
+  // Otherwise check children (older hives)
+  if (obj._objects && Array.isArray(obj._objects)) {
+    for (const child of obj._objects) {
+      if (child.hiveData) return child.hiveData;
+    }
+  }
+
+  return null;
+};
+
+App.Canvas.findApiaryGroupForHive = function (hiveGroup) {
+  // Walk up the Fabric.js group hierarchy
+  let parent = hiveGroup.group;
+  while (parent) {
+    if (parent.apiaryData) return parent;
+    parent = parent.group;
+  }
+  return null;
+};
 
 // ------------------------------------------------------------
 // Print apiary canvas + inspection cards

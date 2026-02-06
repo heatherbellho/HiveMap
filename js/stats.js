@@ -73,11 +73,11 @@ App.Stats.render = function (stats, totalNonQuery, totalQuery) {
   const toolbarOverall = document.getElementById("toolbarOverallCounts");
 
   if (toolbarApiary) {
-    toolbarApiary.textContent = `Apiary Count: ${s.nonQuery} OK (${s.query} Query)`;
+    toolbarApiary.textContent = `Apiary: ${s.nonQuery} OK (${s.query} Query)`;
   }
 
   if (toolbarOverall) {
-    toolbarOverall.textContent = `Total Count: ${totalNonQuery} OK (${totalQuery} Query)`;
+    toolbarOverall.textContent = `Total: ${totalNonQuery} OK (${totalQuery} Query)`;
   }
   // --------------------------------
 };

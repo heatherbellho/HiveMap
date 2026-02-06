@@ -5,10 +5,10 @@ const Storage = {
   /* ------------------ QUEEN STATUSES ------------------ */
   getQueenStatuses() {
     return JSON.parse(localStorage.getItem('queenStatuses')) || [
-      { name: 'Marked', color: '#bdf' },
-      { name: 'Unmarked', color: '#ffd' },
-      { name: 'Missing', color: '#fbb' },
-      { name: 'Default', color: '#cfc' }
+      { name: 'Default', color: 'rgb(136, 188, 239)' },
+      { name: 'Queen Right', color: 'rgb(139, 231, 139)' },
+      { name: 'Queen Cell', color: 'rgb(251, 207, 118)' },
+      { name: 'Query', color: 'rgb(241, 152, 152)' }      
     ];
   },
 
