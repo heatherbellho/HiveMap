@@ -1,1 +1,1 @@
-App.Version = "v2.1.1";
+App.Version = "v2.1.2";

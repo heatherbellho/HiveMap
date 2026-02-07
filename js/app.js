@@ -75,4 +75,27 @@ document.title = "HiveMap " + App.Version;
 // ------------------------------------------------------------
 // Start the app when DOM is ready
 // ------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", App.init);
+document.addEventListener("DOMContentLoaded", () => {
+  App.init();
+
+  const toast = document.getElementById("exitToast");
+  const closeBtn = document.getElementById("exitToastClose");
+
+  // Show the toast once per session
+  setTimeout(() => {
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
+  }, 800);
+
+  // Manual dismiss
+  closeBtn.addEventListener("click", () => {
+    toast.classList.remove("show");
+
+    // Remove from layout after fade-out
+    setTimeout(() => {
+      toast.classList.add("hidden");
+    }, 400);
+  });
+});
+
+

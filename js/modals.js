@@ -1383,11 +1383,24 @@ tbody.querySelectorAll(".apiary-group-row").forEach(row => {
   });
 };
 
-
-
 App.Modals.closeHiveListModal = function () {
   document.getElementById("hiveListModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
+};
+
+// ------------------------------------------------------------
+// Exit Modal
+// ------------------------------------------------------------
+App.Modals.openExitModal = function () {
+  document.getElementById("exitModal").classList.remove("hidden");
+};
+
+App.Modals.closeExitModal = function () {
+  document.getElementById("exitModal").classList.add("hidden");
+};
+
+App.Modals.exitApp = function () {
+  window.location.href = "exit.html";
 };
 
 // ------------------------------------------------------------
@@ -1433,4 +1446,22 @@ App.Modals.init = function () {
   document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeHiveListModal);
   document.getElementById("hiveListModalCloseBtn1").addEventListener("click", App.Modals.closeHiveListModal);
   document.getElementById("hiveListCloseBtnFooter").addEventListener("click", App.Modals.closeHiveListModal);
+
+  document.getElementById("exitFab").addEventListener("click", () => {
+  App.Modals.openExitModal();
+});
+
+document.getElementById("exitCancelBtn").addEventListener("click", () => {
+  App.Modals.closeExitModal();
+});
+
+document.getElementById("exitWithoutSaveBtn").addEventListener("click", () => {
+  App.Modals.exitApp();
+});
+
+document.getElementById("exitExportBtn").addEventListener("click", () => {
+  App.Export.exportAllData(); // or your existing export function
+  App.Modals.exitApp();
+});
+
 };
