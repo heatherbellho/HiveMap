@@ -416,7 +416,6 @@ body {
   .modal-body {
     flex-direction: column;
   }
-
 }
 
 .used-hive-numbers {
@@ -557,11 +556,12 @@ body {
   white-space: pre-wrap;
 }
 
-
 .modal-close {
+  padding: 0px 6px;
+  border-radius: 6px;
   float: right;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .note-row {
@@ -764,7 +764,7 @@ body {
 ----------------------------------------------------------- */
 .toolbar-btn {
   background: #e5b25d;
-  color: #763d0e;
+  color: #000;
   border: 1px solid #763d0e;
   padding: 6px 12px;
   border-radius: 6px;
@@ -1041,8 +1041,8 @@ body {
   padding: 0 !important;
   z-index: 1000 !important;
   min-width: 320px !important;
-  max-width: 480px;
-  max-height: 90vh;
+  max-width: 900px;
+  max-height: 80vh;
   display: none;
   overflow-y: auto;
 }
@@ -1127,8 +1127,9 @@ body {
 .modal-hive-edit {
   max-width: 900px !important;
   width: 95vw !important;
-  max-height: 90vh;
+  max-height: 80vh !important;
   overflow-y: auto;
+  z-index: 1100 !important;
 }
 
 .btn-save {
@@ -1322,3 +1323,85 @@ canvas {
 .modal-section-size .size-row input {
   width: 70px; /* adjust as needed */
 }
+
+.hive-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.hive-list-table th {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 2px solid #ddd;
+  font-weight: 600;
+}
+
+.hive-list-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.hive-list-table tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.col-hive { width: 60px; }
+.col-status { width: 120px; }
+.col-date { width: 120px;}
+.col-type { width: 150px;}
+.col-action { width: 50px;}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #000;
+}
+
+.hive-list-table {
+  width: 100%;
+  table-layout: auto;
+}
+
+#hiveListModal.modal {
+  width: 900px;
+  max-width: 90vw;
+}
+.apiary-group-row {
+  background: #f0f0f0;
+}
+
+.apiary-group-header {
+  font-weight: bold;
+  padding: 8px;
+  font-size: 1.1em;
+  border-top: 2px solid #ccc;
+}
+.apiary-group-row {
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+.apiary-group-header {
+  font-weight: bold;
+  padding: 8px;
+  font-size: 1.1em;
+  border-top: 2px solid #ccc;
+}
+
+.apiary-toggle {
+  margin-right: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.apiary-group-header {
+  cursor: pointer;
+}
+
+.apiary-group-click {
+  cursor: pointer;
+  margin-left: 4px;
+}
+

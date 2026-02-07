@@ -209,7 +209,26 @@ App.Canvas.createHive = function (name, width, height) {
   App.Canvas.requestRender();
 };
 
+App.Canvas.getAllHives = function () {
+  if (!canvas) return [];
+  return canvas.getObjects().filter(o => o.hiveData);
+};
 
+App.Canvas.getHiveData = function (obj) {
+  if (!obj) return null;
+
+  // Prefer hiveData on the group itself
+  if (obj.hiveData) return obj.hiveData;
+
+  // Otherwise check children (older hives)
+  if (obj._objects && Array.isArray(obj._objects)) {
+    for (const child of obj._objects) {
+      if (child.hiveData) return child.hiveData;
+    }
+  }
+
+  return null;
+};
 
 // ------------------------------------------------------------
 // Tooltip handler

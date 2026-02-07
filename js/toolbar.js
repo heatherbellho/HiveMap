@@ -149,4 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+document.getElementById("toolbarApiaryCounts").addEventListener("click", App.Modals.openHiveListModal);
 
+document.getElementById("toolbarOverallCounts").addEventListener("click", App.Modals.openOverallHiveListModal);

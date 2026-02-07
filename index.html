@@ -53,17 +53,17 @@
         <div class="dropdown-item" id="apiaryRename">Rename Apiary</div>
         <div class="dropdown-item" id="apiaryDelete">Delete Apiary</div>
         <div class="dropdown-item" id="hivesArchived">Archived Hives</div>
-        <div class="dropdown-item" id="apiaryPrint" style="border-top: 1px solid gray;">Print Apiary</div>
+        <div class="dropdown-item" id="apiaryPrint" style="border-top: 1px solid #ccc;">Print Apiary</div>
       </div>
     </div>
     <button id="openApiaryNotesBtn" class="toolbar-btn">Apiary Notes</button>
 
-    <span id="toolbarApiaryCounts" class="toolbar-count"></span>
+    <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
   </div>
 
   <!-- CENTER: dropdown menus -->
   <div class="toolbar-group toolbar-center">
-    <span id="toolbarOverallCounts" class="toolbar-count"></span>
+    <button id="toolbarOverallCounts" class="toolbar-btn"></button>
     <button id="dueInspectionsBtn" class="toolbar-btn-alert" style="display:none; position:relative;">
 <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
   <!-- Triangle with black border -->
@@ -516,6 +516,33 @@
   </div>
 </div>
 </div>
+
+<div id="hiveListModal" class="modal">
+    <header class="modal-header">
+    <h2 id="hiveListTitle"></h2>
+    <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
+  </header>
+  <main class="modal-body">
+    <table class="hive-list-table">
+<thead>
+  <tr>
+    <th class="col-hive">Hive</th>
+    <th class="col-status">Queen</th>
+    <th class="col-date">Last</th>
+    <th class="col-date">Next Due</th>
+    <th class="col-type">Type</th>
+    <th class="col-action"></th>
+  </tr>
+</thead>
+
+      <tbody id="hiveListBody"></tbody>
+    </table>
+  </main>
+  <div class="modal-footer">
+    <button id="hiveListCloseBtnFooter" class="btn-cancel">Close</button>
+  </div>
+</div>
+
   <!-- Service worker registration -->
   <script>
     if ('serviceWorker' in navigator) {
