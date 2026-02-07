@@ -178,8 +178,8 @@ App.Canvas.createHive = function (name, width, height) {
   });
 
   const group = new fabric.Group([rect, label], {
-    left: 100,
-    top: 100,
+    left: 500,
+    top: 20,
     hasControls: true,
     lockScalingX: true,
     lockScalingY: true,

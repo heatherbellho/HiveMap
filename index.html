@@ -175,6 +175,7 @@
   <header class="modal-header">
     <h2 id="modalTitle">Edit Hive</h2>
     <div>
+      <button id="addInspectionBtn" class="btn-info" style="margin-right: 12px;"> Add Inspection </button>
           <button id="archiveHiveBtn" class="btn-danger" style="display:none;">Archive Hive</button>
     <button id="restoreHiveBtn" class="btn-primary" style="display:none;">Restore Hive</button>
       <button id="saveHiveBtn" class="btn-save">Save</button>
@@ -200,7 +201,7 @@
           <button type="button" id="addHiveTypeBtn" class="small-add">+</button>
         </div>
 
-        <label for="lastInspection">This Inspection</label>
+        <!--<label for="lastInspection">This Inspection</label>
         <input type="date" id="lastInspection">
 
         <label for="nextInspection">Next Inspection Due</label>
@@ -213,7 +214,7 @@
       <div class="modal-section">
         <h4 class="section-title">Notes</h4>
         <textarea id="notes" rows="4" placeholder="Notes about this hive..."></textarea>
-      </div>
+      </div>-->
 
     </div>
 
@@ -265,7 +266,7 @@
   <div class="modal-content inspection-details-modal">
     <div class="modal-header">
       <h2 id="inspectionDetailsTitle">Inspection Details</h2>
-      <button id="closeInspectionDetailsBtn" class="close-btn">&times;</button>
+      <button id="closeInspectionDetailsBtn" class="modal-close">&times;</button>
     </div>
 
     <div class="modal-subheader">
@@ -528,6 +529,49 @@
     <button id="hiveListCloseBtnFooter" class="btn-cancel">Close</button>
   </div>
 </div>
+
+<div id="inspectionInputModal" class="modal" style="display:none;">
+  <div class="modal-content inspection-details-modal">
+
+    <div class="modal-header">
+      <h2 id="inspectionInputTitle">New Inspection</h2>
+      <button id="closeInspectionInputBtn" class="modal-close">&times;</button>
+    </div>
+
+<div class="modal-subheader">
+  <div>
+    <strong>Date:</strong>
+    <input type="date" id="inspectionInputDate">
+  </div>
+
+  <div>
+    <strong>Queen Status:</strong>
+    <select id="inspectionInputQueenStatus"></select>
+  </div>
+
+  <div>
+    <strong>Next Inspection Due:</strong>
+    <input type="date" id="inspectionInputNextInspection">
+  </div>
+
+  <div style="grid-column: 1 / -1;">
+    <strong>Notes:</strong>
+    <textarea id="inspectionInputNotes"></textarea>
+  </div>
+</div>
+
+
+<div class="modal-body" id="inspectionInputFields">      <!-- Dynamic schema-driven fields go here -->
+    </div>
+
+    <div class="modal-footer">
+      <button id="cancelInspectionInputBtn" class="btn-cancel">Cancel</button>
+      <button id="saveInspectionInputBtn" class="btn-save">Save</button>
+    </div>
+
+  </div>
+</div>
+
 
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>

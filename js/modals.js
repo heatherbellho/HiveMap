@@ -84,9 +84,9 @@ App.Modals.openHiveModal = function (hiveGroup) {
   // Populate fields
   document.getElementById("hiveName").value = data.name || "";
   App.Hives.populateTypeSelect(data.hiveType || "");
-  document.getElementById("lastInspection").value = "";
-  document.getElementById("nextInspection").value = data.nextInspectionDate || "";
-  document.getElementById("notes").value = "";
+ // document.getElementById("lastInspection").value = "";
+ // document.getElementById("nextInspection").value = data.nextInspectionDate || "";
+ // document.getElementById("notes").value = "";
   const rect = hiveGroup._objects[0];
   document.getElementById("editHiveWidth").value = rect.width;
   document.getElementById("editHiveHeight").value = rect.height;
@@ -236,21 +236,21 @@ selectedHive.setCoords();
   // -----------------------------
   const name = document.getElementById("hiveName").value.trim() || "Unnamed";
   const hiveType = document.getElementById("hiveType").value;
-  const date = document.getElementById("lastInspection").value;
-  const queenStatus = document.getElementById("queenStatus").value;
-  const notes = document.getElementById("notes").value;
-  const nextInspection = document.getElementById("nextInspection").value;
+//  const date = document.getElementById("lastInspection").value;
+ // const queenStatus = document.getElementById("queenStatus").value;
+//  const notes = document.getElementById("notes").value;
+ // const nextInspection = document.getElementById("nextInspection").value;
 
   hiveData.name = name;
   hiveData.hiveType = hiveType;
-  hiveData.nextInspectionDate = nextInspection;
+//  hiveData.nextInspectionDate = nextInspection;
 
   hiveData.inspections = hiveData.inspections || [];
   const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
 
-  if (date !== latest.date || queenStatus !== latest.queenStatus || notes !== latest.notes) {
-    hiveData.inspections.push({ date, queenStatus, notes });
-  }
+ // if (date !== latest.date || queenStatus !== latest.queenStatus || notes !== latest.notes) {
+ //   hiveData.inspections.push({ date, queenStatus, notes });
+ // }
 
   // Update label + colour
   const currentInspection = hiveData.inspections[hiveData.inspections.length - 1] || {};
@@ -1403,65 +1403,247 @@ App.Modals.exitApp = function () {
   window.location.href = "exit.html";
 };
 
+App.Modals.openInspectionInput = function (hiveObj) {
+
+  App.Modals.currentHiveForInspection = hiveObj;
+
+  // Title
+  document.getElementById("inspectionInputTitle").textContent =
+    `New Inspection — ${hiveObj.hiveData.name}`;
+
+  // Default date = today
+  const today = new Date().toISOString().split("T")[0];
+  document.getElementById("inspectionInputDate").value = today;
+
+  // Queen status dropdown
+  const queenSelect = document.getElementById("inspectionInputQueenStatus");
+  queenSelect.innerHTML = "";
+  Storage.getQueenStatuses().forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = s.name;
+    opt.textContent = s.name;
+    queenSelect.appendChild(opt);
+  });
+
+  // Build schema-driven fields
+// Build schema-driven fields
+const container = document.getElementById("inspectionInputFields");
+container.innerHTML = "";
+
+const groups = [...App.Modals.inspectionSchema.groups].sort(
+  (a, b) => a.sortOrder - b.sortOrder
+);
+
+groups.forEach(group => {
+
+  // ⭐ MATCHES Inspection Details modal
+  const groupWrapper = document.createElement("div");
+  groupWrapper.className = "modal-section";
+
+  const groupTitle = document.createElement("h3");
+  groupTitle.textContent = group.name;
+  groupWrapper.appendChild(groupTitle);
+
+  const grid = document.createElement("div");
+  grid.className = "inspection-details-grid";
+
+  const fields = [...group.fields].sort(
+    (a, b) => a.sortOrder - b.sortOrder
+  );
+
+  fields.forEach(field => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "inspection-field";
+
+    const label = document.createElement("label");
+    label.textContent = field.label;
+    label.setAttribute("for", "input_" + field.id);
+
+    let input;
+
+    if (field.type === "textarea") {
+      input = document.createElement("textarea");
+    } else if (field.type === "checkbox") {
+      input = document.createElement("input");
+      input.type = "checkbox";
+    } else {
+      input = document.createElement("input");
+      input.type = field.type;
+    }
+
+    input.id = "input_" + field.id;
+    input.dataset.key = field.id;
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+    grid.appendChild(wrapper);
+  });
+
+  groupWrapper.appendChild(grid);
+  container.appendChild(groupWrapper);
+});
+
+  // Show modal
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("inspectionInputModal").style.display = "block";
+};
+
+App.Modals.saveInspectionInput = function () {
+
+  const hiveObj = App.Modals.currentHiveForInspection;
+  if (!hiveObj) return;
+
+  const hiveData = hiveObj.hiveData;
+
+  const date = document.getElementById("inspectionInputDate").value;
+  const queenStatus = document.getElementById("inspectionInputQueenStatus").value;
+const nextInspection = document.getElementById("inspectionInputNextInspection").value;
+const notes = document.getElementById("inspectionInputNotes").value.trim();
+
+  const newInspection = {
+    date,
+    queenStatus,
+    notes,
+    nextInspection,
+  };
+
+  // Add schema-driven fields
+  App.Modals.inspectionSchema.groups.forEach(group => {
+    group.fields.forEach(field => {
+      const input = document.getElementById("input_" + field.id);
+      if (!input) return;
+
+      if (field.type === "checkbox") {
+        newInspection[field.id] = input.checked;
+      } else {
+        newInspection[field.id] = input.value.trim();
+      }
+    });
+  });
+
+  // Push into hive
+  hiveData.inspections = hiveData.inspections || [];
+  hiveData.inspections.push(newInspection);
+hiveData.nextInspectionDate = nextInspection;
+
+  // Update next inspection date?
+  // (Optional — depends on your logic)
+
+  // Save layout
+  App.Canvas.saveLayout();
+
+  // Refresh Edit Hive modal
+  App.Modals.closeInspectionInput();
+  App.Modals.openHiveModal(hiveObj);
+};
+
+App.Modals.closeInspectionInput = function () {
+  document.getElementById("inspectionInputModal").style.display = "none";
+    const anyOpen = [...document.querySelectorAll('.modal')]
+  .some(m => m.style.display === "block");
+  document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
+  };
+
 // ------------------------------------------------------------
 // Initialise modal system
 // ------------------------------------------------------------
 App.Modals.init = function () {
+
+  // ------------------------------------------------------------
+  // Overlay (shared by all modals)
+  // ------------------------------------------------------------
+  const overlay = document.getElementById("overlay");
+
+  // ------------------------------------------------------------
   // Hive edit modal
+  // ------------------------------------------------------------
   document.getElementById("modalCloseBtn").addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("cancelHiveBtn").addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("cancelHiveBtnFooter").addEventListener("click", App.Modals.closeHiveModal);
-  document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("saveHiveBtn").addEventListener("click", App.Modals.saveHiveData);
   document.getElementById("saveHiveBtnFooter").addEventListener("click", App.Modals.saveHiveData);
 
+  // ⭐ Add Inspection button (now works)
+  document.getElementById("addInspectionBtn").addEventListener("click", function () {
+    if (selectedHive) {
+      App.Modals.openInspectionInput(selectedHive);
+    }
+  });
+
+  if (overlay) overlay.addEventListener("click", App.Modals.closeHiveModal);
+document.getElementById("saveInspectionInputBtn").addEventListener("click", App.Modals.saveInspectionInput);
+  document.getElementById("closeInspectionInputBtn").addEventListener("click", App.Modals.closeInspectionInput);
+  document.getElementById("cancelInspectionInputBtn").addEventListener("click", App.Modals.closeInspectionInput);
+
+  // ------------------------------------------------------------
   // Hive size modal
+  // ------------------------------------------------------------
   document.getElementById("addHiveBtn").addEventListener("click", App.Modals.openHiveSizeModal);
   document.getElementById("hiveSizeCloseBtn").addEventListener("click", App.Modals.closeHiveSizeModal);
   document.getElementById("cancelCreateHiveBtn").addEventListener("click", App.Modals.closeHiveSizeModal);
   document.getElementById("confirmCreateHiveBtn").addEventListener("click", App.Modals.confirmCreateHive);
   document.getElementById("hiveSizeSelect").addEventListener("change", App.Modals.toggleCustomSizeFields);
 
+  // ------------------------------------------------------------
   // Box add button
+  // ------------------------------------------------------------
   document.getElementById("addBoxBtn").addEventListener("click", App.Modals.addBox);
 
+  // ------------------------------------------------------------
+  // Due inspections modal
+  // ------------------------------------------------------------
   document.getElementById("closeDueInspectionsBtn").addEventListener("click", App.Modals.closeDueInspections);
   document.getElementById("closeDueInspectionsBtn2").addEventListener("click", App.Modals.closeDueInspections);
-  document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeDueInspections);
+  if (overlay) overlay.addEventListener("click", App.Modals.closeDueInspections);
 
+  // ------------------------------------------------------------
+  // Archived hives modal
+  // ------------------------------------------------------------
   document.getElementById("hivesArchived").addEventListener("click", App.Modals.openArchivedHives);
   document.getElementById("closeArchivedHivesBtn").addEventListener("click", App.Modals.closeArchivedHives);
-  document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeArchivedHives);
+  if (overlay) overlay.addEventListener("click", App.Modals.closeArchivedHives);
 
+  // ------------------------------------------------------------
+  // Inspection details modal (read-only)
+  // ------------------------------------------------------------
   document.getElementById("closeInspectionDetailsBtn").addEventListener("click", App.Modals.closeInspectionDetails);
   document.getElementById("cancelInspectionDetailsBtn").addEventListener("click", App.Modals.closeInspectionDetails);
-  document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionDetails);
   document.getElementById("saveInspectionDetailsBtn").addEventListener("click", App.Modals.saveInspectionDetails);
+  if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionDetails);
 
+  // ------------------------------------------------------------
+  // Inspection field config modal
+  // ------------------------------------------------------------
   document.getElementById("inspectionFieldConfigCloseBtn").addEventListener("click", App.Modals.closeInspectionFieldConfig);
   document.getElementById("inspectionFieldConfigCloseBtnFooter").addEventListener("click", App.Modals.closeInspectionFieldConfig);
   document.getElementById("inspectionFieldConfigSaveBtnFooter").addEventListener("click", App.Modals.saveInspectionFieldConfig);
-  document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionFieldConfig);
+  if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionFieldConfig);
 
-  document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeHiveListModal);
+  // ------------------------------------------------------------
+  // Hive list modal
+  // ------------------------------------------------------------
   document.getElementById("hiveListModalCloseBtn1").addEventListener("click", App.Modals.closeHiveListModal);
   document.getElementById("hiveListCloseBtnFooter").addEventListener("click", App.Modals.closeHiveListModal);
+  if (overlay) overlay.addEventListener("click", App.Modals.closeHiveListModal);
 
+  // ------------------------------------------------------------
+  // Exit modal
+  // ------------------------------------------------------------
   document.getElementById("exitFab").addEventListener("click", () => {
-  App.Modals.openExitModal();
-});
+    App.Modals.openExitModal();
+  });
 
-document.getElementById("exitCancelBtn").addEventListener("click", () => {
-  App.Modals.closeExitModal();
-});
+  document.getElementById("exitCancelBtn").addEventListener("click", () => {
+    App.Modals.closeExitModal();
+  });
 
-document.getElementById("exitWithoutSaveBtn").addEventListener("click", () => {
-  App.Modals.exitApp();
-});
+  document.getElementById("exitWithoutSaveBtn").addEventListener("click", () => {
+    App.Modals.exitApp();
+  });
 
-document.getElementById("exitExportBtn").addEventListener("click", () => {
-  App.Export.exportAllData(); // or your existing export function
-  App.Modals.exitApp();
-});
-
+  document.getElementById("exitExportBtn").addEventListener("click", () => {
+    App.Export.exportAllData();
+    App.Modals.exitApp();
+  });
 };
+
