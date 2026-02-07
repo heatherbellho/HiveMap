@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest-v2.json">
   <meta name="theme-color" content="#719454">
 
-  <title>HiveMap</title>
+  <title>HiveMap 2.1.0</title>
 
   <!-- Fabric.js must load before any module that uses it -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
@@ -52,19 +52,18 @@
         <div class="dropdown-item" id="apiaryNew">New Apiary</div>
         <div class="dropdown-item" id="apiaryRename">Rename Apiary</div>
         <div class="dropdown-item" id="apiaryDelete">Delete Apiary</div>
-        <div class="dropdown-item" id="apiaryListHives">List Hives</div>
         <div class="dropdown-item" id="hivesArchived">Archived Hives</div>
         <div class="dropdown-item" id="apiaryPrint" style="border-top: 1px solid #ccc;">Print Apiary</div>
       </div>
     </div>
     <button id="openApiaryNotesBtn" class="toolbar-btn">Apiary Notes</button>
 
-    <span id="toolbarApiaryCounts" class="toolbar-count"></span>
+    <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
   </div>
 
   <!-- CENTER: dropdown menus -->
   <div class="toolbar-group toolbar-center">
-    <span id="toolbarOverallCounts" class="toolbar-count"></span>
+    <button id="toolbarOverallCounts" class="toolbar-btn"></button>
     <button id="dueInspectionsBtn" class="toolbar-btn-alert" style="display:none; position:relative;">
 <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
   <!-- Triangle with black border -->
@@ -121,7 +120,7 @@
     <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
     <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
 
-      <div class="dropdown-item" id="toolsHelp" style="border-top: 1px solid #ccc;">Help</div>
+      <div class="dropdown-item" id="toolsHelp">Help</div>
     </div>
   </div>
 
@@ -163,9 +162,20 @@
 
 </div>
 
-      <div style="margin: 0px 0px 18px; text-align: center;">
-        <small>&copy; 2026 HiveMap <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small>
+      <div id="saveReminder">
+        <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M1 21h22L12 2 1 21z"
+              fill="#fff"
+              stroke="#dd0000"
+              stroke-width="1" />
+        <path d="M12 8v6"
+              stroke="#000"
+              stroke-width="2"
+              stroke-linecap="round" />
+        <circle cx="12" cy="17" r="1.5" fill="#000" />
+      </svg> Remember: <strong>Tools > Export Data</strong> before closing the page.
       </div>
+      <div style="margin: 0px 0px 18px; text-align: center;"><small>&copy; 2026 HiveMap <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
     </div>
   </div>
 
@@ -191,27 +201,38 @@
 
     <!-- LEFT COLUMN -->
     <div class="modal-column">
-<h3 style="margin: 0; padding-left: 12px;">Hive Details</h3>
+
       <div class="modal-section">
-        
-        <div id="hiveApiaryName" class="hive-apiary-label" style="margin-bottom: 12px;"></div>
+        <h4 class="section-title">Hive Details</h4>
 
         <label for="hiveName">Hive ID</label>
         <input type="text" id="hiveName" placeholder="Hive Name">
-              <div class="move-hive-section">
-  <label for="moveHiveSelect">Move to Apiary:</label>
-  <select id="moveHiveSelect"></select>
-  <button id="moveHiveBtn" class="btn-primary" style="margin-top: 12px;">Move</button>
-</div>
-      </div>
 
-      <div class="modal-section">
         <label for="hiveType">Hive Type</label>
         <div class="inline-row">
           <select id="hiveType"></select>
           <button type="button" id="addHiveTypeBtn" class="small-add">+</button>
         </div>
+
+        <label for="lastInspection">This Inspection</label>
+        <input type="date" id="lastInspection">
+
+        <label for="nextInspection">Next Inspection Due</label>
+        <input type="date" id="nextInspection">
+
+        <label for="queenStatus">Status</label>
+        <select id="queenStatus"></select>
       </div>
+
+      <div class="modal-section">
+        <h4 class="section-title">Notes</h4>
+        <textarea id="notes" rows="4" placeholder="Notes about this hive..."></textarea>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="modal-column">
 
       <div class="modal-section">
         <h4 class="section-title">Hive Boxes</h4>
@@ -238,30 +259,8 @@
       </div>
 
 
-
-
-     <!--   <label for="lastInspection">This Inspection</label>
-        <input type="date" id="lastInspection">
-
-        <label for="nextInspection">Next Inspection Due</label>
-        <input type="date" id="nextInspection">
-
-        <label for="queenStatus">Status</label>
-        <select id="queenStatus"></select>-->
-    </div>
-<!--
-      <div class="modal-section">
-        <h4 class="section-title">Notes</h4>
-        <textarea id="notes" rows="4" placeholder="Notes about this hive..."></textarea>
-      </div>-->
-
-
-
-    <!-- RIGHT COLUMN -->
-    <div class="modal-column">
       <div class="modal-section">
         <h4 class="section-title">Inspection History</h4>
-        <button id="newInspectionBtn" class="btn-primary"> New Inspection </button>
         <ul id="inspectionHistoryList" class="inspection-list"></ul>
       </div>
 
@@ -276,41 +275,6 @@
   </footer>
 </div>
 
-<!-- --------------------------------------------------------- -->
-<!-- NEW INSPECTION MODAL                                      -->
-<!-- --------------------------------------------------------- -->
-<div id="newInspectionModal" class="modal" style="display:none;">
-  <div class="modal-content">
-  <header class="modal-header">
-    <h2>New Inspection</h2>
-    <button id="newInspectionClose" class="modal-close">&times;</button>
-  </header>
-
-  <main class="modal-body">
-
-    <label for="newInspectionDate">This Inspection Date</label>
-    <input type="date" id="newInspectionDate">
-
-    <label for="newInspectionNext">Next Inspection Due</label>
-    <input type="date" id="newInspectionNext">
-
-    <label for="newInspectionQueen">Queen Status</label>
-<select id="newInspectionQueen"></select>
-
-
-    <label for="newInspectionNotes">Notes</label>
-    <textarea id="newInspectionNotes"></textarea>
-
-    <div id="newInspectionSchemaFields"></div>
-
-  </main>
-
-  <footer class="modal-footer">
-    <button id="newInspectionSave" class="btn-primary">Save</button>
-    <button id="newInspectionCancel" class="btn-cancel">Cancel</button>
-  </footer>
-</div></div>
-
 <div id="inspectionDetailsModal" class="modal" style="display:none;">
   <div class="modal-content inspection-details-modal">
     <div class="modal-header">
@@ -319,10 +283,8 @@
     </div>
 
     <div class="modal-subheader">
-      <div class="modal-section">
-        <div class="inspectionDetailsStatus"><strong>Status:</strong> <span id="inspectionDetailsStatus"></span></div>
-        <div class="inspectionDetailsNotes"><strong>Notes:</strong> <span id="inspectionDetailsNotes"></span></div>
-      </div>
+      <div><strong>Status:</strong> <span id="inspectionDetailsStatus"></span></div>
+      <div><strong>Notes:</strong> <span id="inspectionDetailsNotes"></span></div>
     </div>
 
     <div class="modal-body inspection-details-grid" id="inspectionDetailsFields">
@@ -450,35 +412,6 @@
   </footer>
 </div>
 
-<!-- Hive List Modal -->
-<div id="hiveListModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="hiveListTitle" style="display:none;">
-  <header class="modal-header">
-    <h2 id="hiveListTitle">Hives in This Apiary</h2>
-    <button id="hiveListCloseBtn" class="modal-close">&times;</button>
-  </header>
-
-<main class="modal-body">
-  <table id="hiveListTable" class="hive-list-table">
-    <thead>
-      <tr>
-        <th>Hive #</th>
-        <th>Queen Status</th>
-        <th>Last</th>
-        <th>Next Due</th>
-        <th>Hive Type</th>
-        <th>Edit</th>
-      </tr>
-    </thead>
-    <tbody id="hiveListBody"></tbody>
-  </table>
-</main>
-
-
-  <footer class="modal-footer">
-    <button id="hiveListCloseBtn2" class="btn-cancel">Close</button>
-  </footer>
-</div>
-
 <!-- Inspections Due Modal -->
 <div id="dueInspectionsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="dueInspectionsTitle" aria-describedby="dueInspectionsDesc">
   <header class="modal-header">
@@ -584,28 +517,31 @@
 </div>
 </div>
 
-<!-- Floating Exit FAB -->
-<button id="exitFab" class="fab-exit">Exit</button>
+<div id="hiveListModal" class="modal">
+    <header class="modal-header">
+    <h2 id="hiveListTitle"></h2>
+    <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
+  </header>
+  <main class="modal-body">
+    <table class="hive-list-table">
+<thead>
+  <tr>
+    <th class="col-hive">Hive</th>
+    <th class="col-status">Queen</th>
+    <th class="col-date">Last</th>
+    <th class="col-date">Next Due</th>
+    <th class="col-type">Type</th>
+    <th class="col-action"></th>
+  </tr>
+</thead>
 
-<!-- Exit / Save Modal -->
-<div id="exitModal" class="modal hidden">
-  <div class="modal-content">
-    <h2>Exit HiveMap</h2>
-    <p>Before you exit, would you like to Export your data?</p>
-
-    <div class="modal-buttons">
-      <button id="exitExportBtn" class="btn-primary">Export & Exit</button>
-      <button id="exitWithoutSaveBtn" class="btn-danger">Exit Without Saving</button>
-      <button id="exitCancelBtn" class="btn-cancel">Cancel</button>
-    </div>
+      <tbody id="hiveListBody"></tbody>
+    </table>
+  </main>
+  <div class="modal-footer">
+    <button id="hiveListCloseBtnFooter" class="btn-cancel">Close</button>
   </div>
 </div>
-
-<div id="exitToast" class="toast hidden">
-  <span>Use the Exit button to safely close your session.</span>
-  <button id="exitToastClose" class="toast-close">×</button>
-</div>
-
 
   <!-- Service worker registration -->
   <script>

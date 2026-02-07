@@ -74,42 +74,32 @@ App.Modals.inspectionSchema =
 
 
 App.Modals.openHiveModal = function (hiveGroup) {
-  App.Modals.currentHive = hiveGroup;
-
   selectedHive = hiveGroup;
   const data = hiveGroup.hiveData || {};
-
-const apiaryName = data.apiaryName || "Unknown Apiary";
-document.getElementById("hiveApiaryName").innerHTML = `<strong>Apiary:</strong> ${apiaryName}`;
-
-
 
   // Ensure arrays exist
   data.boxes = data.boxes || [];
   data.inspections = data.inspections || [];
 
-  // Populate basic hive fields
+  // Populate fields
   document.getElementById("hiveName").value = data.name || "";
   App.Hives.populateTypeSelect(data.hiveType || "");
-
-  // Width & height
+  document.getElementById("lastInspection").value = "";
+  document.getElementById("nextInspection").value = data.nextInspectionDate || "";
+  document.getElementById("notes").value = "";
   const rect = hiveGroup._objects[0];
   document.getElementById("editHiveWidth").value = rect.width;
   document.getElementById("editHiveHeight").value = rect.height;
 
-  // 🔹 Latest inspection (from unified inspections[])
-  const latest = data.inspections.length
-    ? data.inspections[data.inspections.length - 1]
-    : null;
+  // Latest inspection
+  const latest = data.inspections[data.inspections.length - 1] || {};
+  App.Status.populateStatusSelect(latest.queenStatus || "");
 
-  // Populate Queen Status selector
-  App.Status.populateStatusSelect(latest ? latest.queenStatus : "");
-
-  // Render boxes + inspection history (already uses inspections[])
+  // Render boxes + inspection history
   App.Modals.renderBoxList();
   App.Modals.renderInspectionHistory();
 
-  // 🔹 Archive / Restore logic
+  // 🔹 Show correct archive/restore button and wire handlers
   const archiveBtn = document.getElementById("archiveHiveBtn");
   const restoreBtn = document.getElementById("restoreHiveBtn");
 
@@ -121,49 +111,6 @@ document.getElementById("hiveApiaryName").innerHTML = `<strong>Apiary:</strong> 
       archiveBtn.style.display = "inline-block";
       restoreBtn.style.display = "none";
     }
-// Populate Move Hive dropdown
-const moveSelect = document.getElementById("moveHiveSelect");
-moveSelect.innerHTML = "";
-
-const currentApiary = data.apiaryName;
-const allApiaries = Storage.getAllApiaries() || [];
-
-allApiaries
-  .filter(a => a !== currentApiary)
-  .forEach(apiary => {
-    const opt = document.createElement("option");
-    opt.value = apiary;
-    opt.textContent = apiary;
-    moveSelect.appendChild(opt);
-  });
-
-  document.getElementById("moveHiveBtn").onclick = function () {
-  const targetApiary = moveSelect.value;
-  if (!targetApiary) return;
-
-  if (!confirm(`Move hive ${data.name} to apiary "${targetApiary}"?`)) {
-    return;
-  }
-
-  // 1. Remove hive from current apiary layout
-  const oldApiary = Storage.getCurrentApiary();
-  App.Canvas.saveLayout(); // save before switching
-
-// 2. Switch to target apiary (official method)
-App.Apiaries.switch(targetApiary);
-
-
-  // 3. Add hive to new apiary canvas
-  const hiveClone = fabric.util.object.clone(selectedHive);
-  hiveClone.hiveData.apiaryName = targetApiary;
-
-  App.Canvas.get().add(hiveClone);
-  App.Canvas.saveLayout();
-
-  // 4. Reload modal for the moved hive
-  App.Modals.closeHiveModal();
-  App.Modals.openHiveModal(hiveClone);
-};
 
     archiveBtn.onclick = function () {
       if (!selectedHive) return;
@@ -201,167 +148,9 @@ App.Modals.closeHiveModal = function () {
   document.getElementById("modal").style.display = "none";
     const anyOpen = [...document.querySelectorAll('.modal')]
   .some(m => m.style.display === "block");
-document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
+  document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
   selectedHive = null;
 };
-
-// ------------------------------------------------------------
-// OPEN NEW INSPECTION MODAL
-// ------------------------------------------------------------
-App.Modals.openNewInspectionModal = function (hiveObj) {
-  App.Modals.currentHive = hiveObj;
-
-  // Populate queen statuses for this modal
-  App.Status.populateStatusSelect("", "newInspectionQueen");
-
-  // Clear core fields
-  document.getElementById("newInspectionDate").value = "";
-  document.getElementById("newInspectionNext").value = "";
-  document.getElementById("newInspectionNotes").value = "";
-
-  // ------------------------------------------------------------
-  // Render extended inspection fields (same schema as details)
-  // ------------------------------------------------------------
-  const fieldsContainer = document.getElementById("newInspectionSchemaFields");
-  fieldsContainer.innerHTML = "";
-
-  // Sort groups by sortOrder
-  const groups = [...App.Modals.inspectionSchema.groups].sort(
-    (a, b) => a.sortOrder - b.sortOrder
-  );
-
-  groups.forEach(group => {
-    const groupWrapper = document.createElement("div");
-    groupWrapper.className = "modal-section";
-
-    const groupTitle = document.createElement("h3");
-    groupTitle.textContent = group.name;
-    groupWrapper.appendChild(groupTitle);
-
-    const grid = document.createElement("div");
-    grid.className = "inspection-details-grid";
-
-    const fields = [...group.fields].sort(
-      (a, b) => a.sortOrder - b.sortOrder
-    );
-
-    fields.forEach(field => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "inspection-field";
-
-      const label = document.createElement("label");
-      label.textContent = field.label;
-      label.setAttribute("for", "new_" + field.id);
-
-      let input;
-
-      if (field.type === "textarea") {
-        input = document.createElement("textarea");
-      } else if (field.type === "checkbox") {
-        input = document.createElement("input");
-        input.type = "checkbox";
-      } else {
-        input = document.createElement("input");
-        input.type = field.type; // text, number, etc.
-      }
-
-      input.id = "new_" + field.id;
-      input.dataset.key = field.id;
-
-      wrapper.appendChild(label);
-      wrapper.appendChild(input);
-      grid.appendChild(wrapper);
-    });
-
-    groupWrapper.appendChild(grid);
-    fieldsContainer.appendChild(groupWrapper);
-  });
-
-  // Show modal + overlay
-  document.getElementById("newInspectionModal").style.display = "block";
-  document.getElementById("overlay").style.display = "block";
-};
-
-
-
-// ------------------------------------------------------------
-// CLOSE NEW INSPECTION MODAL
-// ------------------------------------------------------------
-App.Modals.closeNewInspectionModal = function () {
-  document.getElementById("newInspectionModal").style.display = "none";
-    const anyOpen = [...document.querySelectorAll('.modal')]
-  .some(m => m.style.display === "block");
-document.getElementById("overlay").style.display = anyOpen ? "block" : "none";};
-
-// ------------------------------------------------------------
-// SAVE NEW INSPECTION
-// ------------------------------------------------------------
-App.Modals.saveNewInspection = function () {
-  const hive = App.Modals.currentHive;
-  if (!hive || !hive.hiveData) return;
-
-  const data = hive.hiveData;
-
-  // Ensure inspections array exists
-  data.inspections = data.inspections || [];
-
-  // ---------------------------------------------
-  // Core fields
-  // ---------------------------------------------
-  const date = document.getElementById("newInspectionDate").value;
-  const nextDue = document.getElementById("newInspectionNext").value;
-  const queenStatus = document.getElementById("newInspectionQueen").value;
-  const notes = document.getElementById("newInspectionNotes").value;
-
-  // ---------------------------------------------
-  // Schema fields
-  // ---------------------------------------------
-  const schemaValues = {};
-
-  const groups = [...App.Modals.inspectionSchema.groups];
-  groups.forEach(group => {
-    group.fields.forEach(field => {
-      const input = document.getElementById("new_" + field.id);
-      if (!input) return;
-
-      let value;
-
-      if (field.type === "checkbox") {
-        value = input.checked;
-      } else {
-        value = input.value;
-      }
-
-      schemaValues[field.id] = value;
-    });
-  });
-
-  // ---------------------------------------------
-  // Build inspection object (unified structure)
-  // ---------------------------------------------
-  const newInspection = {
-    date,
-    queenStatus,
-    notes,
-    fields: schemaValues
-  };
-
-  // Add to hive
-  data.inspections.push(newInspection);
-
-  // Update hive-level next inspection + status
-  data.nextInspectionDate = nextDue;
-  data.status = queenStatus;
-
-  // Persist
-  App.Canvas.saveLayout();
-
-  // Refresh UI
-  App.Modals.closeNewInspectionModal();
-  App.Modals.openHiveModal(hive);
-  App.Canvas.requestRender();
-};
-
 
 App.Modals.confirmEditHive = function (hive) {
   const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
@@ -498,45 +287,40 @@ App.Modals.renderInspectionHistory = function () {
   const data = selectedHive.hiveData;
   container.innerHTML = "";
 
-  // Sort inspections by date (newest first)
-  const sorted = data.inspections.slice().sort((a, b) => {
-    const da = new Date(a.date || "1900-01-01");
-    const db = new Date(b.date || "1900-01-01");
-    return db - da; // newest first
-  });
-
-  sorted.forEach((ins, displayIndex) => {
-    const originalIndex = data.inspections.indexOf(ins);
+  data.inspections.slice().reverse().forEach((ins, reversedIndex) => {
+    const originalIndex = data.inspections.length - 1 - reversedIndex;
 
     const li = document.createElement("li");
     li.style.marginBottom = "6px";
 
-    li.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:start; gap:6px;">
-        <div>
-          <strong>${App.Utils.formatDateUK(ins.date)}</strong> - Status: ${ins.queenStatus || "N/A"}<br>
-          Notes: ${ins.notes || ""}
-        </div>
-        <button class="inspectionDetailsBtn btn-info" data-index="${originalIndex}">Details</button>
-        <button type="button"
-                class="deleteInspectionBtn small-delete"
-                data-index="${originalIndex}">
-                ×
-        </button>
-      </div>
-    `;
+li.innerHTML = `
+  <div style="display:flex; justify-content:space-between; align-items:start; gap:6px;">
+    <div>
+      <strong>${App.Utils.formatDateUK(ins.date)}</strong> - Status: ${ins.queenStatus || "N/A"}<br>
+      Notes: ${ins.notes || ""}
+    </div>
+    <button class="inspectionDetailsBtn btn-info" data-index="${originalIndex}">Details</button>
+    <button type="button"
+            class="deleteInspectionBtn small-delete"
+            data-index="${originalIndex}">
+            ×
+    </button>
+  </div>
+`;
+
 
     container.appendChild(li);
   });
 
-  // Attach handlers
-  container.querySelectorAll(".inspectionDetailsBtn").forEach(btn => {
-    btn.addEventListener("click", e => {
-      const index = e.target.dataset.index;
-      App.Modals.openInspectionDetails(index);
+document.querySelectorAll(".inspectionDetailsBtn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+        const index = e.target.dataset.index;   // <-- THIS is the real index
+        App.Modals.openInspectionDetails(index);
     });
-  });
+});
 
+
+  // Attach delete handlers
   container.querySelectorAll(".deleteInspectionBtn").forEach(btn => {
     btn.addEventListener("click", e => {
       const index = parseInt(e.target.dataset.index, 10);
@@ -689,104 +473,6 @@ App.Stats.update();
 };
 
 // ------------------------------------------------------------
-// HIVE LIST MODAL
-// ------------------------------------------------------------
-
-App.Modals.openHiveListModal = function () {
-  document.getElementById("hiveListModal").style.display = "block";
-  document.getElementById("overlay").style.display = "block";
-const apiaryName = Storage.getCurrentApiary() || "Unknown Apiary";
-document.getElementById("hiveListTitle").textContent = `Apiary: ${apiaryName}`;
-
-  const tbody = document.getElementById("hiveListBody");
-  tbody.innerHTML = "";
-
-  const apiaryId = Storage.getCurrentApiary();
-  if (!apiaryId) {
-    const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="6">No apiary selected.</td>`;
-    tbody.appendChild(row);
-    return;
-  }
-
-  let hives = App.Canvas.getAllHives().filter(h => {
-    const data = App.Canvas.getHiveData(h);
-    return data && data.status !== "archived";
-  });
-
-  if (hives.length === 0) {
-    const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="6">No hives in this apiary.</td>`;
-    tbody.appendChild(row);
-    return;
-  }
-
-  // Sort by hive name (numeric)
-  hives.sort((a, b) =>
-    Number(App.Canvas.getHiveData(a).name) -
-    Number(App.Canvas.getHiveData(b).name)
-  );
-
-hives.forEach(hive => {
-  const data = App.Canvas.getHiveData(hive);
-  if (!data) return;
-
-  const name = data.name || "—";
-  const hiveType = data.hiveType || "—";
-
-  // Use inspections[] as the single source of truth
-  const inspections = data.inspections || [];
-
-  // Last inspection = last entry in inspections[]
-  const lastEntry =
-    inspections.length > 0
-      ? inspections[inspections.length - 1]
-      : null;
-
-  const queenStatus = lastEntry
-    ? (lastEntry.queenStatus || "—")
-    : "—";
-
-  const lastDate = lastEntry
-    ? (lastEntry.date || "—")
-    : "—";
-
-  // Next due date is stored at the hive root
-  const nextDue = data.nextInspectionDate || "—";
-
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${name}</td>
-    <td>${queenStatus}</td>
-    <td>${lastDate}</td>
-    <td>${nextDue}</td>
-    <td>${hiveType}</td>
-    <td><button class="btn-primary" data-hive="${name}">Edit</button></td>
-  `;
-  tbody.appendChild(row);
-});
-
-
-  // Wire up Edit buttons
-  tbody.querySelectorAll(".btn-primary").forEach(btn => {
-    btn.addEventListener("click", function () {
-      const hiveName = this.getAttribute("data-hive");
-      const hiveObj = App.Canvas.getAllHives().find(h => {
-        const d = App.Canvas.getHiveData(h);
-        return d && d.name === hiveName;
-      });
-      if (hiveObj) App.Modals.openHiveModal(hiveObj);
-    });
-  });
-};
-
-App.Modals.closeHiveListModal = function () {
-  document.getElementById("hiveListModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-};
-
-
-// ------------------------------------------------------------
 // Open the Inspections Due modal
 // ------------------------------------------------------------
 App.Modals.openDueInspections = function () {
@@ -804,71 +490,32 @@ App.Modals.openDueInspections = function () {
     const next7Str = next7.toISOString().slice(0, 10);
 
     // Apply filter if checkbox is ticked
-    const list = filterCheckbox.checked
-      ? fullList.filter(item =>
-          item.dueDate <= today || // overdue or today
-          (item.dueDate > today && item.dueDate <= next7Str) // next 7 days
-        )
-      : fullList;
+const list = filterCheckbox.checked
+  ? fullList.filter(item =>
+      item.dueDate <= today || // overdue or today
+      (item.dueDate > today && item.dueDate <= next7Str) // next 7 days
+    )
+  : fullList;
+
 
     if (list.length === 0) {
       container.innerHTML = "<li>No inspections in this range.</li>";
       return;
     }
 
-    // ---------------------------------------------
-    // GROUP BY APIARY
-    // ---------------------------------------------
-    const groups = {};
     list.forEach(item => {
-      if (!groups[item.apiaryName]) groups[item.apiaryName] = [];
-      groups[item.apiaryName].push(item);
-    });
+      const li = document.createElement("li");
+      li.textContent = `${item.apiaryName} – Hive ${item.hiveName} (${App.Utils.formatDateUK(item.dueDate)})`;
 
-    // ---------------------------------------------
-    // RENDER GROUPS
-    // ---------------------------------------------
-    Object.keys(groups).forEach(apiaryName => {
-      const header = document.createElement("h3");
-      header.textContent = apiaryName;
-      header.className = "due-apiary-header";
-      container.appendChild(header);
+      if (item.dueDate < today) {
+        li.classList.add("due-overdue");
+      } else if (item.dueDate === today) {
+        li.classList.add("due-today");
+      } else {
+        li.classList.add("due-future");
+      }
 
-      groups[apiaryName].forEach(item => {
-        const li = document.createElement("li");
-
-        // ---------------------------------------------
-        // COLOUR‑CODED BADGES
-        // ---------------------------------------------
-        let badge = "";
-        if (item.dueDate < today) {
-          badge = `<span class="badge-due badge-overdue">Overdue</span>`;
-          li.classList.add("due-overdue");
-        } else if (item.dueDate === today) {
-          badge = `<span class="badge-due badge-today">Today</span>`;
-          li.classList.add("due-today");
-        } else {
-          badge = `<span class="badge-due badge-future">Due</span>`;
-          li.classList.add("due-future");
-        }
-
-        // ---------------------------------------------
-        // CLICK‑TO‑OPEN HIVE MODAL
-        // ---------------------------------------------
-        li.innerHTML = `
-          ${badge}
-          <span class="due-hive-link">
-            Hive ${item.hiveName} – ${App.Utils.formatDateUK(item.dueDate)}
-          </span>
-        `;
-
-        li.querySelector(".due-hive-link").onclick = () => {
-          const hive = App.Utils.findHiveByName(item.hiveName);
-          if (hive) App.Modals.openHiveModal(hive);
-        };
-
-        container.appendChild(li);
-      });
+      container.appendChild(li);
     });
   }
 
@@ -884,16 +531,13 @@ App.Modals.openDueInspections = function () {
 };
 
 
-
 // ------------------------------------------------------------
 // Close the Inspections Due modal
 // ------------------------------------------------------------
 App.Modals.closeDueInspections = function () {
   
   document.getElementById("dueInspectionsModal").style.display = "none";
-    const anyOpen = [...document.querySelectorAll('.modal')]
-  .some(m => m.style.display === "block");
-document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
+document.getElementById("overlay").style.display = "none";
 
 };
 
@@ -1025,16 +669,6 @@ groups.forEach(group => {
     input.id = "detail_" + field.id;
     input.dataset.key = field.id;
 
-    // Load saved value
-if (inspection.fields && inspection.fields.hasOwnProperty(field.id)) {
-  if (field.type === "checkbox") {
-    input.checked = !!inspection.fields[field.id];
-  } else {
-    input.value = inspection.fields[field.id];
-  }
-}
-
-
     wrapper.appendChild(label);
     wrapper.appendChild(input);
     grid.appendChild(wrapper);
@@ -1044,6 +678,23 @@ if (inspection.fields && inspection.fields.hasOwnProperty(field.id)) {
   fieldsContainer.appendChild(groupWrapper);
 });
 
+// ------------------------------------------------------------
+// Load existing values into the extended fields (schema‑driven)
+// ------------------------------------------------------------
+App.Modals.inspectionSchema.groups.forEach(group => {
+  group.fields.forEach(field => {
+    const input = document.getElementById("detail_" + field.id);
+    if (!input) return;
+
+    const value = inspection[field.id];
+
+    if (field.type === "checkbox") {
+      input.checked = !!value;
+    } else {
+      input.value = value || "";
+    }
+  });
+});
 
 
   // Show modal
@@ -1427,19 +1078,316 @@ App.Modals.saveInspectionFieldConfig = function () {
   App.Modals.closeInspectionFieldConfig();
 };
 
-// ------------------------------------------------------------
-// Exit Modal
-// ------------------------------------------------------------
-App.Modals.openExitModal = function () {
-  document.getElementById("exitModal").classList.remove("hidden");
+App.Modals.openHiveListModal = function () {
+
+  // Show modal + overlay
+  document.getElementById("hiveListModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+
+  // Title
+  const apiaryName = Storage.getCurrentApiary() || "Unknown Apiary";
+  document.getElementById("hiveListTitle").textContent = `Apiary: ${apiaryName}`;
+
+  const tbody = document.getElementById("hiveListBody");
+  tbody.innerHTML = "";
+
+  const apiaryId = Storage.getCurrentApiary();
+  if (!apiaryId) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="6">No apiary selected.</td>`;
+    tbody.appendChild(row);
+    return;
+  }
+
+  // Get active hives from canvas
+  let hives = App.Canvas.getAllHives().filter(h => {
+    const data = App.Canvas.getHiveData(h);
+    return data && data.status !== "archived";
+  });
+
+  if (hives.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="6">No hives in this apiary.</td>`;
+    tbody.appendChild(row);
+    return;
+  }
+
+  // Sort numerically by hive name
+  hives.sort((a, b) =>
+    Number(App.Canvas.getHiveData(a).name) -
+    Number(App.Canvas.getHiveData(b).name)
+  );
+
+  // Build rows
+  hives.forEach(hive => {
+    const data = App.Canvas.getHiveData(hive);
+    if (!data) return;
+
+    const name = data.name || "—";
+    const hiveType = data.hiveType || "—";
+
+    // inspections[] = single source of truth
+    const inspections = data.inspections || [];
+    const lastEntry = inspections.length > 0
+      ? inspections[inspections.length - 1]
+      : null;
+
+    const queenStatus = lastEntry
+      ? (lastEntry.queenStatus || "—")
+      : "—";
+
+    const lastDate = lastEntry && lastEntry.date
+      ? App.Utils.formatDateUK(lastEntry.date)
+      : "—";
+
+    const nextDue = data.nextInspectionDate
+      ? App.Utils.formatDateUK(data.nextInspectionDate)
+      : "—";
+
+    // Queen status badge colour
+    const badgeColor = App.Status.getColor(queenStatus);
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${name}</td>
+      <td>
+        <span class="status-badge" style="background:${badgeColor}">
+          ${queenStatus}
+        </span>
+      </td>
+      <td class="col-date">${lastDate}</td>
+      <td class="col-date">${nextDue}</td>
+      <td>${hiveType}</td>
+      <td class="col-action">
+        <button class="btn-primary" data-hive="${name}">Edit</button>
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+  // Wire up Edit buttons
+  tbody.querySelectorAll(".edit-hive-btn").forEach(btn => {
+    btn.addEventListener("click", function () {
+      const hiveName = this.getAttribute("data-hive");
+      const hiveObj = App.Canvas.getAllHives().find(h => {
+        const d = App.Canvas.getHiveData(h);
+        return d && d.name === hiveName;
+      });
+      if (hiveObj) App.Modals.openHiveModal(hiveObj);
+    });
+  });
 };
 
-App.Modals.closeExitModal = function () {
-  document.getElementById("exitModal").classList.add("hidden");
+App.Modals.openOverallHiveListModal = function () {
+
+  const modal = document.getElementById("hiveListModal");
+  const overlay = document.getElementById("overlay");
+  const tbody = document.getElementById("hiveListBody");
+
+  modal.style.display = "block";
+  overlay.style.display = "block";
+
+  document.getElementById("hiveListTitle").textContent = "All Apiaries";
+
+  tbody.innerHTML = "";
+
+  const apiaryNames = Storage.getAllApiaries() || [];
+  const originalApiary = Storage.getCurrentApiary();
+
+  let allHives = [];
+
+  // ------------------------------------------------------------
+  // LOAD ALL APIARIES + COLLECT HIVE DATA
+  // ------------------------------------------------------------
+  apiaryNames.forEach(apiaryName => {
+
+    Storage.saveCurrentApiary(apiaryName);
+    App.Canvas.loadLayout();
+
+    const hives = App.Canvas.getAllHives();
+
+    hives.forEach(h => {
+      const data = App.Canvas.getHiveData(h);
+      if (data && data.status !== "archived") {
+        allHives.push({
+          apiaryName,
+          hiveObj: h,
+          data
+        });
+      }
+    });
+  });
+
+  // Restore original apiary
+  Storage.saveCurrentApiary(originalApiary);
+  App.Canvas.loadLayout();
+
+  if (allHives.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="6">No hives found.</td>`;
+    tbody.appendChild(row);
+    return;
+  }
+
+  // Sort by apiary, then hive number
+  allHives.sort((a, b) => {
+    if (a.apiaryName < b.apiaryName) return -1;
+    if (a.apiaryName > b.apiaryName) return 1;
+    return Number(a.data.name) - Number(b.data.name);
+  });
+
+  // ------------------------------------------------------------
+  // BUILD COLLAPSIBLE GROUPED TABLE
+  // ------------------------------------------------------------
+  let currentGroup = null;
+  let groupIndex = 0;
+
+  allHives.forEach(({ apiaryName, hiveObj, data }) => {
+
+    // Insert group header when apiary changes
+    if (apiaryName !== currentGroup) {
+      currentGroup = apiaryName;
+      groupIndex++;
+
+      const headerRow = document.createElement("tr");
+      headerRow.classList.add("apiary-group-row");
+      headerRow.setAttribute("data-group", groupIndex);
+      headerRow.innerHTML = `
+        <td colspan="6" class="apiary-group-header">
+        <span class="apiary-toggle" data-group="${groupIndex}">►</span>
+        <span class="apiary-group-click" data-group="${groupIndex}">${apiaryName}</span>
+        </td>
+      `;
+
+      tbody.appendChild(headerRow);
+    }
+
+    const name = data.name || "—";
+    const hiveType = data.hiveType || "—";
+
+    const inspections = data.inspections || [];
+    const lastEntry = inspections.length > 0
+      ? inspections[inspections.length - 1]
+      : null;
+
+    const queenStatus = lastEntry
+      ? (lastEntry.queenStatus || "—")
+      : "—";
+
+    const lastDate = lastEntry && lastEntry.date
+      ? App.Utils.formatDateUK(lastEntry.date)
+      : "—";
+
+    const nextDue = data.nextInspectionDate
+      ? App.Utils.formatDateUK(data.nextInspectionDate)
+      : "—";
+
+    const badgeColor = App.Status.getColor(queenStatus);
+
+    const row = document.createElement("tr");
+    row.classList.add("apiary-group-item");
+    row.setAttribute("data-group", groupIndex);
+
+    // ⭐ collapse all groups by default
+    row.style.display = "none";
+
+
+    row.innerHTML = `
+      <td>${name}</td>
+      <td>
+        <span class="status-badge" style="background:${badgeColor}">
+          ${queenStatus}
+        </span>
+      </td>
+      <td class="col-date">${lastDate}</td>
+      <td class="col-date">${nextDue}</td>
+      <td>${hiveType}</td>
+      <td class="col-action">
+        <button class="btn-primary edit-hive-btn" 
+                data-hive="${name}" 
+                data-apiary="${apiaryName}">
+          Edit
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(row);
+  });
+
+  // ------------------------------------------------------------
+  // COLLAPSE / EXPAND GROUPS
+  // ------------------------------------------------------------
+// ------------------------------------------------------------
+// COLLAPSE / EXPAND GROUPS
+// ------------------------------------------------------------
+const toggleGroup = function (group) {
+  const toggle = tbody.querySelector(`.apiary-toggle[data-group="${group}"]`);
+  const rows = tbody.querySelectorAll(`tr[data-group="${group}"].apiary-group-item`);
+
+  const isOpen = toggle.textContent === "▼";
+  toggle.textContent = isOpen ? "►" : "▼";
+
+  rows.forEach(r => {
+    r.style.display = isOpen ? "none" : "";
+  });
 };
 
-App.Modals.exitApp = function () {
-  window.location.href = "exit.html";
+// Click the icon
+tbody.querySelectorAll(".apiary-toggle").forEach(toggle => {
+  toggle.addEventListener("click", function (e) {
+    e.stopPropagation(); // prevent double toggles
+    toggleGroup(this.getAttribute("data-group"));
+  });
+});
+
+// Click the header text
+tbody.querySelectorAll(".apiary-group-click").forEach(header => {
+  header.addEventListener("click", function (e) {
+    e.stopPropagation();
+    toggleGroup(this.getAttribute("data-group"));
+  });
+});
+
+// ⭐ Click the entire header row
+tbody.querySelectorAll(".apiary-group-row").forEach(row => {
+  row.addEventListener("click", function () {
+    const group = this.getAttribute("data-group");
+    toggleGroup(group);
+  });
+});
+
+
+  // ------------------------------------------------------------
+  // EDIT BUTTONS
+  // ------------------------------------------------------------
+  tbody.querySelectorAll(".edit-hive-btn").forEach(btn => {
+    btn.addEventListener("click", function () {
+
+      const hiveName = this.getAttribute("data-hive");
+      const apiaryName = this.getAttribute("data-apiary");
+
+      Storage.saveCurrentApiary(apiaryName);
+      App.Canvas.loadLayout();
+
+      const hiveObj = App.Canvas.getAllHives().find(h => {
+        const d = App.Canvas.getHiveData(h);
+        return d && d.name === hiveName;
+      });
+
+      if (hiveObj) App.Modals.openHiveModal(hiveObj);
+
+      Storage.saveCurrentApiary(originalApiary);
+      App.Canvas.loadLayout();
+    });
+  });
+};
+
+
+
+App.Modals.closeHiveListModal = function () {
+  document.getElementById("hiveListModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
 };
 
 // ------------------------------------------------------------
@@ -1482,30 +1430,7 @@ App.Modals.init = function () {
   document.getElementById("inspectionFieldConfigSaveBtnFooter").addEventListener("click", App.Modals.saveInspectionFieldConfig);
   document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionFieldConfig);
 
-  document.getElementById("apiaryListHives").addEventListener("click", App.Modals.openHiveListModal);
-  const toolbarCounts = document.getElementById("toolbarApiaryCounts");
-if (toolbarCounts) {
-  toolbarCounts.addEventListener("click", App.Modals.openHiveListModal);
-}
-
-  document.getElementById("hiveListCloseBtn").addEventListener("click", App.Modals.closeHiveListModal);
-  document.getElementById("hiveListCloseBtn2").addEventListener("click", App.Modals.closeHiveListModal);
   document.getElementById("overlay"); if (overlay) overlay.addEventListener("click", App.Modals.closeHiveListModal);
-  
-  document.getElementById("newInspectionBtn").addEventListener("click", () => App.Modals.openNewInspectionModal(App.Modals.currentHive));
-  document.getElementById("newInspectionClose").addEventListener("click", App.Modals.closeNewInspectionModal);
-  document.getElementById("newInspectionCancel").addEventListener("click", App.Modals.closeNewInspectionModal);
-  document.getElementById("newInspectionSave").addEventListener("click", App.Modals.saveNewInspection);
-
-document.getElementById("exitFab").addEventListener("click", App.Modals.openExitModal);
-
-document.getElementById("exitCancelBtn").addEventListener("click", App.Modals.closeExitModal);
-
-document.getElementById("exitWithoutSaveBtn").addEventListener("click",  App.Modals.exitApp);
-
-document.getElementById("exitExportBtn").addEventListener("click", () => {
-  App.Export.exportAllData(); // or your existing export function
-  App.Modals.exitApp();
-});
-
+  document.getElementById("hiveListModalCloseBtn1").addEventListener("click", App.Modals.closeHiveListModal);
+  document.getElementById("hiveListCloseBtnFooter").addEventListener("click", App.Modals.closeHiveListModal);
 };

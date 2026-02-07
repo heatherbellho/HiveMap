@@ -416,7 +416,6 @@ body {
   .modal-body {
     flex-direction: column;
   }
-
 }
 
 .used-hive-numbers {
@@ -557,11 +556,12 @@ body {
   white-space: pre-wrap;
 }
 
-
 .modal-close {
+  padding: 0px 6px;
+  border-radius: 6px;
   float: right;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .note-row {
@@ -764,7 +764,7 @@ body {
 ----------------------------------------------------------- */
 .toolbar-btn {
   background: #e5b25d;
-  color: #763d0e;
+  color: #000;
   border: 1px solid #763d0e;
   padding: 6px 12px;
   border-radius: 6px;
@@ -1041,8 +1041,8 @@ body {
   padding: 0 !important;
   z-index: 1000 !important;
   min-width: 320px !important;
-  max-width: 480px;
-  max-height: 90vh;
+  max-width: 900px;
+  max-height: 80vh;
   display: none;
   overflow-y: auto;
 }
@@ -1127,8 +1127,9 @@ body {
 .modal-hive-edit {
   max-width: 900px !important;
   width: 95vw !important;
-  max-height: 90vh;
+  max-height: 80vh !important;
   overflow-y: auto;
+  z-index: 1100 !important;
 }
 
 .btn-save {
@@ -1194,7 +1195,7 @@ body {
 .inspection-field input[type="text"],
 .inspection-field input[type="number"],
 .inspection-field textarea {
-  width: 90%;
+  width: 100%;
   padding: 6px;
   box-sizing: border-box;
 }
@@ -1208,7 +1209,7 @@ body {
 #inspectionFieldConfigModal
  {
   width: 90% !important;
-  max-width: 800px !important;
+  max-width: 900px !important;
 }
 /* Force the grid to actually behave like a grid */
 #inspectionDetailsFields {
@@ -1323,265 +1324,84 @@ canvas {
   width: 70px; /* adjust as needed */
 }
 
-/* Base table */
 .hive-list-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-/* Header */
-.hive-list-table thead {
-  background: #f3f3f3;
+  font-size: 14px;
 }
 
 .hive-list-table th {
-  padding: 10px 12px;
-  font-weight: 700;
   text-align: left;
-  border-bottom: 2px solid #ccc;
-  white-space: nowrap;
+  padding: 6px 8px;
+  border-bottom: 2px solid #ddd;
+  font-weight: 600;
 }
 
-/* Rows */
 .hive-list-table td {
-  padding: 8px 12px;
-  border-bottom: 1px solid #e2e2e2;
-  white-space: nowrap;
+  padding: 10px 8px;
+  border-bottom: 1px solid #eee;
 }
 
-/* Zebra striping */
-.hive-list-table tbody tr:nth-child(even) {
+.hive-list-table tr:nth-child(even) {
   background: #fafafa;
 }
 
-/* Hover highlight */
-.hive-list-table tbody tr:hover {
-  background: #f0f7ff;
-}
+.col-hive { width: 60px; }
+.col-status { width: 120px; }
+.col-date { width: 120px;}
+.col-type { width: 150px;}
+.col-action { width: 50px;}
 
-/* Edit button column */
-.hive-list-table td:last-child {
-  text-align: right;
-}
-
-/* Edit button styling */
-.hive-list-table .btn-edit-hive {
-  padding: 4px 10px;
-  font-size: 13px;
-  border: 1px solid #888;
-  background: #eee;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.hive-list-table .btn-edit-hive:hover {
-  background: #ddd;
-}
-
-#hiveListModal {
-  max-width: 600px !important;
-}
-.modal-hive-edit { 
-  z-index: 1100 !important; 
-}
-#inspectionDetailsModal {
-  z-index: 1200 !important;
-}
-/* Root modal container */
-#newInspectionModal {
-  z-index: 1200 !important;
-  max-width: 900px !important;
-}
-
-/* Inner modal box */
-#newInspectionModal .modal-content {
-  max-width: 900px !important;
-  width: 100% !important;
-  background: #fff !important;
-  border-radius: 6px !important;
-  box-sizing: border-box !important;
-}
-
-/* BODY: 2‑column grid for the top fields */
-#newInspectionModal .modal-body {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
-  column-gap: 20px !important;
-  row-gap: 12px !important;
-  padding: 16px 20px !important;
-  box-sizing: border-box !important;
-}
-
-
-/* Labels */
-#newInspectionModal .modal-body label {
-  display: block !important;
-  font-weight: 600 !important;
-  margin-bottom: 4px !important;
-}
-
-/* Inputs */
-#newInspectionModal .modal-body input[type="date"],
-#newInspectionModal .modal-body select,
-#newInspectionModal .modal-body textarea {
-  width: 100% !important;
-  padding: 6px 8px !important;
-  font-size: 14px !important;
-  box-sizing: border-box;
-}
-
-/* NOTES spans full width */
-#newInspectionModal #newInspectionNotes {
-  grid-column: 1 / -1 !important;
-  min-height: 80px !important;
-  resize: vertical !important;
-}
-
-/* SCHEMA FIELDS: 2–3 column grid */
-#newInspectionModal #newInspectionSchemaFields {
-  grid-column: 1 / -1 !important;
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-  gap: 16px 24px !important;
-}
-
-/* Footer */
-#newInspectionModal .modal-footer {
-  display: flex !important;
-  justify-content: flex-end !important;
-  gap: 10px !important;
-  padding: 12px 20px 20px !important;
-}
-#newInspectionModal #newInspectionSchemaFields {
-  grid-column: 1 / -1 !important;
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
-  gap: 16px 24px !important;
-}
-.inspectionDetailsStatus,
-.inspectionDetailsNotes {
-  margin: 12px 0px 12px 0px !important;
-}
-
-.badge-due {
+.status-badge {
+  display: inline-block;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.75rem;
-  margin-right: 6px;
-  color: white;
+  font-size: 12px;
+  color: #000;
 }
 
-.badge-overdue { background: #b30000; } /* red */
-.badge-today { background: #cc7a00; }   /* amber */
-.badge-future { background: #2d7a2d; }  /* blue */
-
-.due-apiary-header {
-  margin-top: 12px;
-  margin-bottom: 6px;
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.due-hive-link {
-  cursor: pointer;
-  text-decoration: underline;
-}
-/* Floating Exit FAB */
-.fab-exit {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: #ff6666;
-  color: #fff;
-  border: none;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-  z-index: 9999;
-}
-
-/* Exit Modal */
-#exitModal.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
+.hive-list-table {
   width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9998;
+  table-layout: auto;
 }
 
-#exitModal.hidden {
-  display: none;
+#hiveListModal.modal {
+  width: 900px;
+  max-width: 90vw;
+}
+.apiary-group-row {
+  background: #f0f0f0;
 }
 
-#exitModal .modal-content {
-  background: #fff;
-  padding: 20px;
-  width: 320px;
-  border-radius: 8px;
-  text-align: center;
+.apiary-group-header {
+  font-weight: bold;
+  padding: 8px;
+  font-size: 1.1em;
+  border-top: 2px solid #ccc;
 }
-
-#exitModal .modal-buttons {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-#toolbarApiaryCounts {
+.apiary-group-row {
+  background: #f0f0f0;
   cursor: pointer;
 }
-#toolbarApiaryCounts:hover {
-  opacity: 0.8;
-}
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: #ff6666;
-  color: #fff;
-  padding: 18px 18px;
-  border-radius: 6px;
- /* font-size: 14px;*/
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  opacity: 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 9999;
+
+.apiary-group-header {
+  font-weight: bold;
+  padding: 8px;
+  font-size: 1.1em;
+  border-top: 2px solid #ccc;
 }
 
-.toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-.toast.hidden {
-  display: none;
-}
-
-.toast-close {
-  background: transparent;
-  border: 1px solid #fff;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 24px;
+.apiary-toggle {
+  margin-right: 8px;
+  font-weight: bold;
   cursor: pointer;
-  padding: 0 6px;
-  line-height: 1;
 }
+.apiary-group-header {
+  cursor: pointer;
+}
+
+.apiary-group-click {
+  cursor: pointer;
+  margin-left: 4px;
+}
+

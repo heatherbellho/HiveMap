@@ -38,9 +38,3 @@ App.Utils.safeJSON = function (str, fallback = {}) {
 App.Utils.uid = function () {
   return "id-" + Math.random().toString(36).substr(2, 9);
 };
-
-App.Utils.findHiveByName = function (name) {
-  const all = App.Canvas.getAllHives();
-  return all.find(h => h.hiveData && h.hiveData.name === name) || null;
-};
-

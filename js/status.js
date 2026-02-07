@@ -26,12 +26,8 @@ App.Status.getColor = function (status) {
 // ------------------------------------------------------------
 // Populate the queen status <select> in the hive modal
 // ------------------------------------------------------------
-// ------------------------------------------------------------
-// Populate a queen status <select> by element id
-// Default is the main hive modal select: "queenStatus"
-// ------------------------------------------------------------
-App.Status.populateStatusSelect = function (selected = "", elementId = "queenStatus") {
-  const sel = document.getElementById(elementId);
+App.Status.populateStatusSelect = function (selected = "") {
+  const sel = document.getElementById("queenStatus");
   if (!sel) return;
 
   sel.innerHTML = "";
@@ -44,7 +40,6 @@ App.Status.populateStatusSelect = function (selected = "", elementId = "queenSta
     sel.appendChild(opt);
   });
 };
-
 
 // ------------------------------------------------------------
 // Render the status legend in the sidebar
