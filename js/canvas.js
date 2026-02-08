@@ -60,8 +60,23 @@ if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
 
   // One unified resize + fit
   resizeAndFitCanvas();
+  App.Canvas.fixMissingApiaryIds();
 };
 
+App.Canvas.fixMissingApiaryIds = function () {
+  if (!canvas) return;
+  if (!App.Apiaries || !App.Apiaries.currentApiaryId) return;
+
+  const currentApiaryId = App.Apiaries.currentApiaryId;
+
+  App.Canvas.getAllHives().forEach(hive => {
+    if (!hive.hiveData.apiaryId) {
+      hive.hiveData.apiaryId = currentApiaryId;
+    }
+  });
+
+  App.Canvas.saveLayout();
+};
 
 // ------------------------------------------------------------
 // AUTO‑RESIZE WITH DEBOUNCE (prevents misalignment jumps)
@@ -158,6 +173,14 @@ function resizeAndFitCanvas() {
 // Create a hive (Fabric group)
 // ------------------------------------------------------------
 App.Canvas.createHive = function (name, width, height) {
+
+  // Ensure canvas is fitted BEFORE placing the hive
+  if (typeof resizeAndFitCanvas === "function") {
+    resizeAndFitCanvas();
+  }
+
+  const pt = canvas.getPointer({ clientX: 500, clientY: 80 });
+
   const rect = new fabric.Rect({
     width,
     height,
@@ -178,8 +201,8 @@ App.Canvas.createHive = function (name, width, height) {
   });
 
   const group = new fabric.Group([rect, label], {
-    left: 500,
-    top: 20,
+    left: pt.x,
+    top: pt.y,
     hasControls: true,
     lockScalingX: true,
     lockScalingY: true,
@@ -191,11 +214,11 @@ App.Canvas.createHive = function (name, width, height) {
       hiveType: "Hive",
       inspections: [],
       boxes: [],
-      status: "active"
+      status: "active",
+      apiaryId: App.Apiaries.currentApiaryId
     }
   });
 
-  // ⭐ Only rotation handle, no resize handles
   group.setControlsVisibility({
     mt:false, mb:false, ml:false, mr:false,
     tl:false, tr:false, bl:false, br:false,
@@ -206,7 +229,12 @@ App.Canvas.createHive = function (name, width, height) {
 
   canvas.add(group);
   canvas.setActiveObject(group);
+
   App.Canvas.requestRender();
+  App.Canvas.saveLayout();
+  App.Notes.load();
+  App.Status.renderLegend();
+  App.Stats.update();
 };
 
 App.Canvas.getAllHives = function () {
@@ -239,23 +267,31 @@ App.Canvas.handleTooltip = function (options) {
     return;
   }
 
+  // hiveData object
   const hive = options.target.hiveData;
-  const latest = hive.inspections[hive.inspections.length - 1] || {};
+
+  // latest inspection
+  const inspections = hive.inspections || [];
+const latest = inspections[inspections.length - 1] || {};
+
 
   tooltip.style.left = (options.e.pageX + 10) + "px";
   tooltip.style.top = (options.e.pageY + 10) + "px";
 
   tooltip.innerHTML = `
     Hive ID: <strong>${hive.name}</strong><br>
-    Hive type: ${hive.hiveType || "N/A"}<br>
-    Boxes:<br>
-    ${hive.boxes.map(b => `- ${b.type} x${b.count}`).join("<br>") || "None"}<br>
-    Last inspection: ${App.Utils.formatDateUK(latest.date)}<br>
-    Queen status: ${latest.queenStatus || "N/A"}
+       Status: <strong>${latest.queenStatus || "N/A"}</strong><br>
+        Last Inspected: <strong>${App.Utils.formatDateUK(latest.date) || "N/A"}</strong><br>
+    Next Inspection Due: <strong>${App.Utils.formatDateUK(hive.nextInspectionDate) || "N/A"}</strong><br>
+    Hive type: <strong>${hive.hiveType || "N/A"}</strong><br>
+    Boxes: <strong>${hive.boxes.map(b => `- ${b.type} x${b.count}`).join("<br>") || "N/A"}</strong>
+
+ 
   `;
 
   tooltip.style.display = "block";
 };
+
 
 
 // ------------------------------------------------------------
@@ -265,12 +301,11 @@ App.Canvas.saveLayout = function () {
   const current = Storage.getCurrentApiary();
   if (!current) return;
 
-const json = JSON.stringify(
-  canvas.toJSON(["hiveData", "visible"])
-);
+  const json = canvas.toJSON(["hiveData"]); // ONLY hiveData is safe
 
-  Storage.saveHiveLayout(current, json);
+  Storage.saveHiveLayout(current, JSON.stringify(json));
 };
+
 
 
 // ------------------------------------------------------------
@@ -288,44 +323,48 @@ App.Canvas.loadLayout = function () {
     return;
   }
 
-  canvas.loadFromJSON(json, () => {
+canvas.loadFromJSON(json, () => {
 
-    canvas.getObjects().forEach(obj => {
-      if (obj.type === "group" && obj.hiveData) {
+  canvas.getObjects().forEach(obj => {
+    if (obj.type === "group" && obj.hiveData) {
 
-        if (!obj.hiveData.status) {
-          obj.hiveData.status = "active";
-        }
-
-        if (obj.hiveData.status === "archived") {
-          obj.visible = false;
-          return;
-        }
-
-        // ⭐ Restore modal behaviour
-        obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
-
-        // ⭐ Restore control visibility (remove resize handles)
-        obj.setControlsVisibility({
-          mt:false, mb:false, ml:false, mr:false,
-          tl:false, tr:false, bl:false, br:false,
-          mtr:true
-        });
-
-        // ⭐ Ensure scaling is locked (Fabric sometimes restores old values)
-        obj.lockScalingX = true;
-        obj.lockScalingY = true;
-        obj.lockUniScaling = true;
+      if (!obj.hiveData.status) {
+        obj.hiveData.status = "active";
       }
-    });
 
-    App.Canvas.requestRender();
+      if (obj.hiveData.status === "archived") {
+        obj.visible = false;
+        return;
+      }
 
-    // ⭐ Allow layout to settle, then fit
-    setTimeout(() => {
-      resizeAndFitCanvas();
-    }, 50);
+      // ⭐ Ensure required arrays exist (prevents tooltip crash)
+      obj.hiveData.inspections = obj.hiveData.inspections || [];
+      obj.hiveData.boxes = obj.hiveData.boxes || [];
+
+      // ⭐ Restore modal behaviour
+      obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
+
+      // ⭐ Restore control visibility (remove resize handles)
+      obj.setControlsVisibility({
+        mt:false, mb:false, ml:false, mr:false,
+        tl:false, tr:false, bl:false, br:false,
+        mtr:true
+      });
+
+      // ⭐ Ensure scaling is locked
+      obj.lockScalingX = true;
+      obj.lockScalingY = true;
+      obj.lockUniScaling = true;
+    }
   });
+
+  App.Canvas.requestRender();
+
+  setTimeout(() => {
+    resizeAndFitCanvas();
+  }, 50);
+});
+
 };
 
 

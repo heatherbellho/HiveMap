@@ -30,6 +30,7 @@ App.Stats.update = function () {
       const hive = obj?.hiveData;
       if (!hive) return;
       if (hive.status === "archived") return;
+
       let status = "";
 
       // Last inspection status
@@ -41,8 +42,14 @@ App.Stats.update = function () {
         status = hive.queenStatus;
       }
 
-      if (status.toLowerCase().includes("query")) countQuery++;
-      else if (status) countNonQuery++;
+      // ⭐ NEW LOGIC: count new hives as OK
+      if (!status) {
+        countNonQuery++;
+      } else if (status.toLowerCase().includes("query")) {
+        countQuery++;
+      } else {
+        countNonQuery++;
+      }
     });
 
     stats[apiary] = { nonQuery: countNonQuery, query: countQuery };

@@ -188,39 +188,31 @@
 
     <!-- LEFT COLUMN -->
     <div class="modal-column">
-
+        <h3 class="section-title">Hive Details</h3>
       <div class="modal-section">
-        <h4 class="section-title">Hive Details</h4>
+
 
         <label for="hiveName">Hive ID</label>
         <input type="text" id="hiveName" placeholder="Hive Name">
 
-        <label for="hiveType">Hive Type</label>
-        <div class="inline-row">
-          <select id="hiveType"></select>
-          <button type="button" id="addHiveTypeBtn" class="small-add">+</button>
-        </div>
+  <label>Current Apiary</label>
+  <input type="text" id="currentApiaryName" disabled>
 
-        <!--<label for="lastInspection">This Inspection</label>
-        <input type="date" id="lastInspection">
+  <label for="destinationApiarySelect">Move to Apiary</label>
+  <select id="destinationApiarySelect"></select>
 
-        <label for="nextInspection">Next Inspection Due</label>
-        <input type="date" id="nextInspection">
-
-        <label for="queenStatus">Status</label>
-        <select id="queenStatus"></select>
+  <button type="button" id="moveHiveBtn" class="btn-primary" style="margin-top: 8px;">
+    Move Hive
+  </button>
       </div>
 
-      <div class="modal-section">
-        <h4 class="section-title">Notes</h4>
-        <textarea id="notes" rows="4" placeholder="Notes about this hive..."></textarea>
-      </div>-->
-
-    </div>
-
-    <!-- RIGHT COLUMN -->
-    <div class="modal-column">
-
+  <div class ="modal-section">
+            <label for="hiveType">Hive Type</label>
+        <div class="inline-row">
+          <select id="hiveType"></select>
+          <button type="button" id="addHiveTypeBtn" class="small-add" title="Add New Hive Type">+</button>
+        </div>
+  </div>
       <div class="modal-section">
         <h4 class="section-title">Hive Boxes</h4>
 
@@ -244,10 +236,18 @@
           <input id="editHiveHeight" type="number" min="10">
         </div>
       </div>
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="modal-column">
 
 
+        <h3 class="section-title">Inspection History</h3>
+<div class="modal-section">
+  <div id ="nextInspectionDateDisplay"></div>
+  </div>
       <div class="modal-section">
-        <h4 class="section-title">Inspection History</h4>
+
         <ul id="inspectionHistoryList" class="inspection-list"></ul>
       </div>
 
@@ -269,10 +269,28 @@
       <button id="closeInspectionDetailsBtn" class="modal-close">&times;</button>
     </div>
 
-    <div class="modal-subheader">
-      <div><strong>Status:</strong> <span id="inspectionDetailsStatus"></span></div>
-      <div><strong>Notes:</strong> <span id="inspectionDetailsNotes"></span></div>
-    </div>
+    <div class="modal-subheader" id="inspectionDetailsSubheader">
+      <div>
+        <strong>Date:</strong>
+        <span id="inspectionDetailsDate"></span>
+      </div>
+
+      <div>
+        <strong>Queen Status:</strong>
+        <span id="inspectionDetailsQueenStatus"></span>
+      </div>
+
+      <div>
+        <strong>Next Inspection Due:</strong>
+        <span id="inspectionDetailsNextInspection"></span>
+      </div>
+
+      <div style="grid-column: 1 / -1;">
+        <strong>Notes:</strong>
+        <span id="inspectionDetailsNotes"></span>
+      </div>
+</div>
+
 
     <div class="modal-body inspection-details-grid" id="inspectionDetailsFields">
       <!-- Extended inspection fields will be injected/rendered here later -->
@@ -507,8 +525,19 @@
 <div id="hiveListModal" class="modal">
     <header class="modal-header">
     <h2 id="hiveListTitle"></h2>
+    <div>
+      <span class="due-today" style="margin-left: 18px;">Due Today</span>
+      <span class="due-overdue" style="margin-left: 18px;">Overdue</span>
+      <span class="due-future" style="margin-left: 18px;">Due Future</span>
+    </div>
     <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
   </header>
+      <div id="dueInspectionFilters" style="display:none; margin-bottom:10px;">
+  <label style="cursor:pointer;">
+    <input type="checkbox" id="filterNext7">
+    Show overdue, today, and next 7 days
+  </label>
+</div>
   <main class="modal-body">
     <table class="hive-list-table">
 <thead>
