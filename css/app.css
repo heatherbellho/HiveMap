@@ -104,8 +104,8 @@ button.save:hover {
 }
 
 .section-title {
-  margin: 0 0 8px 0;
-  font-size: 1rem;
+  margin: 0;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #444;
 }
@@ -1543,16 +1543,17 @@ canvas {
   box-sizing: border-box;
 }
 /* Layout for the New Inspection header section */
-#inspectionInputModal .modal-subheader {
+#inspectionInputModal .modal-subheader,
+#inspectionDetailsModal .modal-subheader {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
-  margin-bottom: 16px;
   align-items: end;
 }
 
 /* Make Notes span the full width */
-#inspectionInputModal .modal-subheader textarea {
+#inspectionInputModal .modal-subheader textarea,
+#inspectionDetailsModal .modal-subheader textarea {
   grid-column: 1 / -1;
   width: 100%;
   min-height: 70px;
@@ -1561,7 +1562,8 @@ canvas {
 }
 
 /* Labels inside the header */
-#inspectionInputModal .modal-subheader strong {
+#inspectionInputModal .modal-subheader strong,
+#inspectionDetailsModal .modal-subheader strong {
   display: block;
   margin-bottom: 4px;
   font-weight: 600;
@@ -1569,7 +1571,9 @@ canvas {
 
 /* Inputs inside the header */
 #inspectionInputModal .modal-subheader input,
-#inspectionInputModal .modal-subheader select {
+#inspectionInputModal .modal-subheader select,
+#inspectionDetailsModal .modal-subheader input,
+#inspectionDetailsModal .modal-subheader select {
   width: 100%;
   padding: 6px;
   box-sizing: border-box;

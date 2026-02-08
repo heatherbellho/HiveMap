@@ -53,7 +53,7 @@ App.init = function () {
   }
 
   document.getElementById("dueInspectionsBtn")
-  .addEventListener("click", App.Modals.openDueInspections);
+  .addEventListener("click", App.Modals.openDueInspectionsModal);
 const due = App.Hives.getDueInspections();
 const btn = document.getElementById("dueInspectionsBtn");
 const badge = document.getElementById("dueBadge");
