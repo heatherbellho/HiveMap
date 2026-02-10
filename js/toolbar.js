@@ -86,7 +86,7 @@ document.getElementById("hiveDelete").addEventListener("click", () => {
 
 document.getElementById("hivesArchived").addEventListener("click", () => {
   closeAllMenus();
-  App.Modals.openArchivedHives();
+  App.Modals.openArchivedHivesModal();
 });
 
 // ============================================================

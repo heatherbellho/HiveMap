@@ -270,25 +270,27 @@
     </div>
 
     <div class="modal-subheader" id="inspectionDetailsSubheader">
-      <div>
-        <strong>Date:</strong>
-        <span id="inspectionDetailsDate"></span>
-      </div>
+<div>
+  <strong>Date:</strong>
+  <input type="date" id="inspectionDetailsDateInput">
+</div>
 
-      <div>
-        <strong>Queen Status:</strong>
-        <span id="inspectionDetailsQueenStatus"></span>
-      </div>
+<div>
+  <strong>Queen Status:</strong>
+  <select id="inspectionDetailsQueenStatusInput">
+  </select>
+</div>
 
-      <div>
-        <strong>Next Inspection Due:</strong>
-        <span id="inspectionDetailsNextInspection"></span>
-      </div>
+<div>
+  <strong>Next Inspection Due:</strong>
+  <input type="date" id="inspectionDetailsNextInspectionInput">
+</div>
 
-      <div style="grid-column: 1 / -1;">
-        <strong>Notes:</strong>
-        <span id="inspectionDetailsNotes"></span>
-      </div>
+<div style="grid-column: 1 / -1;">
+  <strong>Notes:</strong>
+  <textarea id="inspectionDetailsNotesInput"></textarea>
+</div>
+
 </div>
 
 
@@ -303,7 +305,7 @@
   </div>
 </div>
 
-<!-- Archived Hives list -->
+<!-- Archived Hives list 
 <div id="archivedHivesModal" class="modal">
   <div class="modal-header">
     <h2>Archived Hives</h2>
@@ -316,7 +318,7 @@
       <button id="closeArchivedHivesBtn" class="btn-cancel">Close</button>
     </div>
   </div>
-
+-->
 
 <!-- Status settings modal -->
 <div id="statusModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
@@ -525,11 +527,25 @@
 <div id="hiveListModal" class="modal">
     <header class="modal-header">
     <h2 id="hiveListTitle"></h2>
-    <div>
-      <span class="due-today" style="margin-left: 18px;">Due Today</span>
-      <span class="due-overdue" style="margin-left: 18px;">Overdue</span>
-      <span class="due-future" style="margin-left: 18px;">Due Future</span>
+
+    <div id="archiveBtns" style="display: none;">
+    <span id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</span>
+    <span id="hiveListAllFilterBtn" class="filter-btn" data-filter="hiveListShowAll" style="margin-left: 18px;">All Hives</span>
     </div>
+
+    <div id="overallArchiveBtns" style="display: none;">
+    <span id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</span>
+    <span id="overallListAllFilterBtn" class="filter-btn" data-filter="overallListShowAll" style="margin-left: 18px;">All Hives</span>
+    </div>
+
+    <div id="dueInspectionBtns" style="display: none;">
+      
+      <span class="btn-show-all filter-btn" data-filter="all" style="margin-left: 18px; font-weight:600;">Show All</span>
+      <span class="btn-due-today filter-btn" data-filter="today" style="margin-left: 18px;">Due Today</span>
+      <span class="btn-overdue filter-btn" data-filter="overdue" style="margin-left: 18px;">Overdue</span>
+      <span class="btn-future filter-btn" data-filter="future" style="margin-left: 18px;">Due Future</span>
+    </div>
+
     <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
   </header>
       <div id="dueInspectionFilters" style="display:none; margin-bottom:10px;">
@@ -608,6 +624,7 @@
 <!-- Exit / Save Modal -->
 <div id="exitModal" class="modal hidden">
   <div class="modal-content">
+    <img src="icons/512-hive-map.png" alt="HiveMap Logo" class="logo">
     <h2>Exit HiveMap</h2>
     <p>Before you exit, would you like to Export your data?</p>
 

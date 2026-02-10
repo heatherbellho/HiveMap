@@ -895,19 +895,45 @@ body {
   z-index: 9
 ;
 }
-
-.due-overdue {
+.btn-show-all {
+    border: 1px solid #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.due-overdue, .btn-overdue {
   color: #b30000; /* deep red */
   font-weight: bold;
 }
-
-.due-today {
+.btn-overdue{
+  border: 1px solid #b30000;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.due-today, .btn-due-today {
   color: #cc7a00; /* warm orange */
   font-weight: bold;
 }
-
-.due-future {
+.btn-due-today {
+  border: 1px solid #cc7a00;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.due-future, .btn-future {
   color: #2d7a2d; /* green */
+  font-weight: bold;
+}
+.btn-future {
+  border: 1px solid #2d7a2d;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 #filterNext7 {
   margin-right: 6px;
@@ -1171,6 +1197,26 @@ body {
     border-radius: 6px;
     cursor: pointer;
 }
+#archivedFilterBtn {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+#hiveListAllFilterBtn,
+#overallListAllFilterBtn {
+    /*background: #000;*/
+    color: #000;
+    border: 1px solid #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
 /* Inspection Details Modal Grid */
 .inspection-details-grid {
   display: grid;
@@ -1578,3 +1624,7 @@ canvas {
   padding: 6px;
   box-sizing: border-box;
 }
+    .logo {
+      width: 80px;
+      margin-bottom: 20px;
+    }
