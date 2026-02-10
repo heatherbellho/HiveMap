@@ -35,6 +35,17 @@
 
   <link rel="stylesheet" href="css/app.css">
 </head>
+<script>
+  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+
+  const now = new Date();
+  const expiry = access.expires ? new Date(access.expires) : null;
+
+  if (!access.ok || !expiry || now > expiry) {
+    localStorage.removeItem("hivemap_access");
+    window.location.href = "login.html";
+  }
+</script>
 
 <body>
 
@@ -184,20 +195,33 @@
     </div>
   </header>
 
+<div class="modal-subheader">
+
+  <div class="subheader-item">
+    <label for="hiveName"><strong>Hive ID:</strong></label>
+    <input type="text" id="hiveName" placeholder="Hive Name">
+  </div>
+
+  <div class="subheader-item">
+    <label for="currentApiaryName"><strong>Apiary:</strong></label>
+    <input type="text" id="currentApiaryName" disabled>
+  </div>
+
+  <div class="subheader-item">
+    <label for="hiveMemo"><strong>Memo:</strong></label>
+    <input type="text" id="hiveMemo" placeholder="Short note…">
+  </div>
+
+</div>
+
   <main class="modal-body">
 
     <!-- LEFT COLUMN -->
     <div class="modal-column">
-        <h3 class="section-title">Hive Details</h3>
+        <h3 class="section-title" style="margin: 0;">Hive Details</h3>
+
+
       <div class="modal-section">
-
-
-        <label for="hiveName">Hive ID</label>
-        <input type="text" id="hiveName" placeholder="Hive Name">
-
-  <label>Current Apiary</label>
-  <input type="text" id="currentApiaryName" disabled>
-
   <label for="destinationApiarySelect">Move to Apiary</label>
   <select id="destinationApiarySelect"></select>
 
@@ -214,7 +238,7 @@
         </div>
   </div>
       <div class="modal-section">
-        <h4 class="section-title">Hive Boxes</h4>
+        <label for="box-list">Hive Boxes</label>
 
         <div id="boxList" class="box-list"></div>
 
@@ -226,7 +250,7 @@
       </div>
 
       <div class="modal-section modal-section-size">
-        <h4 class="section-title">Tile Size</h4>
+        <label for="size-row">Tile Size</label>
 
         <div class="size-row">
           <label>Width</label>
@@ -242,7 +266,7 @@
     <div class="modal-column">
 
 
-        <h3 class="section-title">Inspection History</h3>
+        <h3 class="section-title" style="margin: 0;">Inspection History</h3>
 <div class="modal-section">
   <div id ="nextInspectionDateDisplay"></div>
   </div>
@@ -563,6 +587,7 @@
     <th class="col-date">Last</th>
     <th class="col-date">Next Due</th>
     <th class="col-type">Type</th>
+    <th class="col-memo">Memo</th>
     <th class="col-action"></th>
   </tr>
 </thead>

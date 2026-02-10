@@ -279,6 +279,7 @@ const latest = inspections[inspections.length - 1] || {};
   tooltip.style.top = (options.e.pageY + 10) + "px";
 
   tooltip.innerHTML = `
+  Memo: <strong>${hive.memo || "N/A"}</strong><br>
     Hive ID: <strong>${hive.name}</strong><br>
        Status: <strong>${latest.queenStatus || "N/A"}</strong><br>
         Last Inspected: <strong>${App.Utils.formatDateUK(latest.date) || "N/A"}</strong><br>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HiveMap Access</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #f5f5f5;
+      margin: 0;
+    }
+    .login-box {
+      background: #fff;
+      padding: 24px 28px;
+      text-align: center;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      max-width: 320px;
+      width: 100%;
+    }
+    .login-box h1 {
+      font-size: 1.2rem;
+      margin: 0 0 12px;
+    }
+    .login-box p {
+      margin: 0 0 16px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+    }
+    .login-box button {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 4px;
+      border: none;
+      background: #0078d4;
+      color: #fff;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .login-box button:hover {
+      background: #005fa3;
+    }
+    .error {
+      color: #b00020;
+      font-size: 0.85rem;
+      margin-top: 4px;
+      min-height: 1em;
+    }
+        .logo {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+  </style>
+  <script>
+  // DEV MODE: add ?dev=1 to URL to disable auto‑redirect
+  const params = new URLSearchParams(window.location.search);
+  const devMode = params.has("dev");
+
+  if (!devMode) {
+    const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+    if (access.ok) {
+      window.location.href = "index.html";
+    }
+  }
+</script>
+
+</head>
+<body>
+  <div class="login-box">
+    <img src="icons/512-hive-map.png" alt="HiveMap Logo" class="logo">
+    <h1>HiveMap Access</h1>
+    <p>Enter your access code to open HiveMap.<br>You will have received this by e-mail.<br> <a href="https://cornishhoney.co.uk/email_us.php" target="_blank"><strong>E-mail us</strong></a> if you do not have it.</a></p>
+    <input id="pw" type="password" placeholder="Access code">
+    <button type="button" onclick="checkPassword()">Enter</button>
+    <div id="error" class="error"></div>
+    <div id="accessInfo" style="margin-top:12px; font-size:0.9rem; color:#444;"></div>
+
+  </div>
+
+<script>
+  const CORRECT_PASSWORD = "bee"; // change this when you rotate
+
+  function checkPassword() {
+    const input = document.getElementById("pw").value.trim();
+    const errorEl = document.getElementById("error");
+
+    if (input === CORRECT_PASSWORD) {
+      const now = new Date();
+      const expires = new Date();
+      expires.setMonth(now.getMonth() + 1);   // 1 month from today
+        // 1 month → setMonth(now.getMonth() + 1)
+        //3 months → setMonth(now.getMonth() + 3)
+        //1 year → setFullYear(now.getFullYear() + 1)
+        //7 days → setDate(now.getDate() + 7)
+      localStorage.setItem("hivemap_access", JSON.stringify({
+        ok: true,
+        expires: expires.toISOString()
+      }));
+
+      // ⭐ Redirect to the app
+      window.location.href = "index.html";
+
+    } else {
+      errorEl.textContent = "Incorrect access code.";
+    }
+  }
+
+  // ⭐ If already authenticated, go straight to app
+//  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+ // if (access.ok) {
+  //  window.location.href = "index.html";
+//  }
+</script>
+<script>
+  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+
+  if (access.expires) {
+    const expiryDate = new Date(access.expires);
+    const formatted = expiryDate.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+
+    document.getElementById("accessInfo").innerHTML = `
+      Your access expires on <strong>${formatted}</strong>.<br>
+      <a href="renew.html" style="margin-left:8px; color:#0078d4;">Renew subscription</a>
+    `;
+  }
+</script>
+
+</body>        
+</html>

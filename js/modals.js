@@ -102,6 +102,7 @@ allApiaries.forEach(name => {
 
 
   // Populate fields
+  document.getElementById("hiveMemo").value = data.memo || "";
   document.getElementById("hiveName").value = data.name || "";
   App.Hives.populateTypeSelect(data.hiveType || "");
  // document.getElementById("lastInspection").value = "";
@@ -318,6 +319,7 @@ selectedHive.setCoords();
   // -----------------------------
   // 2. UPDATE HIVE DATA
   // -----------------------------
+  selectedHive.hiveData.memo = document.getElementById("hiveMemo").value.trim();
   const name = document.getElementById("hiveName").value.trim() || "Unnamed";
   const hiveType = document.getElementById("hiveType").value;
 //  const date = document.getElementById("lastInspection").value;
@@ -686,6 +688,7 @@ App.Modals.renderInspectionList = function (title, includeFn) {
 
     const name = data.name || "—";
     const hiveType = data.hiveType || "—";
+    const memo = data.memo || "—";
 
     const inspections = data.inspections || [];
     const lastEntry = inspections.length > 0
@@ -721,11 +724,12 @@ App.Modals.renderInspectionList = function (title, includeFn) {
       <td class="col-date">${lastDate}</td>
       <td class="col-date ${dueClass}">${nextDue}</td>
       <td>${hiveType}</td>
+      <td>${memo}</td>
       <td class="col-action">
         <button class="btn-primary edit-hive-btn"
                 data-ref="${hiveObj.__uid}"
                 data-apiary="${apiaryName}">
-          Edit
+          View
         </button>
       </td>
     `;
@@ -933,9 +937,6 @@ document.getElementById("inspectionDetailsNextInspectionInput").value =
   document.getElementById("inspectionDetailsNotesInput").value =
     inspection.notes || "";
 
-  // ------------------------------------------------------------
-  // Render extended inspection fields (schema-driven)
-  // ------------------------------------------------------------
 // ------------------------------------------------------------
 // Render extended inspection fields
 // ------------------------------------------------------------
@@ -987,6 +988,7 @@ groups.forEach(group => {
 
     input.id = "detail_" + field.id;
     input.dataset.key = field.id;
+    input.placeholder = field.placeholder || "";
 
     wrapper.appendChild(label);
     wrapper.appendChild(input);
@@ -1503,6 +1505,7 @@ App.Modals.openHiveListModal = function () {
 
     const name = data.name || "—";
     const hiveType = data.hiveType || "—";
+    const memo = data.memo || "—";
 
     const inspections = data.inspections || [];
     const lastEntry = inspections.length > 0
@@ -1534,9 +1537,10 @@ App.Modals.openHiveListModal = function () {
       <td class="col-date">${lastDate}</td>
       <td class="col-date">${nextDue}</td>
       <td>${hiveType}</td>
+      <td>${memo}</td>
       <td class="col-action">
         <button class="btn-primary edit-hive-btn" data-ref="${hive.__uid}">
-          Edit
+          View
         </button>
       </td>
     `;
@@ -1564,6 +1568,7 @@ App.Modals.closeHiveListModal = function () {
 
 App.Modals.openOverallHiveListModal = function () {
 document.getElementById("dueInspectionBtns").style.display = "none";
+document.getElementById("archiveBtns").style.display = "none";
 document.getElementById("overallArchiveBtns").style.display = "block";
 
   const modal = document.getElementById("hiveListModal");
@@ -1660,6 +1665,7 @@ document.getElementById("overallArchiveBtns").style.display = "block";
 
     const name = data.name || "—";
     const hiveType = data.hiveType || "—";
+    const memo = data.memo || "—";
 
     const inspections = data.inspections || [];
     const lastEntry = inspections.length > 0
@@ -1698,11 +1704,12 @@ document.getElementById("overallArchiveBtns").style.display = "block";
       <td class="col-date">${lastDate}</td>
       <td class="col-date">${nextDue}</td>
       <td>${hiveType}</td>
+      <td>${memo}</td>
       <td class="col-action">
         <button class="btn-primary edit-hive-btn" 
                 data-ref="${hiveObj.__uid}"
                 data-apiary="${apiaryName}">
-          Edit
+          View
         </button>
       </td>
     `;
@@ -1865,6 +1872,7 @@ groups.forEach(group => {
 
     input.id = "input_" + field.id;
     input.dataset.key = field.id;
+    input.placeholder = field.placeholder || "";
 
     wrapper.appendChild(label);
     wrapper.appendChild(input);

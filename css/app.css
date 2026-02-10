@@ -103,12 +103,6 @@ button.save:hover {
   border: 1px solid #eee;
 }
 
-.section-title {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #444;
-}
 
 /* Inputs */
 .modal-section label {
@@ -1280,13 +1274,6 @@ body {
   overflow-x: hidden !important;
 }
 
-.modal-section h3 {
-  margin: 0px 0px 8px 0px;
-  font-size: 1.1em;
-  color: #333;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 4px;
-}
 #inspectionFieldConfigModal .modal-body {
   max-height: 60vh;
   overflow-y: auto;
@@ -1364,6 +1351,7 @@ canvas {
 }
 
 .modal-section-size .size-row label {
+  font-size: 0.8rem;
   margin: 0;
 }
 
@@ -1628,3 +1616,53 @@ canvas {
       width: 80px;
       margin-bottom: 20px;
     }
+    .modal-subheader {
+  display: flex;
+  gap: 20px;
+  padding: 16px;
+  flex-wrap: wrap;      /* allows wrapping on small screens */
+}
+
+.subheader-item {
+  display: flex;
+  align-items: center;  /* label + input aligned vertically */
+  gap: 8px;             /* space between label and input */
+  flex: 1;              /* all three blocks share the row evenly */
+  min-width: 220px;     /* prevents collapsing */
+}
+
+.subheader-item label {
+  white-space: nowrap;  /* prevents label from wrapping */
+}
+
+.subheader-item input {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  width: auto;          /* ⭐ critical: prevents input from forcing a new line */
+  flex: 1;              /* input expands only within its block */
+}
+/* Make Hive ID and Apiary compact */
+.subheader-item:nth-child(1),
+.subheader-item:nth-child(2) {
+  flex: 0 0 auto;      /* do NOT stretch */
+}
+
+.subheader-item:nth-child(1) input {
+  width: 100px;        /* Hive ID compact */
+}
+
+.subheader-item:nth-child(2) input {
+  width: 120px;        /* Apiary compact */
+}
+
+/* Memo block gets all remaining space */
+.subheader-item:nth-child(3) {
+  flex: 1 1 auto;      /* allow stretching */
+}
+
+.subheader-item:nth-child(3) input {
+  flex: 1;             /* input grows inside block */
+  min-width: 200px;    /* prevents collapsing */
+}
