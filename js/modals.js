@@ -81,33 +81,30 @@ App.Modals.openHiveModal = function (hiveGroup) {
   data.boxes = data.boxes || [];
   data.inspections = data.inspections || [];
 
-// --- Move Hive section ---
-const currentApiary = Storage.getCurrentApiary();
-const allApiaries = Storage.getAllApiaries() || [];
+  // --- Move Hive section ---
+  const currentApiary = Storage.getCurrentApiary();
+  const allApiaries = Storage.getAllApiaries() || [];
 
-document.getElementById("currentApiaryName").value =
-  currentApiary || "Unknown";
+  document.getElementById("currentApiaryName").value =
+    currentApiary || "Unknown";
 
-const destSelect = document.getElementById("destinationApiarySelect");
-destSelect.innerHTML = "";
+  const destSelect = document.getElementById("destinationApiarySelect");
+  destSelect.innerHTML = "";
 
-allApiaries.forEach(name => {
-  if (name !== currentApiary) {
-    const opt = document.createElement("option");
-    opt.value = name;
-    opt.textContent = name;
-    destSelect.appendChild(opt);
-  }
-});
-
+  allApiaries.forEach(name => {
+    if (name !== currentApiary) {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      destSelect.appendChild(opt);
+    }
+  });
 
   // Populate fields
   document.getElementById("hiveMemo").value = data.memo || "";
   document.getElementById("hiveName").value = data.name || "";
   App.Hives.populateTypeSelect(data.hiveType || "");
- // document.getElementById("lastInspection").value = "";
- // document.getElementById("nextInspection").value = data.nextInspectionDate || "";
- // document.getElementById("notes").value = "";
+
   const rect = hiveGroup._objects[0];
   document.getElementById("editHiveWidth").value = rect.width;
   document.getElementById("editHiveHeight").value = rect.height;
@@ -116,11 +113,11 @@ allApiaries.forEach(name => {
   const latest = data.inspections[data.inspections.length - 1] || {};
   App.Status.populateStatusSelect(latest.queenStatus || "");
 
-  // Render boxes + inspection history
+  // Render boxes + inspection history preview
   App.Modals.renderBoxList();
   App.Modals.renderInspectionHistory();
 
-  // 🔹 Show correct archive/restore button and wire handlers
+  // 🔹 Archive / Restore buttons
   const archiveBtn = document.getElementById("archiveHiveBtn");
   const restoreBtn = document.getElementById("restoreHiveBtn");
 
@@ -153,6 +150,14 @@ allApiaries.forEach(name => {
       App.Canvas.saveLayout();
       App.Canvas.requestRender();
       App.Modals.closeHiveModal();
+    };
+  }
+
+  // 🔹 Wire Inspection History button (THIS WAS THE MISSING PIECE)
+  const histBtn = document.getElementById("openInspectionHistoryBtn");
+  if (histBtn) {
+    histBtn.onclick = function () {
+      App.Modals.openInspectionHistory(hiveGroup);
     };
   }
 
@@ -373,30 +378,34 @@ App.Modals.renderInspectionHistory = function () {
   const data = selectedHive.hiveData;
   container.innerHTML = "";
 
-// ⭐ Output Next Inspection Due into the dedicated div
-const nextDueDiv = document.getElementById("nextInspectionDateDisplay");
-if (nextDueDiv) {
-  const nextDue = data.nextInspectionDate
-    ?   App.Utils.formatDateUK(selectedHive.hiveData.nextInspectionDate) : "None";
+  // ⭐ Output Next Inspection Due into the dedicated div
+  const nextDueDiv = document.getElementById("nextInspectionDateDisplay");
+  if (nextDueDiv) {
+    const nextDue = data.nextInspectionDate
+      ? App.Utils.formatDateUK(data.nextInspectionDate)
+      : "None";
 
+    nextDueDiv.innerHTML = nextDue
+      ? `Next Inspection Due – <strong>${nextDue}</strong>`
+      : "";
+  }
 
-  nextDueDiv.innerHTML = nextDue
-    ? `Next Inspection Due – <strong>${nextDue}</strong>`
-    : "";
-}
-
-
-  // ⭐ Render inspection rows (unchanged)
+  // ⭐ Render inspection rows
   data.inspections.slice().reverse().forEach((ins, reversedIndex) => {
     const originalIndex = data.inspections.length - 1 - reversedIndex;
 
     const li = document.createElement("li");
     li.style.marginBottom = "6px";
 
+    // ⭐ NEW: use separate date + time fields
+    const dateStr = ins.date ? App.Utils.formatDateUK(ins.date) : "Unknown";
+    const timeStr = ins.time || ""; // already HH:MM
+
     li.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:start; gap:6px;">
         <div>
-          <strong>${App.Utils.formatDateUK(ins.date)}</strong> - Status: ${ins.queenStatus || "N/A"}<br>
+          <strong>${dateStr} ${timeStr}</strong>
+          - Status: ${ins.queenStatus || "N/A"}<br>
           Notes: ${ins.notes || ""}
         </div>
         <button class="inspectionDetailsBtn btn-info" data-index="${originalIndex}">Details</button>
@@ -910,16 +919,30 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
   App.Modals.currentInspectionIndex = inspectionIndex;
 
   // ------------------------------------------------------------
-  // Populate core editable fields
+  // Populate core editable fields (DATE + TIME)
   // ------------------------------------------------------------
+
+  // Date (YYYY-MM-DD)
   document.getElementById("inspectionDetailsDateInput").value =
     inspection.date || "";
 
-  // ⭐ Populate Queen Status dynamically from user-configured statuses
+  // Time (HH:MM)
+  document.getElementById("inspectionDetailsTimeInput").value =
+    inspection.time || "";
+
+  // Recorded-at (read-only display)
+  const recordedDisplay = document.getElementById("inspectionDetailsRecordedAt");
+  if (recordedDisplay) {
+    recordedDisplay.textContent = inspection.recordedAt
+      ? `${App.Utils.formatDateUK(inspection.recordedAt)} ${App.Utils.formatTime(inspection.recordedAt)}`
+      : "Unknown";
+  }
+
+  // Queen status dropdown
   const queenSelect = document.getElementById("inspectionDetailsQueenStatusInput");
   queenSelect.innerHTML = "";
 
-  const statuses = Storage.getQueenStatuses(); // same source as inspectionInput
+  const statuses = Storage.getQueenStatuses();
   statuses.forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.name;
@@ -927,87 +950,80 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
     queenSelect.appendChild(opt);
   });
 
-  // Set current queen status
   queenSelect.value = inspection.queenStatus || "";
 
-document.getElementById("inspectionDetailsNextInspectionInput").value =
-  hive.hiveData.nextInspectionDate || "";
-
+  document.getElementById("inspectionDetailsNextInspectionInput").value =
+    hive.hiveData.nextInspectionDate || "";
 
   document.getElementById("inspectionDetailsNotesInput").value =
     inspection.notes || "";
 
-// ------------------------------------------------------------
-// Render extended inspection fields
-// ------------------------------------------------------------
-const fieldsContainer = document.getElementById("inspectionDetailsFields");
-fieldsContainer.innerHTML = "";
+  // ------------------------------------------------------------
+  // Render extended inspection fields
+  // ------------------------------------------------------------
+  const fieldsContainer = document.getElementById("inspectionDetailsFields");
+  fieldsContainer.innerHTML = "";
 
-// ⭐ Reset the field list so Save can use it
-App.Modals.inspectionDetailFields = [];
+  App.Modals.inspectionDetailFields = [];
 
-// Sort groups by sortOrder
-const groups = [...App.Modals.inspectionSchema.groups].sort(
-  (a, b) => a.sortOrder - b.sortOrder
-);
-
-groups.forEach(group => {
-  const groupWrapper = document.createElement("div");
-  groupWrapper.className = "modal-section";
-
-  const groupTitle = document.createElement("h3");
-  groupTitle.textContent = group.name;
-  groupWrapper.appendChild(groupTitle);
-
-  const grid = document.createElement("div");
-  grid.className = "inspection-details-grid";
-
-  const fields = [...group.fields].sort(
+  const groups = [...App.Modals.inspectionSchema.groups].sort(
     (a, b) => a.sortOrder - b.sortOrder
   );
 
-  fields.forEach(field => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "inspection-field";
+  groups.forEach(group => {
+    const groupWrapper = document.createElement("div");
+    groupWrapper.className = "modal-section";
 
-    const label = document.createElement("label");
-    label.textContent = field.label;
-    label.setAttribute("for", "detail_" + field.id);
+    const groupTitle = document.createElement("h3");
+    groupTitle.textContent = group.name;
+    groupWrapper.appendChild(groupTitle);
 
-    let input;
+    const grid = document.createElement("div");
+    grid.className = "inspection-details-grid";
 
-    if (field.type === "textarea") {
-      input = document.createElement("textarea");
-    } else if (field.type === "checkbox") {
-      input = document.createElement("input");
-      input.type = "checkbox";
-    } else {
-      input = document.createElement("input");
-      input.type = field.type;
-    }
+    const fields = [...group.fields].sort(
+      (a, b) => a.sortOrder - b.sortOrder
+    );
 
-    input.id = "detail_" + field.id;
-    input.dataset.key = field.id;
-    input.placeholder = field.placeholder || "";
+    fields.forEach(field => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "inspection-field";
 
-    wrapper.appendChild(label);
-    wrapper.appendChild(input);
-    grid.appendChild(wrapper);
+      const label = document.createElement("label");
+      label.textContent = field.label;
+      label.setAttribute("for", "detail_" + field.id);
 
-    // ⭐ Register this field so Save can update it
-    App.Modals.inspectionDetailFields.push({
-      key: field.id,
-      type: field.type
+      let input;
+
+      if (field.type === "textarea") {
+        input = document.createElement("textarea");
+      } else if (field.type === "checkbox") {
+        input = document.createElement("input");
+        input.type = "checkbox";
+      } else {
+        input = document.createElement("input");
+        input.type = field.type;
+      }
+
+      input.id = "detail_" + field.id;
+      input.dataset.key = field.id;
+      input.placeholder = field.placeholder || "";
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      grid.appendChild(wrapper);
+
+      App.Modals.inspectionDetailFields.push({
+        key: field.id,
+        type: field.type
+      });
     });
+
+    groupWrapper.appendChild(grid);
+    fieldsContainer.appendChild(groupWrapper);
   });
 
-  groupWrapper.appendChild(grid);
-  fieldsContainer.appendChild(groupWrapper);
-});
-
-  // ------------------------------------------------------------
-  // Load existing values into extended fields
-  // ------------------------------------------------------------
+  // Load extended fields
   App.Modals.inspectionSchema.groups.forEach(group => {
     group.fields.forEach(field => {
       const input = document.getElementById("detail_" + field.id);
@@ -1022,17 +1038,14 @@ groups.forEach(group => {
       }
     });
   });
-const saveBtn = document.getElementById("inspectionDetailsSaveBtn");
-if (saveBtn) {
+
+  const saveBtn = document.getElementById("inspectionDetailsSaveBtn");
+  if (saveBtn) {
     saveBtn.onclick = function () {
-        App.Modals.saveInspectionDetails();
+      App.Modals.saveInspectionDetails();
     };
-}
+  }
 
-
-  // ------------------------------------------------------------
-  // Show modal
-  // ------------------------------------------------------------
   document.getElementById("overlay").style.display = "block";
   document.getElementById("inspectionDetailsModal").style.display = "block";
 };
@@ -1044,20 +1057,25 @@ App.Modals.saveInspectionDetails = function () {
   const inspection = hiveData.inspections[App.Modals.currentInspectionIndex];
   if (!inspection) return;
 
-  // ⭐ Save core inspection fields
+  // ⭐ Save date + time separately
   inspection.date =
     document.getElementById("inspectionDetailsDateInput").value || "";
+
+  inspection.time =
+    document.getElementById("inspectionDetailsTimeInput").value || "";
+
+  // ⭐ recordedAt stays unchanged (set only when created)
 
   inspection.queenStatus =
     document.getElementById("inspectionDetailsQueenStatusInput").value || "";
 
-hiveData.nextInspectionDate =
-  document.getElementById("inspectionDetailsNextInspectionInput").value || "";
+  hiveData.nextInspectionDate =
+    document.getElementById("inspectionDetailsNextInspectionInput").value || "";
 
   inspection.notes =
     document.getElementById("inspectionDetailsNotesInput").value.trim();
 
-  // ⭐ Save extended schema fields
+  // Extended fields
   App.Modals.inspectionDetailFields.forEach(field => {
     const input = document.getElementById("detail_" + field.key);
     if (!input) return;
@@ -1069,33 +1087,24 @@ hiveData.nextInspectionDate =
     }
   });
 
-  // ⭐ Update hive-level next due date
-//  hiveData.nextInspectionDate = inspection.nextInspectionDate;
-// ⭐ Update hive colour immediately (same as saveInspectionInput)
-const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
-const color = App.Status.getColor(latest.queenStatus || "");
-selectedHive._objects[0].set("fill", color);
+  // Update hive colour
+  const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
+  const color = App.Status.getColor(latest.queenStatus || "");
+  selectedHive._objects[0].set("fill", color);
 
-  // ⭐ Save back to storage
-App.Canvas.saveLayout();
+  App.Canvas.saveLayout();
+  App.Canvas.requestRender();
+  App.Canvas.saveLayout();
+  App.Stats.update();
 
-// ⭐ Re-render + save + update stats
-App.Canvas.requestRender();
-App.Canvas.saveLayout();
-App.Stats.update();
+  App.Modals.closeInspectionDetails();
 
-// Close Inspection Details
-App.Modals.closeInspectionDetails();
-
-// If Edit Hive is open, close it
-const editHiveModal = document.getElementById("editHiveModal");
-if (editHiveModal && editHiveModal.style.display === "block") {
+  const editHiveModal = document.getElementById("editHiveModal");
+  if (editHiveModal && editHiveModal.style.display === "block") {
     App.Modals.closeEditHiveModal();
-}
+  }
 
-// Re-open Hive Modal fresh
-App.Modals.openHiveModal(selectedHive);
-
+  App.Modals.openHiveModal(selectedHive);
 };
 
 App.Modals.closeInspectionDetails = function () {
@@ -1814,9 +1823,19 @@ App.Modals.openInspectionInput = function (hiveObj) {
   const today = new Date().toISOString().split("T")[0];
   document.getElementById("inspectionInputDate").value = today;
 
+  // Default time = current time (HH:MM)
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  document.getElementById("inspectionInputTime").value = `${hh}:${mm}`;
+
+  // Recorded-at timestamp (set on save, not here)
+  document.getElementById("inspectionInputRecordedAt").textContent = "";
+
   // Queen status dropdown
   const queenSelect = document.getElementById("inspectionInputQueenStatus");
   queenSelect.innerHTML = "";
+
   Storage.getQueenStatuses().forEach(s => {
     const opt = document.createElement("option");
     opt.value = s.name;
@@ -1824,64 +1843,67 @@ App.Modals.openInspectionInput = function (hiveObj) {
     queenSelect.appendChild(opt);
   });
 
+  // Default queen status = latest inspection
+  const latest = hiveObj.hiveData.inspections?.slice(-1)[0];
+  if (latest && latest.queenStatus) {
+    queenSelect.value = latest.queenStatus;
+  }
+
   // Build schema-driven fields
-// Build schema-driven fields
-const container = document.getElementById("inspectionInputFields");
-container.innerHTML = "";
+  const container = document.getElementById("inspectionInputFields");
+  container.innerHTML = "";
 
-const groups = [...App.Modals.inspectionSchema.groups].sort(
-  (a, b) => a.sortOrder - b.sortOrder
-);
-
-groups.forEach(group => {
-
-  // ⭐ MATCHES Inspection Details modal
-  const groupWrapper = document.createElement("div");
-  groupWrapper.className = "modal-section";
-
-  const groupTitle = document.createElement("h3");
-  groupTitle.textContent = group.name;
-  groupWrapper.appendChild(groupTitle);
-
-  const grid = document.createElement("div");
-  grid.className = "inspection-details-grid";
-
-  const fields = [...group.fields].sort(
+  const groups = [...App.Modals.inspectionSchema.groups].sort(
     (a, b) => a.sortOrder - b.sortOrder
   );
 
-  fields.forEach(field => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "inspection-field";
+  groups.forEach(group => {
+    const groupWrapper = document.createElement("div");
+    groupWrapper.className = "modal-section";
 
-    const label = document.createElement("label");
-    label.textContent = field.label;
-    label.setAttribute("for", "input_" + field.id);
+    const groupTitle = document.createElement("h3");
+    groupTitle.textContent = group.name;
+    groupWrapper.appendChild(groupTitle);
 
-    let input;
+    const grid = document.createElement("div");
+    grid.className = "inspection-details-grid";
 
-    if (field.type === "textarea") {
-      input = document.createElement("textarea");
-    } else if (field.type === "checkbox") {
-      input = document.createElement("input");
-      input.type = "checkbox";
-    } else {
-      input = document.createElement("input");
-      input.type = field.type;
-    }
+    const fields = [...group.fields].sort(
+      (a, b) => a.sortOrder - b.sortOrder
+    );
 
-    input.id = "input_" + field.id;
-    input.dataset.key = field.id;
-    input.placeholder = field.placeholder || "";
+    fields.forEach(field => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "inspection-field";
 
-    wrapper.appendChild(label);
-    wrapper.appendChild(input);
-    grid.appendChild(wrapper);
+      const label = document.createElement("label");
+      label.textContent = field.label;
+      label.setAttribute("for", "input_" + field.id);
+
+      let input;
+
+      if (field.type === "textarea") {
+        input = document.createElement("textarea");
+      } else if (field.type === "checkbox") {
+        input = document.createElement("input");
+        input.type = "checkbox";
+      } else {
+        input = document.createElement("input");
+        input.type = field.type;
+      }
+
+      input.id = "input_" + field.id;
+      input.dataset.key = field.id;
+      input.placeholder = field.placeholder || "";
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(input);
+      grid.appendChild(wrapper);
+    });
+
+    groupWrapper.appendChild(grid);
+    container.appendChild(groupWrapper);
   });
-
-  groupWrapper.appendChild(grid);
-  container.appendChild(groupWrapper);
-});
 
   // Show modal
   document.getElementById("overlay").style.display = "block";
@@ -1896,12 +1918,19 @@ App.Modals.saveInspectionInput = function () {
   const hiveData = hiveObj.hiveData;
 
   const date = document.getElementById("inspectionInputDate").value;
+  const time = document.getElementById("inspectionInputTime").value;
+
+  // Timestamp of data entry (ISO)
+  const recordedAt = new Date().toISOString();
+
   const queenStatus = document.getElementById("inspectionInputQueenStatus").value;
   const nextInspection = document.getElementById("inspectionInputNextInspection").value;
   const notes = document.getElementById("inspectionInputNotes").value.trim();
 
   const newInspection = {
-    date,
+    date,          // YYYY-MM-DD
+    time,          // HH:MM
+    recordedAt,    // ISO timestamp of data entry
     queenStatus,
     notes,
     nextInspection,
@@ -1926,12 +1955,12 @@ App.Modals.saveInspectionInput = function () {
   hiveData.inspections.push(newInspection);
   hiveData.nextInspectionDate = nextInspection;
 
-  // ⭐ NEW: Update hive colour immediately
+  // Update hive colour
   const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
   const color = App.Status.getColor(latest.queenStatus || "");
   hiveObj._objects[0].set("fill", color);
 
-  // ⭐ Re-render + save + update stats
+  // Save + update
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
   App.Stats.update();
@@ -1941,13 +1970,99 @@ App.Modals.saveInspectionInput = function () {
   App.Modals.openHiveModal(hiveObj);
 };
 
-
 App.Modals.closeInspectionInput = function () {
   document.getElementById("inspectionInputModal").style.display = "none";
     const anyOpen = [...document.querySelectorAll('.modal')]
   .some(m => m.style.display === "block");
   document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
   };
+
+App.Modals.openInspectionHistory = function (hiveGroup) {
+
+  const data = hiveGroup.hiveData || {};
+  const inspections = (data.inspections || [])
+    .slice()
+    .sort((a, b) => {
+      // Sort by date + time combined
+      const aDT = new Date(`${a.date}T${a.time || "00:00"}`);
+      const bDT = new Date(`${b.date}T${b.time || "00:00"}`);
+      return bDT - aDT;
+    });
+
+  // Title
+  document.getElementById("inspectionHistoryTitle").textContent =
+    `Inspection History — ${data.name || "Hive"} (${Storage.getCurrentApiary() || "Unknown Apiary"})`;
+
+  const schema = App.Modals.inspectionSchema;
+
+  const thead = document.querySelector("#inspectionHistoryTable thead");
+  const tbody = document.querySelector("#inspectionHistoryTable tbody");
+
+  // Build header
+  let header = "<tr><th>Date</th><th>Time</th>";
+  header += "<th>Queen Status</th>";
+  header += "<th>Notes</th>";
+
+  schema.groups
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .forEach(group => {
+      group.fields
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .forEach(field => {
+          header += `<th>${field.label}</th>`;
+        });
+    });
+
+  header += "</tr>";
+  thead.innerHTML = header;
+
+  // Build rows
+  tbody.innerHTML = inspections.map(i => {
+
+    const dateStr = i.date ? App.Utils.formatDateUK(i.date) : "";
+    const timeStr = i.time || "";
+
+    let row = `<tr><td>${dateStr}</td><td>${timeStr}</td>`;
+    row += `<td>${i.queenStatus || ""}</td>`;
+    row += `<td>${i.notes || ""}</td>`;
+
+    schema.groups
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .forEach(group => {
+        group.fields
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .forEach(field => {
+            row += `<td>${i[field.id] ?? ""}</td>`;
+          });
+      });
+
+    row += "</tr>";
+    return row;
+
+  }).join("");
+
+  // Wire close buttons
+  const close1 = document.getElementById("closeInspectionHistoryBtn");
+  const close2 = document.getElementById("closeInspectionHistoryBtn2");
+
+  const closeFn = function () {
+    document.getElementById("inspectionHistoryModal").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  };
+
+  if (close1) close1.onclick = closeFn;
+  if (close2) close2.onclick = closeFn;
+
+  // Show modal
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("inspectionHistoryModal").style.display = "block";
+};
+
+App.Modals.closeInspectionHistory = function () {
+  document.getElementById("inspectionHistoryModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
+
 
 // ------------------------------------------------------------
 // Initialise modal system
@@ -2079,7 +2194,8 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
     if (type === "overallListShowAll") App.Modals.openOverallHiveListModal();
   });
 });
-
+  document.getElementById("closeInspectionHistoryBtn").addEventListener("click", App.Modals.closeInspectionHistory);
+  document.getElementById("closeInspectionHistoryBtn2").addEventListener("click", App.Modals.closeInspectionHistory);
 
 };
 

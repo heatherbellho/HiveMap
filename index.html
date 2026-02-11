@@ -267,7 +267,10 @@
 
 
         <h3 class="section-title" style="margin: 0;">Inspection History</h3>
+        <button id="openInspectionHistoryBtn" class="btn-info">Inspection History Report</button>
 <div class="modal-section">
+
+
   <div id ="nextInspectionDateDisplay"></div>
   </div>
       <div class="modal-section">
@@ -297,6 +300,11 @@
 <div>
   <strong>Date:</strong>
   <input type="date" id="inspectionDetailsDateInput">
+  <label for="inspectionDetailsTimeInput">Time</label>
+<input type="time" id="inspectionDetailsTimeInput">
+<div id="inspectionDetailsRecordedAt" class="recorded-at"></div>
+
+
 </div>
 
 <div>
@@ -308,6 +316,7 @@
 <div>
   <strong>Next Inspection Due:</strong>
   <input type="date" id="inspectionDetailsNextInspectionInput">
+
 </div>
 
 <div style="grid-column: 1 / -1;">
@@ -612,6 +621,10 @@
   <div>
     <strong>Date:</strong>
     <input type="date" id="inspectionInputDate">
+    <label for="inspectionInputTime">Time</label>
+<input type="time" id="inspectionInputTime">
+<div id="inspectionInputRecordedAt"></div>
+
   </div>
 
   <div>
@@ -642,6 +655,43 @@
   </div>
 </div>
 
+<div id="inspectionHistoryModal" class="modal" style="display:none;">
+  <div class="modal-content inspection-details-modal">
+
+    <div class="modal-header">
+      <h2 id="inspectionHistoryTitle">Inspection History</h2>
+      <button id="closeInspectionHistoryBtn" class="modal-close">&times;</button>
+    </div>
+
+    <div class="modal-body" style="overflow:auto; max-height:70vh;">
+
+      <!-- ⭐ Table now supports Date + Time columns -->
+      <table id="inspectionHistoryTable" class="inspection-history-table">
+        <thead>
+          <!-- JS will insert:
+               <tr>
+                 <th>Date</th>
+                 <th>Time</th>
+                 <th>Queen Status</th>
+                 <th>Notes</th>
+                 ...schema fields...
+               </tr>
+          -->
+        </thead>
+
+        <tbody>
+          <!-- JS will insert rows dynamically -->
+        </tbody>
+      </table>
+
+    </div>
+
+    <div class="modal-footer">
+      <button id="closeInspectionHistoryBtn2" class="btn-cancel">Close</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>

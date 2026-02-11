@@ -1529,7 +1529,8 @@ canvas {
 #inspectionDetailsModal{
   z-index: 1200 !important;
 }
-#inspectionInputModal {
+#inspectionInputModal,
+#inspectionHistoryModal {
   z-index: 1300 !important;
 }
 /* Shared layout for both Inspection Details + New Inspection */
@@ -1665,4 +1666,24 @@ canvas {
 .subheader-item:nth-child(3) input {
   flex: 1;             /* input grows inside block */
   min-width: 200px;    /* prevents collapsing */
+}
+.inspection-history-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+}
+
+.inspection-history-table th,
+.inspection-history-table td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+#inspectionHistoryModal .modal-body {
+  overflow-x: auto !important;
+  overflow-y: auto !important; /* keep vertical scroll */
+}
+#inspectionHistoryModal {
+  max-width: 95vw !important;
 }
