@@ -21,6 +21,16 @@ App.Utils.formatDateUK = function (dateString) {
   return `${day}/${month}/${year}`;
 };
 
+App.Utils.formatTime = function (iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  let hours = d.getHours();
+  const minutes = d.getMinutes().toString().padStart(2, "0");
+  const ampm = hours >= 12 ? "pm" : "am";
+  hours = hours % 12 || 12;
+  return `${hours}:${minutes}${ampm}`;
+};
+
 // ------------------------------------------------------------
 // Safe JSON parse (returns fallback on error)
 // ------------------------------------------------------------

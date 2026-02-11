@@ -103,12 +103,6 @@ button.save:hover {
   border: 1px solid #eee;
 }
 
-.section-title {
-  margin: 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #444;
-}
 
 /* Inputs */
 .modal-section label {
@@ -895,19 +889,45 @@ body {
   z-index: 9
 ;
 }
-
-.due-overdue {
+.btn-show-all {
+    border: 1px solid #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.due-overdue, .btn-overdue {
   color: #b30000; /* deep red */
   font-weight: bold;
 }
-
-.due-today {
+.btn-overdue{
+  border: 1px solid #b30000;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.due-today, .btn-due-today {
   color: #cc7a00; /* warm orange */
   font-weight: bold;
 }
-
-.due-future {
+.btn-due-today {
+  border: 1px solid #cc7a00;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.due-future, .btn-future {
   color: #2d7a2d; /* green */
+  font-weight: bold;
+}
+.btn-future {
+  border: 1px solid #2d7a2d;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
 }
 #filterNext7 {
   margin-right: 6px;
@@ -1171,6 +1191,26 @@ body {
     border-radius: 6px;
     cursor: pointer;
 }
+#archivedFilterBtn {
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+#hiveListAllFilterBtn,
+#overallListAllFilterBtn {
+    /*background: #000;*/
+    color: #000;
+    border: 1px solid #000;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
 /* Inspection Details Modal Grid */
 .inspection-details-grid {
   display: grid;
@@ -1234,13 +1274,6 @@ body {
   overflow-x: hidden !important;
 }
 
-.modal-section h3 {
-  margin: 0px 0px 8px 0px;
-  font-size: 1.1em;
-  color: #333;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 4px;
-}
 #inspectionFieldConfigModal .modal-body {
   max-height: 60vh;
   overflow-y: auto;
@@ -1318,6 +1351,7 @@ canvas {
 }
 
 .modal-section-size .size-row label {
+  font-size: 0.8rem;
   margin: 0;
 }
 
@@ -1495,7 +1529,8 @@ canvas {
 #inspectionDetailsModal{
   z-index: 1200 !important;
 }
-#inspectionInputModal {
+#inspectionInputModal,
+#inspectionHistoryModal {
   z-index: 1300 !important;
 }
 /* Shared layout for both Inspection Details + New Inspection */
@@ -1577,4 +1612,78 @@ canvas {
   width: 100%;
   padding: 6px;
   box-sizing: border-box;
+}
+    .logo {
+      width: 80px;
+      margin-bottom: 20px;
+    }
+    .modal-subheader {
+  display: flex;
+  gap: 20px;
+  padding: 16px;
+  flex-wrap: wrap;      /* allows wrapping on small screens */
+}
+
+.subheader-item {
+  display: flex;
+  align-items: center;  /* label + input aligned vertically */
+  gap: 8px;             /* space between label and input */
+  flex: 1;              /* all three blocks share the row evenly */
+  min-width: 220px;     /* prevents collapsing */
+}
+
+.subheader-item label {
+  white-space: nowrap;  /* prevents label from wrapping */
+}
+
+.subheader-item input {
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  width: auto;          /* ⭐ critical: prevents input from forcing a new line */
+  flex: 1;              /* input expands only within its block */
+}
+/* Make Hive ID and Apiary compact */
+.subheader-item:nth-child(1),
+.subheader-item:nth-child(2) {
+  flex: 0 0 auto;      /* do NOT stretch */
+}
+
+.subheader-item:nth-child(1) input {
+  width: 100px;        /* Hive ID compact */
+}
+
+.subheader-item:nth-child(2) input {
+  width: 120px;        /* Apiary compact */
+}
+
+/* Memo block gets all remaining space */
+.subheader-item:nth-child(3) {
+  flex: 1 1 auto;      /* allow stretching */
+}
+
+.subheader-item:nth-child(3) input {
+  flex: 1;             /* input grows inside block */
+  min-width: 200px;    /* prevents collapsing */
+}
+.inspection-history-table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 100%;
+}
+
+.inspection-history-table th,
+.inspection-history-table td {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+#inspectionHistoryModal .modal-body {
+  overflow-x: auto !important;
+  overflow-y: auto !important; /* keep vertical scroll */
+}
+#inspectionHistoryModal {
+  max-width: 95vw !important;
 }

@@ -35,6 +35,17 @@
 
   <link rel="stylesheet" href="css/app.css">
 </head>
+<script>
+  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+
+  const now = new Date();
+  const expiry = access.expires ? new Date(access.expires) : null;
+
+  if (!access.ok || !expiry || now > expiry) {
+    localStorage.removeItem("hivemap_access");
+    window.location.href = "login.html";
+  }
+</script>
 
 <body>
 
@@ -184,20 +195,33 @@
     </div>
   </header>
 
+<div class="modal-subheader">
+
+  <div class="subheader-item">
+    <label for="hiveName"><strong>Hive ID:</strong></label>
+    <input type="text" id="hiveName" placeholder="Hive Name">
+  </div>
+
+  <div class="subheader-item">
+    <label for="currentApiaryName"><strong>Apiary:</strong></label>
+    <input type="text" id="currentApiaryName" disabled>
+  </div>
+
+  <div class="subheader-item">
+    <label for="hiveMemo"><strong>Memo:</strong></label>
+    <input type="text" id="hiveMemo" placeholder="Short note…">
+  </div>
+
+</div>
+
   <main class="modal-body">
 
     <!-- LEFT COLUMN -->
     <div class="modal-column">
-        <h3 class="section-title">Hive Details</h3>
+        <h3 class="section-title" style="margin: 0;">Hive Details</h3>
+
+
       <div class="modal-section">
-
-
-        <label for="hiveName">Hive ID</label>
-        <input type="text" id="hiveName" placeholder="Hive Name">
-
-  <label>Current Apiary</label>
-  <input type="text" id="currentApiaryName" disabled>
-
   <label for="destinationApiarySelect">Move to Apiary</label>
   <select id="destinationApiarySelect"></select>
 
@@ -214,7 +238,7 @@
         </div>
   </div>
       <div class="modal-section">
-        <h4 class="section-title">Hive Boxes</h4>
+        <label for="box-list">Hive Boxes</label>
 
         <div id="boxList" class="box-list"></div>
 
@@ -226,7 +250,7 @@
       </div>
 
       <div class="modal-section modal-section-size">
-        <h4 class="section-title">Tile Size</h4>
+        <label for="size-row">Tile Size</label>
 
         <div class="size-row">
           <label>Width</label>
@@ -242,8 +266,11 @@
     <div class="modal-column">
 
 
-        <h3 class="section-title">Inspection History</h3>
+        <h3 class="section-title" style="margin: 0;">Inspection History</h3>
+        <button id="openInspectionHistoryBtn" class="btn-info">Inspection History Report</button>
 <div class="modal-section">
+
+
   <div id ="nextInspectionDateDisplay"></div>
   </div>
       <div class="modal-section">
@@ -270,25 +297,33 @@
     </div>
 
     <div class="modal-subheader" id="inspectionDetailsSubheader">
-      <div>
-        <strong>Date:</strong>
-        <span id="inspectionDetailsDate"></span>
-      </div>
+<div>
+  <strong>Date:</strong>
+  <input type="date" id="inspectionDetailsDateInput">
+  <label for="inspectionDetailsTimeInput">Time</label>
+<input type="time" id="inspectionDetailsTimeInput">
+<div id="inspectionDetailsRecordedAt" class="recorded-at"></div>
 
-      <div>
-        <strong>Queen Status:</strong>
-        <span id="inspectionDetailsQueenStatus"></span>
-      </div>
 
-      <div>
-        <strong>Next Inspection Due:</strong>
-        <span id="inspectionDetailsNextInspection"></span>
-      </div>
+</div>
 
-      <div style="grid-column: 1 / -1;">
-        <strong>Notes:</strong>
-        <span id="inspectionDetailsNotes"></span>
-      </div>
+<div>
+  <strong>Queen Status:</strong>
+  <select id="inspectionDetailsQueenStatusInput">
+  </select>
+</div>
+
+<div>
+  <strong>Next Inspection Due:</strong>
+  <input type="date" id="inspectionDetailsNextInspectionInput">
+
+</div>
+
+<div style="grid-column: 1 / -1;">
+  <strong>Notes:</strong>
+  <textarea id="inspectionDetailsNotesInput"></textarea>
+</div>
+
 </div>
 
 
@@ -303,7 +338,7 @@
   </div>
 </div>
 
-<!-- Archived Hives list -->
+<!-- Archived Hives list 
 <div id="archivedHivesModal" class="modal">
   <div class="modal-header">
     <h2>Archived Hives</h2>
@@ -316,7 +351,7 @@
       <button id="closeArchivedHivesBtn" class="btn-cancel">Close</button>
     </div>
   </div>
-
+-->
 
 <!-- Status settings modal -->
 <div id="statusModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
@@ -525,11 +560,25 @@
 <div id="hiveListModal" class="modal">
     <header class="modal-header">
     <h2 id="hiveListTitle"></h2>
-    <div>
-      <span class="due-today" style="margin-left: 18px;">Due Today</span>
-      <span class="due-overdue" style="margin-left: 18px;">Overdue</span>
-      <span class="due-future" style="margin-left: 18px;">Due Future</span>
+
+    <div id="archiveBtns" style="display: none;">
+    <span id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</span>
+    <span id="hiveListAllFilterBtn" class="filter-btn" data-filter="hiveListShowAll" style="margin-left: 18px;">All Hives</span>
     </div>
+
+    <div id="overallArchiveBtns" style="display: none;">
+    <span id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</span>
+    <span id="overallListAllFilterBtn" class="filter-btn" data-filter="overallListShowAll" style="margin-left: 18px;">All Hives</span>
+    </div>
+
+    <div id="dueInspectionBtns" style="display: none;">
+      
+      <span class="btn-show-all filter-btn" data-filter="all" style="margin-left: 18px; font-weight:600;">Show All</span>
+      <span class="btn-due-today filter-btn" data-filter="today" style="margin-left: 18px;">Due Today</span>
+      <span class="btn-overdue filter-btn" data-filter="overdue" style="margin-left: 18px;">Overdue</span>
+      <span class="btn-future filter-btn" data-filter="future" style="margin-left: 18px;">Due Future</span>
+    </div>
+
     <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
   </header>
       <div id="dueInspectionFilters" style="display:none; margin-bottom:10px;">
@@ -547,6 +596,7 @@
     <th class="col-date">Last</th>
     <th class="col-date">Next Due</th>
     <th class="col-type">Type</th>
+    <th class="col-memo">Memo</th>
     <th class="col-action"></th>
   </tr>
 </thead>
@@ -571,6 +621,10 @@
   <div>
     <strong>Date:</strong>
     <input type="date" id="inspectionInputDate">
+    <label for="inspectionInputTime">Time</label>
+<input type="time" id="inspectionInputTime">
+<div id="inspectionInputRecordedAt"></div>
+
   </div>
 
   <div>
@@ -601,6 +655,43 @@
   </div>
 </div>
 
+<div id="inspectionHistoryModal" class="modal" style="display:none;">
+  <div class="modal-content inspection-details-modal">
+
+    <div class="modal-header">
+      <h2 id="inspectionHistoryTitle">Inspection History</h2>
+      <button id="closeInspectionHistoryBtn" class="modal-close">&times;</button>
+    </div>
+
+    <div class="modal-body" style="overflow:auto; max-height:70vh;">
+
+      <!-- ⭐ Table now supports Date + Time columns -->
+      <table id="inspectionHistoryTable" class="inspection-history-table">
+        <thead>
+          <!-- JS will insert:
+               <tr>
+                 <th>Date</th>
+                 <th>Time</th>
+                 <th>Queen Status</th>
+                 <th>Notes</th>
+                 ...schema fields...
+               </tr>
+          -->
+        </thead>
+
+        <tbody>
+          <!-- JS will insert rows dynamically -->
+        </tbody>
+      </table>
+
+    </div>
+
+    <div class="modal-footer">
+      <button id="closeInspectionHistoryBtn2" class="btn-cancel">Close</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>
@@ -608,6 +699,7 @@
 <!-- Exit / Save Modal -->
 <div id="exitModal" class="modal hidden">
   <div class="modal-content">
+    <img src="icons/512-hive-map.png" alt="HiveMap Logo" class="logo">
     <h2>Exit HiveMap</h2>
     <p>Before you exit, would you like to Export your data?</p>
 

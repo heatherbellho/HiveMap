@@ -2,7 +2,8 @@
   "name": "Hive Map",
   "short_name": "HiveMap",
   "description": "Visual hive management with inspection history.",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#fff9eb",
   "theme_color": "#719454",
@@ -17,6 +18,12 @@
       "src": "icons/512_hive-map.png",
       "sizes": "512x512",
       "type": "image/png"
+    },
+    {
+      "src": "icons/512_hive-map.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
