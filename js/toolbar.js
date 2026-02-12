@@ -120,6 +120,123 @@ document.getElementById("toolsConfigureInspection").addEventListener("click", ()
   closeAllMenus();
   App.Modals.openInspectionFieldConfig();
 });
+
+document.getElementById("toolsAccount").addEventListener("click", () => {
+  closeAllMenus();
+
+  const modal = document.getElementById("accountModal");
+  const overlay = document.getElementById("overlay");
+
+  // LOGIN ACCESS
+  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+  const accessEl = document.getElementById("accountAccessStatus");
+
+  if (access.expires) {
+    const expiry = new Date(access.expires);
+    const now = new Date();
+    const days = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+
+    accessEl.innerHTML = `
+Access expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
+      (${days} days remaining)
+    `;
+  } else {
+    accessEl.textContent = "No active login session.";
+  }
+
+  // LICENSE STATUS
+  const licenseEl = document.getElementById("accountLicenseStatus");
+  const keyEl = document.getElementById("accountLicenseKey");
+
+  const key = localStorage.getItem("hivemap_license_key");
+
+  licenseEl.textContent = isPro ? "Edition: HiveMapPlus" : "Edition: HiveMapFree";
+
+  if (key) {
+    const masked = key.replace(/(\d{4})-(\d{4})-(\d{4})$/, "$1-****-****");
+    keyEl.textContent = "License Key: " + masked;
+  } else {
+    keyEl.textContent = "License Key: None";
+  }
+
+  // EXPLANATION SECTION (dynamic)
+  const explainEl = document.getElementById("accountEditionExplanation");
+
+  if (isPro) {
+    explainEl.innerHTML = `
+      <strong>HiveMapPlus</strong> unlocks unlimited apiaries and hives.<br>
+      You also receive priority updates and access to all future Plus features.<br>
+      Your data remains fully local and private.
+    `;
+  } else {
+    explainEl.innerHTML = `
+      <strong>HiveMapFree</strong> is fully functional but limited to one apiary and one hive.<br>
+      Upgrade to <strong>HiveMapPlus</strong> to unlock unlimited apiaries and hives.<br>
+      You also receive priority updates and access to any future Plus features.<br>
+      Your data remains fully local and private.<br>
+         <p><a href="https://cornishhoney.co.uk/email_us.php"
+         target="_blank"
+         class="toolbar-btn"
+         style="text-decoration: none;">
+         Contact Us to Upgrade
+      </a></p>
+    `;
+  }
+
+  // VERSION SECTION
+  document.getElementById("accountVersion").textContent =
+    `Version: ${App.Version}`;
+
+  // OPEN MODAL
+  overlay.style.zIndex = "900"; // below account 
+  overlay.style.display = "block"; 
+  modal.style.display = "block";
+});
+
+// Close modal
+document.getElementById("accountModalClose").addEventListener("click", () => {
+  document.getElementById("accountModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+});
+document.getElementById("accountModalCloseFooter").addEventListener("click", () => {
+  document.getElementById("accountModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+});
+
+// Renew access
+document.getElementById("renewAccessBtn").addEventListener("click", () => {
+  App.Modals.openRenewModal();
+});
+
+
+// Enter license key
+document.getElementById("enterLicenseBtn").addEventListener("click", () => {
+  const key = prompt("Enter your HiveMapPlus license key:");
+  if (!key) return;
+
+  if (!App.validateLicenseKey(key)) {
+    alert("Invalid license key.");
+    return;
+  }
+
+  localStorage.setItem("hivemap_license_key", key);
+  localStorage.setItem("hivemap_pro", "true");
+
+  alert("HiveMapPlus activated. Click OK to reload.");
+  window.location.reload();
+});
+
+// Reset license key
+document.getElementById("resetLicenseBtn").addEventListener("click", () => {
+  localStorage.removeItem("hivemap_license_key");
+  localStorage.removeItem("hivemap_pro");
+
+  alert("License key removed, HiveMapPlus deactivated. Click OK to reload.");
+  window.location.reload();
+});
+
+
+
 // Help Modal
 document.addEventListener("DOMContentLoaded", () => {
   const helpBtn = document.getElementById("toolsHelp");
@@ -147,6 +264,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     overlay.addEventListener("click", closeHelp);
   }
+});
+
+document.querySelectorAll('.help-nav a').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  });
 });
 
 document.getElementById("toolbarApiaryCounts").addEventListener("click", App.Modals.openHiveListModal);

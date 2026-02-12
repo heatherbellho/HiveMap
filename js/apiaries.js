@@ -57,10 +57,17 @@ App.Apiaries.switch = function (name) {
 // Create a new apiary
 // ------------------------------------------------------------
 App.Apiaries.create = function () {
+  const all = Storage.getAllApiaries();
+
+  // ⭐ Limit: max apiaries in free version
+  if (all.length >= LIMITS.maxApiaries) {
+    alert("The free version of HiveMap supports only one apiary.");
+    return;
+  }
+
   const name = prompt("Name of new apiary:");
   if (!name) return;
 
-  const all = Storage.getAllApiaries();
   if (all.includes(name)) {
     alert("That apiary already exists.");
     return;
@@ -85,7 +92,6 @@ App.Apiaries.create = function () {
 
   App.Canvas.loadLayout();
 };
-
 
 // ------------------------------------------------------------
 // Rename current apiary

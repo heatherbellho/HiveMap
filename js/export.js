@@ -177,7 +177,39 @@ App.Export.importAllData = function (event) {
         return;
       }
 
-      // Clear existing data
+      // ⭐ Preserve login + license BEFORE clearing storage
+      const preservedAccess = localStorage.getItem("hivemap_access");
+      const preservedLicenseKey = localStorage.getItem("hivemap_license_key");
+      const preservedProFlag = localStorage.getItem("hivemap_pro");
+
+      // ⭐ Enforce free-version limits on imported data
+      if (!isPro) {
+        const names = Object.keys(loaded.apiaries);
+
+        const firstName = names[0];
+        const firstApiary = loaded.apiaries[firstName];
+
+        const trimmedApiaries = {};
+        if (firstApiary) {
+          const hiveNames = Object.keys(firstApiary.hives || {});
+          const firstHiveName = hiveNames[0];
+
+          const trimmedHives = {};
+          if (firstHiveName) {
+            trimmedHives[firstHiveName] = firstApiary.hives[firstHiveName];
+          }
+
+          trimmedApiaries[firstName] = {
+            ...firstApiary,
+            hives: trimmedHives
+          };
+        }
+
+        loaded.apiaries = trimmedApiaries;
+        loaded.lastUsed = firstName || loaded.lastUsed;
+      }
+
+      // ⭐ Clear existing data (but we will restore access + license)
       localStorage.clear();
 
       // Restore apiaries
@@ -186,7 +218,7 @@ App.Export.importAllData = function (event) {
       apiaryNames.forEach(name => {
         const apiary = loaded.apiaries[name];
         Storage.saveHiveLayout(name, JSON.stringify(apiary.canvas || {}));
-Storage.saveApiaryNotes(name, apiary.note || []);
+        Storage.saveApiaryNotes(name, apiary.note || []);
       });
 
       Storage.saveAllApiaries(apiaryNames);
@@ -198,7 +230,15 @@ Storage.saveApiaryNotes(name, apiary.note || []);
         Storage.saveQueenStatuses(loaded.settings.queenStatuses || []);
       }
 
-      alert(`Imported ${apiaryNames.length} apiaries successfully. Page will reload.`);
+      // ⭐ Restore login + license AFTER import
+      if (preservedAccess) localStorage.setItem("hivemap_access", preservedAccess);
+      if (preservedLicenseKey) localStorage.setItem("hivemap_license_key", preservedLicenseKey);
+      if (preservedProFlag) localStorage.setItem("hivemap_pro", preservedProFlag);
+
+      alert(`Imported ${apiaryNames.length} apiaries successfully.`);
+
+      // ⭐ Skip login check for this reload
+      localStorage.setItem("hivemap_skip_login_check", "1");
       window.location.reload();
 
     } catch (err) {
@@ -209,7 +249,6 @@ Storage.saveApiaryNotes(name, apiary.note || []);
 
   reader.readAsText(file);
 };
-
 
 // ------------------------------------------------------------
 // Initialise export system
