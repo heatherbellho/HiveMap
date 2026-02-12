@@ -10,6 +10,37 @@ App.Canvas = {};
 let canvas = null;
 let tooltip = null;
 
+// ------------------------------------------------------------
+// ⭐ GLOBAL PATCH: Fix invalid baseline at the canvas context level
+// ------------------------------------------------------------
+const originalGetContext = HTMLCanvasElement.prototype.getContext;
+
+HTMLCanvasElement.prototype.getContext = function(type, options) {
+  const ctx = originalGetContext.call(this, type, options);
+
+  if (ctx && ctx.textBaseline !== undefined) {
+    const originalSetter = Object.getOwnPropertyDescriptor(
+      Object.getPrototypeOf(ctx),
+      'textBaseline'
+    );
+
+    if (originalSetter && originalSetter.set) {
+      Object.defineProperty(ctx, 'textBaseline', {
+        set(value) {
+          if (value === 'alphabetical') {
+            value = 'alphabetic';
+          }
+          originalSetter.set.call(this, value);
+        },
+        get() {
+          return originalSetter.get.call(this);
+        }
+      });
+    }
+  }
+
+  return ctx;
+};
 
 // ------------------------------------------------------------
 // Initialise Fabric canvas
@@ -225,7 +256,7 @@ App.Canvas.createHive = function (name, width, height) {
     mtr:true
   });
 
-  group.on("mousedblclick", () => App.Modals.openHiveModal(group));
+  group.on("mouse:dblclick", () => App.Modals.openHiveModal(group));
 
   canvas.add(group);
   canvas.setActiveObject(group);
@@ -306,8 +337,6 @@ App.Canvas.saveLayout = function () {
 
   Storage.saveHiveLayout(current, JSON.stringify(json));
 };
-
-
 
 // ------------------------------------------------------------
 // Load layout from storage

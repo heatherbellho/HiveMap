@@ -1,33 +1,28 @@
 const cacheName = 'hive-map-cache-v2.2.1';
 
 const filesToCache = [
-  './',
-  './index.html',
-  './manifest.json',
+  'index.html',
+  'manifest-v2.json',
 
-  // Icons (must match manifest)
-  './icons/192_hive-map.png',
-  './icons/512_hive-map.png',
+  // Icons
+  'icons/192-hive-map.png',
+  'icons/512-hive-map.png',
 
   // Core app files
-  './app.js',
-  './storage.js',
-  './utils.js',
-  './toolbar.js',
-  './canvas.js',
-  './notes.js',
-  './apiaries.js',
-  './hives.js',
-  './modals.js',
-  './status.js',
-  './notes.js',
-  './export.js',
-  './stats.js',
-  './version.js',
-  './css/app.css',
-
-  // External libs
-  'https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js'
+  'js/app.js',
+  'js/storage.js',
+  'js/utils.js',
+  'js/toolbar.js',
+  'js/canvas.js',
+  'js/apiaries.js',
+  'js/hives.js',
+  'js/modals.js',
+  'js/status.js',
+  'js/notes.js',
+  'js/export.js',
+  'js/stats.js',
+  'js/version.js',
+  'css/app.css'
 ];
 
 self.addEventListener('install', event => {
@@ -51,4 +46,3 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(resp => resp || fetch(event.request))
   );
 });
-

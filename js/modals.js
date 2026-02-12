@@ -525,18 +525,26 @@ App.Modals.addBox = function () {
 
 // Open
 App.Modals.openHiveSizeModal = function () {
+
+  // ⭐ FREE VERSION LIMIT CHECK — block before modal opens
+  const existing = App.Canvas.getHiveNames();
+  if (existing.length >= LIMITS.maxHives) {
+    alert("The free version of HiveMap supports only one hive.");
+    return;
+  }
+
+  // Open modal
   document.getElementById("hiveSizeModal").style.display = "block";
   document.getElementById("overlay").style.display = "block";
 
   // Auto-suggest next hive number
-const used = App.Canvas.getHiveNames()
-  .sort((a, b) => Number(a) - Number(b));
+  const used = existing.sort((a, b) => Number(a) - Number(b));
 
   let n = 1;
-while (used.includes(String(n).padStart(2, "0"))) {
-  n++;
-}
-const padded = String(n).padStart(2, "0");
+  while (used.includes(String(n).padStart(2, "0"))) {
+    n++;
+  }
+  const padded = String(n).padStart(2, "0");
   document.getElementById("hiveNameInput").value = padded;
   document.getElementById("usedHiveNumbers").textContent =
     used.length ? "Used: " + used.join(", ") : "No hives yet";
@@ -582,7 +590,6 @@ App.Modals.confirmCreateHive = function () {
 App.Stats.update();
   App.Modals.closeHiveSizeModal();
 };
-
 
 App.Modals.renderInspectionList = function (title, includeFn) {
 
@@ -2063,6 +2070,37 @@ App.Modals.closeInspectionHistory = function () {
   document.getElementById("overlay").style.display = "none";
 };
 
+App.Modals.openRenewModal = function () {
+  const overlay = document.getElementById("overlay");
+  const renew = document.getElementById("renewModal");
+
+  // When a second modal opens, overlay must rise above the lower modal
+  overlay.style.zIndex = "1100";   // between account (1000) and renew (1200)
+  overlay.style.display = "block";
+
+  renew.style.display = "block";
+};
+
+App.Modals.closeRenewModal = function () {
+  const overlay = document.getElementById("overlay");
+  const renew = document.getElementById("renewModal");
+
+  renew.style.display = "none";
+
+  // Check if any modal is still open
+  const anyOpen = [...document.querySelectorAll('.modal')]
+    .some(m => m.style.display === "block");
+
+  if (anyOpen) {
+    // Return overlay to its normal position (below the single open modal)
+    overlay.style.zIndex = "900";
+    overlay.style.display = "block";
+  } else {
+    // No modals open → hide overlay
+    overlay.style.display = "none";
+  }
+};
+
 
 // ------------------------------------------------------------
 // Initialise modal system
@@ -2175,6 +2213,9 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
   const newApiaryId = document.getElementById("destinationApiarySelect").value;
   App.Hives.moveHive(selectedHive, newApiaryId);
 });
+
+document.getElementById("renewCloseBtn").onclick = App.Modals.closeRenewModal;
+
 
 // ===============================
 //  CLICK HANDLERS FOR COLOUR LABELS

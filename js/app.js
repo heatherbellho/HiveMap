@@ -7,6 +7,37 @@
 window.App = window.App || {};
 
 // ------------------------------------------------------------
+// License Key Validation  (MUST come before isPro)
+// ------------------------------------------------------------
+App.validateLicenseKey = function (key) {
+  if (!key || typeof key !== "string") return false;
+
+  const pattern = /^HIVEMAP-(\d{4})-(\d{4})-(\d{4})$/;
+  const match = key.trim().toUpperCase().match(pattern);
+  if (!match) return false;
+
+  const [_, a, b, c] = match;
+
+  const sum = (parseInt(a) + parseInt(b)) % 997;
+  const check = parseInt(c) % 997;
+
+  return sum === check;
+};
+
+// ------------------------------------------------------------
+// Free vs Pro limits
+// ------------------------------------------------------------
+const isPro =
+  localStorage.getItem("hivemap_pro") === "true" &&
+  App.validateLicenseKey(localStorage.getItem("hivemap_license_key"));
+
+const LIMITS = {
+  maxApiaries: isPro ? Infinity : 1,
+  maxHives:    isPro ? Infinity : 1
+};
+
+
+// ------------------------------------------------------------
 // Update the Inspections Due badge and button visibility
 // ------------------------------------------------------------
 App.updateDueInspectionsBadge = function () {
@@ -66,9 +97,16 @@ if (due.length > 0) {
   btn.style.display = "none";
   badge.style.display = "none";
 }
-document.getElementById("appVersion").textContent = App.Version;
-document.title = "HiveMap " + App.Version;
+document.getElementById("appVersion").textContent =
+`HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
 
+document.title = `HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
+
+// Show Free vs Pro status
+const statusEl = document.getElementById("licenseStatus");
+if (statusEl) {
+  statusEl.textContent = isPro ? "Plus" : "Free";
+}
 
 };
 

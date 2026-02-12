@@ -36,18 +36,35 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <script>
+  const skip = localStorage.getItem("hivemap_skip_login_check") === "1";
+
   const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
 
-  const now = new Date();
-  const expiry = access.expires ? new Date(access.expires) : null;
+  // Only enforce login if NOT skipping
+  if (!skip) {
+    const now = new Date();
 
-  if (!access.ok || !expiry || now > expiry) {
-    localStorage.removeItem("hivemap_access");
-    window.location.href = "login.html";
+    // Must have ok:true AND expires
+    if (!access.ok || !access.expires) {
+      window.location.href = "login.html";
+    } else {
+      const expiry = new Date(access.expires);
+
+      // Only redirect if truly expired
+      if (now > expiry) {
+        localStorage.removeItem("hivemap_access");
+        window.location.href = "login.html";
+      }
+    }
   }
+
+  // Always clear skip flag
+  localStorage.removeItem("hivemap_skip_login_check");
 </script>
 
+
 <body>
+  <div id="overlay" tabindex="-1"></div>
 
 <div id="toolbar">
 <div class="toolbar-group toolbar-apiary">
@@ -130,7 +147,7 @@
     <!--  <div class="dropdown-item" id="toolsHiveSizes">Edit Hive Sizes</div> -->
     <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
     <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
-
+<div class="dropdown-item" id="toolsAccount">Account & License</div>
       <div class="dropdown-item" id="toolsHelp">Help</div>
     </div>
   </div>
@@ -172,13 +189,12 @@
   </div>
 
 </div>
-      <div style="margin: 0px 0px 18px; text-align: center;"><small>&copy; 2026 HiveMap <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
+      <div style="margin: 0px 0px 18px; text-align: center;"><small>&copy; 2026 <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
     </div>
   </div>
 
   <div id="tooltip"></div>
 
-  <div id="overlay" tabindex="-1"></div>
 
 <!-- Hive edit modal -->
 <div id="modal" class="modal modal-hive-edit"
@@ -238,8 +254,7 @@
         </div>
   </div>
       <div class="modal-section">
-        <label for="box-list">Hive Boxes</label>
-
+        <label>Hive Boxes</label>
         <div id="boxList" class="box-list"></div>
 
         <div class="inline-row">
@@ -250,9 +265,8 @@
       </div>
 
       <div class="modal-section modal-section-size">
-        <label for="size-row">Tile Size</label>
-
-        <div class="size-row">
+        <label>Tile Size</label>
+        <div id="sizeRow" class="size-row">
           <label>Width</label>
           <input id="editHiveWidth" type="number" min="10">
 
@@ -503,58 +517,68 @@
     <button id="helpModalCloseBtn" class="modal-close">&times;</button>
   </header>
 
-  <main class="modal-body">
-    <h3>Getting Started - the Toolbar</h3>
-    <p>Use <strong>Select Apiary</strong> in the toolbar, or create a new apiary using the <strong>Apiary</strong> menu.</p>
-    <p>Click <strong>Apiary Notes</strong> to see and add notes for the selected apiary.</p>
-    <p><strong>Apiary Count</strong> shows the number of hives for the selected apiary separately for hives where status is not equal to Query and for hives where status equals Query.</p>
-    <p><strong>Total Count</strong> shows the total number of hives across all apiaries.</p>
-    <p>If any hives have a <strong>Next Inspection Date</strong> set,
-      <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M1 21h22L12 2 1 21z"
-              fill="#fff"
-              stroke="#dd0000"
-              stroke-width="1" />
-        <path d="M12 8v6"
-              stroke="#000"
-              stroke-width="2"
-              stroke-linecap="round" />
-        <circle cx="12" cy="17" r="1.5" fill="#000" />
-      </svg>
-      appears with the number of hives with due inspections.<br>
-      Click this to show a list of hives with due inspections grouped by apiary and ordered by date.
-    </p>
-    <p>Use the <strong>Apiary</strong> menu to:<br>
-      - Create a <strong>New Apiary</strong>.<br>
-      - <strong>Rename Apiary</strong> that is selected.<br>
-      - <strong>Delete Apiary</strong> that is selected.<br>
-      - <strong>Print Apiary</strong> that is selected which opens a print window to print the apiary layout and cards for each hive.</p>
-    <p>Use the <strong>Hives</strong> menu to:<br>
-      - Create a <strong>New Hive</strong>.<br>
-      - <strong>Delete Hive</strong> that is selected.</p>
-    <p>Use the <strong>Tools</strong> menu to:<br>
-      - <strong>Export Data</strong> (save all your apiaries and hives to a JSON file).<br>
-      - <strong>Import All Data</strong> (load from a previously exported JSON file).<br>
-      - <strong>Edit Status Colours</strong> to create or edit hive statuses and their colours.<br>
-      - Open this <strong>Help</strong> panel.</p>
+  <div class="help-layout">
 
-    <h4>Editing Hives</h4>
-    <p>Double-click a hive to open its inspection panel. Add boxes, notes, and inspection history.</p>
+    <!-- ⭐ LEFT SIDE MENU -->
+    <nav class="help-nav">
+      <ul>
+        <li><a href="#help-start">Getting Started</a></li>
+        <li><a href="#help-editing">Editing Hives</a></li>
+        <li><a href="#help-notes">Notes</a></li>
+        <li><a href="#help-status">Status Colours</a></li>
+        <li><a href="#help-saving">Saving Your Data</a></li>
+      </ul>
+    </nav>
 
-    <h4>Notes</h4>
-    <p>Use the “Apiary Notes” button in the toolbar to record notes for the whole apiary.</p>
+    <!-- ⭐ MAIN CONTENT -->
+    <main class="modal-body help-content">
 
-    <h4>Status Colours</h4>
-    <p>Edit hive status colours from Tools → Edit Status Colours.</p>
+      <h3 id="help-start">Getting Started - the Toolbar</h3>
+      <p>Use <strong>Select Apiary</strong> in the toolbar, or create a new apiary using the <strong>Apiary</strong> menu.</p>
+      <p>Click <strong>Apiary Notes</strong> to see and add notes for the selected apiary.</p>
+      <p><strong>Apiary Count</strong> shows the number of hives for the selected apiary separately for hives where status is not equal to Query and for hives where status equals Query.</p>
+      <p><strong>Total Count</strong> shows the total number of hives across all apiaries.</p>
+      <p>If any hives have a <strong>Next Inspection Date</strong> set,
+        <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M1 21h22L12 2 1 21z" fill="#fff" stroke="#dd0000" stroke-width="1" />
+          <path d="M12 8v6" stroke="#000" stroke-width="2" stroke-linecap="round" />
+          <circle cx="12" cy="17" r="1.5" fill="#000" />
+        </svg>
+        appears with the number of hives with due inspections.<br>
+        Click this to show a list of hives with due inspections grouped by apiary and ordered by date.
+      </p>
+      <p>Use the <strong>Apiary</strong> menu to:<br>
+        - Create a <strong>New Apiary</strong>.<br>
+        - <strong>Rename Apiary</strong> that is selected.<br>
+        - <strong>Delete Apiary</strong> that is selected.<br>
+        - <strong>Print Apiary</strong> that is selected which opens a print window to print the apiary layout and cards for each hive.</p>
+      <p>Use the <strong>Hives</strong> menu to:<br>
+        - Create a <strong>New Hive</strong>.<br>
+        - <strong>Delete Hive</strong> that is selected.</p>
+      <p>Use the <strong>Tools</strong> menu to:<br>
+        - <strong>Export Data</strong> (save all your apiaries and hives to a JSON file).<br>
+        - <strong>Import All Data</strong> (load from a previously exported JSON file).<br>
+        - <strong>Edit Status Colours</strong> to create or edit hive statuses and their colours.<br>
+        - Open this <strong>Help</strong> panel.</p>
 
-    <h4>Saving Your Data</h4>
-    <p>Use Tools → Export Data to save everything before closing. Import restores your full setup.</p>
-  </main>
+      <h4 id="help-editing">Editing Hives</h4>
+      <p>Double-click a hive to open its inspection panel. Add boxes, notes, and inspection history.</p>
+
+      <h4 id="help-notes">Notes</h4>
+      <p>Use the “Apiary Notes” button in the toolbar to record notes for the whole apiary.</p>
+
+      <h4 id="help-status">Status Colours</h4>
+      <p>Edit hive status colours from Tools → Edit Status Colours.</p>
+
+      <h4 id="help-saving">Saving Your Data</h4>
+      <p>Use Tools → Export Data to save everything before closing. Import restores your full setup.</p>
+
+    </main>
+  </div>
 
   <div class="modal-footer">
     <button id="helpModalCloseBtnFooter" class="btn-cancel">Close</button>
   </div>
-</div>
 </div>
 
 <div id="hiveListModal" class="modal">
@@ -692,6 +716,77 @@
 
   </div>
 </div>
+
+<div id="accountModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <header class="modal-header">
+      <h2>Account & License</h2>
+      <button id="accountModalClose" class="modal-close">&times;</button>
+    </header>
+    <main class="modal-body">
+
+      <section>
+        <h3>Login Access</h3>
+        <p id="accountAccessStatus"></p>
+        <button id="renewAccessBtn" class="btn-save">Renew Access</button>
+      </section>
+
+      <hr>
+
+      <section>
+        <h3>You are using:</h3>
+        <p id="accountVersion"></p>
+        <p id="accountLicenseStatus"></p>
+        <h3>License Status</h3>
+        <p id="accountEditionExplanation"></p>
+        <p id="accountLicenseKey"></p>
+
+        <button id="enterLicenseBtn" class="btn-save">Enter License Key</button>
+        <button id="resetLicenseBtn" class="btn-cancel">Reset License Key</button>
+      </section>
+
+    </main>
+
+    <footer class="modal-footer">
+      <button id="accountModalCloseFooter" class="btn-cancel">Close</button>
+    </footer>
+  </div>
+</div>
+
+<div id="renewModal" style="display:none;" class="modal">
+      <header class="modal-header">
+    <h2>Renew Access</h2>
+        <button id="renewCloseBtn" class="modal-close">&times;</button>
+    </header>
+
+  <div class="modal-content" style="max-width:600px;">
+    <p>
+      HiveMap uses a subscription-style access period. Your access lasts for a
+      limited time and must be renewed periodically.
+    </p>
+
+    <p>
+      To renew your access, simply return to the login page and enter your
+      renewal password or code. This will extend your access period by one month.
+    </p>
+
+    <p>
+      If you believe your access should not have expired, or you need help
+      renewing, please contact support.
+    </p>
+
+    <p>
+      <a href="https://cornishhoney.co.uk/email_us.php"
+         target="_blank"
+         class="toolbar-btn"
+         style="text-decoration: none;">
+         Contact Us to Renew
+      </a>
+    </p>
+
+  </div>
+</div>
+
 
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>
