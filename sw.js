@@ -1,4 +1,4 @@
-const cacheName = 'hive-map-cache-v2.2.1';
+const cacheName = 'hive-map-cache-v2.2.2';
 
 const filesToCache = [
   'index.html',
@@ -46,3 +46,4 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(resp => resp || fetch(event.request))
   );
 });
+
