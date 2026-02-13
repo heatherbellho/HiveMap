@@ -74,25 +74,6 @@ if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
   });
 }
 
-// PAN BUTTONS
-const PAN_AMOUNT = 40;
-
-document.querySelectorAll('#panControls button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const dir = btn.dataset.pan;
-    const vpt = canvas.viewportTransform;
-
-    switch (dir) {
-      case "up":    vpt[5] += PAN_AMOUNT; break;
-      case "down":  vpt[5] -= PAN_AMOUNT; break;
-      case "left":  vpt[4] += PAN_AMOUNT; break;
-      case "right": vpt[4] -= PAN_AMOUNT; break;
-    }
-
-    canvas.setViewportTransform(vpt);
-    canvas.requestRenderAll();
-  });
-});
 
   // Tooltip
   canvas.on("mouse:move", App.Canvas.handleTooltip);
