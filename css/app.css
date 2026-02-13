@@ -1732,29 +1732,39 @@ canvas {
   max-width: 800px !important;
   width: 90vw !important;
 }
-#panControls {
+#uiOverlay {
   position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translateZ(0);
+}
+
+/* Put the D‑pad on the left side */
+#panControls {
+  position: absolute;
   bottom: 20px;
-  right: 20px;
-  width: 90px;
-  height: 90px;
+  left: 20px;        /* moved from right → left */
+  width: 120px;      /* more stable spacing */
+  height: 120px;
   display: grid;
   grid-template-areas:
     ". up ."
-    "left . right"
+    "left center right"
     ". down .";
-  gap: 6px;
-  z-index: 9999;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 10px;
   pointer-events: auto;
 }
 
 #panControls button {
-  width: 30px;
-  height: 30px;
-  font-size: 18px;
-  border-radius: 4px;
+  width: 100%;
+  height: 100%;
+  font-size: 22px;
+  border-radius: 8px;
   border: none;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.85);
   box-shadow: 0 0 4px rgba(0,0,0,0.3);
 }
 
@@ -1762,3 +1772,10 @@ canvas {
 #panControls button[data-pan="left"]  { grid-area: left; }
 #panControls button[data-pan="right"] { grid-area: right; }
 #panControls button[data-pan="down"]  { grid-area: down; }
+
+/* Optional: invisible center to keep spacing stable */
+#panControls::before {
+  content: "";
+  grid-area: center;
+}
+
