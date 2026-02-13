@@ -147,7 +147,7 @@
     <!--  <div class="dropdown-item" id="toolsHiveSizes">Edit Hive Sizes</div> -->
     <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
     <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
-<div class="dropdown-item" id="toolsAccount">Account & License</div>
+<div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">Account & License</div>
       <div class="dropdown-item" id="toolsHelp">Help</div>
     </div>
   </div>
@@ -254,7 +254,7 @@
         </div>
   </div>
       <div class="modal-section">
-        <label>Hive Boxes</label>
+        <h4 style="margin: 0;">Hive Boxes</h4>
         <div id="boxList" class="box-list"></div>
 
         <div class="inline-row">
@@ -265,12 +265,12 @@
       </div>
 
       <div class="modal-section modal-section-size">
-        <label>Tile Size</label>
+        <h4 style="margin: 0;">Tile Size</h4>
         <div id="sizeRow" class="size-row">
-          <label>Width</label>
+          <h5>Width</h5>
           <input id="editHiveWidth" type="number" min="10">
 
-          <label>Height</label>
+          <h5>Height</h5>
           <input id="editHiveHeight" type="number" min="10">
         </div>
       </div>
@@ -726,18 +726,20 @@
     <main class="modal-body">
 
       <section>
-        <h3>Login Access</h3>
+        <h3>Subscription Status</h3>
         <p id="accountAccessStatus"></p>
-        <button id="renewAccessBtn" class="btn-save">Renew Access</button>
+        <button id="renewAccessBtn" class="btn-info" style="margin-bottom: 12px;">Renew Subscription</button>
+        <button id="enterNewCodeBtn" class="btn-save">Enter New Access Code</button>
+
       </section>
 
       <hr>
 
       <section>
-        <h3>You are using:</h3>
-        <p id="accountVersion"></p>
-        <p id="accountLicenseStatus"></p>
         <h3>License Status</h3>
+        <h4 style="margin-bottom: 12px;">You are using:</h4>
+        <span id="accountLicenseStatus"></span>,&nbsp;<span id="accountVersion"></span>
+       
         <p id="accountEditionExplanation"></p>
         <p id="accountLicenseKey"></p>
 
@@ -761,18 +763,15 @@
 
   <div class="modal-content" style="max-width:600px;">
     <p>
-      HiveMap uses a subscription-style access period. Your access lasts for a
-      limited time and must be renewed periodically.
+      HiveMap uses a subscription-style access period.<br>
+      Your subscription lasts for a limited time and must be renewed periodically.<br>
+      You can renew your subscription at any time and this will be added to your access period.
     </p>
 
     <p>
-      To renew your access, simply return to the login page and enter your
-      renewal password or code. This will extend your access period by one month.
-    </p>
-
-    <p>
-      If you believe your access should not have expired, or you need help
-      renewing, please contact support.
+      Contact us to renew your subscription and we will send a new Access Code by e-mail.<br>
+      Use the Enter New Access Code button in the Account & License panel and enter your renewal Access Code on the login page<br>
+      If you believe your access should not have expired, or you have not received your code or need help renewing, please contact us.
     </p>
 
     <p>
@@ -780,7 +779,7 @@
          target="_blank"
          class="toolbar-btn"
          style="text-decoration: none;">
-         Contact Us to Renew
+         Contact Us
       </a>
     </p>
 
@@ -811,6 +810,12 @@
   <button id="exitToastClose" class="toast-close">×</button>
 </div>
 
+<div id="panControls">
+  <button data-pan="up">▲</button>
+  <button data-pan="left">◀</button>
+  <button data-pan="right">▶</button>
+  <button data-pan="down">▼</button>
+</div>
 
   <!-- Service worker registration -->
   <script>

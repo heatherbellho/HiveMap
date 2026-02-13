@@ -74,6 +74,25 @@ if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
   });
 }
 
+// PAN BUTTONS
+const PAN_AMOUNT = 40;
+
+document.querySelectorAll('#panControls button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const dir = btn.dataset.pan;
+    const vpt = canvas.viewportTransform;
+
+    switch (dir) {
+      case "up":    vpt[5] += PAN_AMOUNT; break;
+      case "down":  vpt[5] -= PAN_AMOUNT; break;
+      case "left":  vpt[4] += PAN_AMOUNT; break;
+      case "right": vpt[4] -= PAN_AMOUNT; break;
+    }
+
+    canvas.setViewportTransform(vpt);
+    canvas.requestRenderAll();
+  });
+});
 
   // Tooltip
   canvas.on("mouse:move", App.Canvas.handleTooltip);
@@ -215,7 +234,7 @@ App.Canvas.createHive = function (name, width, height) {
   const rect = new fabric.Rect({
     width,
     height,
-    fill: "#ffe680",
+    fill: "#fff",
     stroke: "#000",
     strokeWidth: 1,
     originX: "center",
@@ -256,7 +275,7 @@ App.Canvas.createHive = function (name, width, height) {
     mtr:true
   });
 
-  group.on("mouse:dblclick", () => App.Modals.openHiveModal(group));
+  group.on("mousedblclick", () => App.Modals.openHiveModal(group));
 
   canvas.add(group);
   canvas.setActiveObject(group);
