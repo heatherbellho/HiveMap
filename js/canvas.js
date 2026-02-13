@@ -10,6 +10,12 @@ App.Canvas = {};
 let canvas = null;
 let tooltip = null;
 
+function formatEntranceLabel(name, entrance) {
+  if (entrance === "❮") return "❮ " + name;
+  if (entrance === "❯") return name + " ❯";
+  return name;
+}
+
 // ------------------------------------------------------------
 // ⭐ GLOBAL PATCH: Fix invalid baseline at the canvas context level
 // ------------------------------------------------------------
@@ -203,7 +209,7 @@ function resizeAndFitCanvas() {
 // ------------------------------------------------------------
 // Create a hive (Fabric group)
 // ------------------------------------------------------------
-App.Canvas.createHive = function (name, width, height) {
+App.Canvas.createHive = function (name, width, height, entrance = "") {
 
   // Ensure canvas is fitted BEFORE placing the hive
   if (typeof resizeAndFitCanvas === "function") {
@@ -222,14 +228,18 @@ App.Canvas.createHive = function (name, width, height) {
     originY: "center"
   });
 
-  const label = new fabric.Text(name, {
-    fontSize: 14,
-    fontFamily: "Arial, sans-serif",
-    underline: true,
-    originX: "center",
-    originY: "center",
-    fill: "#000"
-  });
+  // ⭐ USE FORMATTED LABEL HERE
+  const label = new fabric.Text(
+    formatEntranceLabel(name, entrance),
+    {
+      fontSize: 14,
+      fontFamily: "Arial, sans-serif",
+      underline: true,
+      originX: "center",
+      originY: "center",
+      fill: "#000"
+    }
+  );
 
   const group = new fabric.Group([rect, label], {
     left: pt.x,
@@ -242,6 +252,7 @@ App.Canvas.createHive = function (name, width, height) {
     lockSkewingY: true,
     hiveData: {
       name,
+      entrance,   // ⭐ STORE ENTRANCE HERE
       hiveType: "Hive",
       inspections: [],
       boxes: [],
