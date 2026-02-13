@@ -104,6 +104,8 @@ App.Modals.openHiveModal = function (hiveGroup) {
   document.getElementById("hiveMemo").value = data.memo || "";
   document.getElementById("hiveName").value = data.name || "";
   App.Hives.populateTypeSelect(data.hiveType || "");
+  document.getElementById("editHiveEntrance").value = data.entrance || "";
+
 
   const rect = hiveGroup._objects[0];
   document.getElementById("editHiveWidth").value = rect.width;
@@ -334,6 +336,9 @@ selectedHive.setCoords();
 
   hiveData.name = name;
   hiveData.hiveType = hiveType;
+  hiveData.entrance = document.getElementById("editHiveEntrance").value;
+label.set("text", formatEntranceLabel(hiveData.name, hiveData.entrance));
+
 //  hiveData.nextInspectionDate = nextInspection;
 
   hiveData.inspections = hiveData.inspections || [];
@@ -345,7 +350,7 @@ selectedHive.setCoords();
 
   // Update label + colour
   const currentInspection = hiveData.inspections[hiveData.inspections.length - 1] || {};
-  selectedHive._objects[1].set("text", name);
+selectedHive._objects[1].set("text", formatEntranceLabel(name, hiveData.entrance));
 
   const color = App.Status.getColor(currentInspection.queenStatus || "");
   selectedHive._objects[0].set("fill", color);
@@ -585,9 +590,13 @@ App.Modals.confirmCreateHive = function () {
     [width, height] = size.split("x").map(Number);
   }
 
-  // Delegate creation to Canvas module
-  App.Canvas.createHive(name, width, height);
-App.Stats.update();
+  // ⭐ NEW: read entrance selection
+  const entrance = document.getElementById("hiveEntranceInput").value;
+
+  // ⭐ Pass entrance into createHive
+  App.Canvas.createHive(name, width, height, entrance);
+
+  App.Stats.update();
   App.Modals.closeHiveSizeModal();
 };
 
