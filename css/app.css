@@ -1118,7 +1118,7 @@ body {
 
 .modal-help .modal-body {
   overflow-y: auto !important;
-  padding: 0px 20px 20px 20px !important;
+  padding: 10px 20px 20px 20px !important;
   flex: 1 1 auto !important;
 }
 /* Fix Hive Edit modal sizing + scrolling 
@@ -1732,3 +1732,33 @@ canvas {
   max-width: 800px !important;
   width: 90vw !important;
 }
+#panControls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 90px;
+  height: 90px;
+  display: grid;
+  grid-template-areas:
+    ". up ."
+    "left . right"
+    ". down .";
+  gap: 6px;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+#panControls button {
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+}
+
+#panControls button[data-pan="up"]    { grid-area: up; }
+#panControls button[data-pan="left"]  { grid-area: left; }
+#panControls button[data-pan="right"] { grid-area: right; }
+#panControls button[data-pan="down"]  { grid-area: down; }

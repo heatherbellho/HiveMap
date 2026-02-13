@@ -150,14 +150,16 @@ Access expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
 
   const key = localStorage.getItem("hivemap_license_key");
 
-  licenseEl.textContent = isPro ? "Edition: HiveMapPlus" : "Edition: HiveMapFree";
+  licenseEl.innerHTML = isPro ? "Edition: <strong>HiveMapPlus</strong>" : "Edition: <strong>HiveMapFree</strong>";
 
-  if (key) {
-    const masked = key.replace(/(\d{4})-(\d{4})-(\d{4})$/, "$1-****-****");
-    keyEl.textContent = "License Key: " + masked;
-  } else {
-    keyEl.textContent = "License Key: None";
-  }
+ if (key) {
+  const last4 = key.slice(-4);
+  const masked = "****-****-" + last4;
+  keyEl.textContent = "License Key: " + masked;
+} else {
+  keyEl.textContent = "License Key: None";
+}
+
 
   // EXPLANATION SECTION (dynamic)
   const explainEl = document.getElementById("accountEditionExplanation");
@@ -184,8 +186,8 @@ Access expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
   }
 
   // VERSION SECTION
-  document.getElementById("accountVersion").textContent =
-    `Version: ${App.Version}`;
+  document.getElementById("accountVersion").innerHTML =
+    `Version: <strong>${App.Version}</strong>`;
 
   // OPEN MODAL
   overlay.style.zIndex = "900"; // below account 
@@ -206,6 +208,10 @@ document.getElementById("accountModalCloseFooter").addEventListener("click", () 
 // Renew access
 document.getElementById("renewAccessBtn").addEventListener("click", () => {
   App.Modals.openRenewModal();
+});
+
+document.getElementById("enterNewCodeBtn").addEventListener("click", () => {
+  window.location.href = "login.html?renew=1";
 });
 
 

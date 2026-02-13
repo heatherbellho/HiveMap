@@ -43,16 +43,24 @@
     .login-box button {
       width: 100%;
       padding: 8px 10px;
-      border-radius: 4px;
+      border-radius: 6px;
       border: none;
       background: #0078d4;
       color: #fff;
       font-size: 0.95rem;
       cursor: pointer;
     }
-    .login-box button:hover {
-      background: #005fa3;
+      .login-box .btn-cancel {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: none;
+      background: #ddd;
+      color: #000;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
+
     .error {
       color: #b00020;
       font-size: 0.85rem;
@@ -64,12 +72,14 @@
       margin-bottom: 20px;
     }
   </style>
-  <script>
-  // DEV MODE: add ?dev=1 to URL to disable auto‑redirect
+<script>
+  // Parse URL params once, reuse everywhere
   const params = new URLSearchParams(window.location.search);
   const devMode = params.has("dev");
+  const forceRenew = params.get("renew") === "1";
 
-  if (!devMode) {
+  // If not dev mode and not forced renew, auto-redirect when access is OK
+  if (!devMode && !forceRenew) {   // ← THIS is the only change
     const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
     if (access.ok) {
       window.location.href = "index.html";
@@ -83,50 +93,66 @@
     <img src="icons/512-hive-map.png" alt="HiveMap Logo" class="logo">
     <h1>HiveMap Access</h1>
     <p>Enter your access code to open HiveMap.<br>You will have received this by e-mail.<br> <a href="https://cornishhoney.co.uk/email_us.php" target="_blank"><strong>E-mail us</strong></a> if you do not have it.</a></p>
-<div style="position:relative;">
-  <input id="pw" type="password" placeholder="Access code" style="padding-right:40px;">
-  <span id="togglePw"
-        style="position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:0.9rem; color:#0078d4;">
-    Show
-  </span>
-</div>
+    <div style="position:relative;">
+      <input id="pw" type="password" placeholder="Access code" style="padding-right:40px;">
+      <span id="togglePw"
+            style="position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:0.9rem; color:#0078d4;">
+        Show
+      </span>
+    </div>
     <button type="button" onclick="checkPassword()">Enter</button>
     <div id="error" class="error"></div>
-    <div id="accessInfo" style="margin-top:12px; font-size:0.9rem; color:#444;"></div>
+    <button id="backToApp" class="btn-cancel" style="display:none;">
+  Back to HiveMap
+</button>
 
+    <div id="accessInfo" style="margin-top:12px; font-size:0.9rem; color:#444;"></div>
   </div>
 
 <script>
-  function checkPassword() {
-    const input = document.getElementById("pw").value.trim();
-    const errorEl = document.getElementById("error");
+function checkPassword() {
+  const input = document.getElementById("pw").value.trim();
+  const errorEl = document.getElementById("error");
 
-    // Determine duration from code prefix
-    let accessDurationDays = null;
+  // Determine duration from code prefix
+  let accessDurationDays = null;
 
-    if (input.startsWith("HM1Y-")) {
-      accessDurationDays = 365; // 1 year
-    } else if (input.startsWith("HM1M-")) {
-      accessDurationDays = 30;  // 1 month
-    } else {
-      errorEl.textContent = "Incorrect access code.";
-      return;
-    }
-
-    // Calculate expiry
-    const now = new Date();
-    const expires = new Date(now.getTime() + accessDurationDays * 24 * 60 * 60 * 1000);
-
-    // Store access
-    localStorage.setItem("hivemap_access", JSON.stringify({
-      ok: true,
-      expires: expires.toISOString(),
-      duration: accessDurationDays
-    }));
-
-    // Redirect to the app
-    window.location.href = "index.html";
+  if (input.startsWith("HM1Y-")) {
+    accessDurationDays = 365; // 1 year
+  } else if (input.startsWith("HM1M-")) {
+    accessDurationDays = 30;  // 1 month
+  } else {
+    errorEl.textContent = "Incorrect access code.";
+    return;
   }
+
+  // Load existing access (if any)
+  const existing = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+  const now = Date.now();
+
+  let base;
+
+  if (existing.expires) {
+    const currentExpiry = new Date(existing.expires).getTime();
+    // Extend from whichever is later: now or current expiry
+    base = Math.max(now, currentExpiry);
+  } else {
+    // No previous access
+    base = now;
+  }
+
+  const newExpiry = new Date(base + accessDurationDays * 24 * 60 * 60 * 1000);
+
+  // Store updated access
+  localStorage.setItem("hivemap_access", JSON.stringify({
+    ok: true,
+    expires: newExpiry.toISOString(),
+    duration: accessDurationDays
+  }));
+
+  // Redirect to the app
+  window.location.href = "index.html";
+}
 </script>
 
 <script>
@@ -142,14 +168,18 @@
 
     document.getElementById("accessInfo").innerHTML = `
       Your access expires on <strong>${formatted}</strong>.
-      </a>
     `;
+  }
 
-    document.getElementById("renewAccessInline").addEventListener("click", () => {
-      App.Modals.openRenewModal();
-    });
+  // If renew=1, we’re here explicitly to enter a new code,
+  // so always allow typing AND show the Back button.
+  if (forceRenew) {
+    document.getElementById("pw").disabled = false;
+    document.getElementById("backToApp").style.display = "inline-block";   // ← THIS is the missing line
   }
 </script>
+
+
 <script>
   document.getElementById("togglePw").addEventListener("click", () => {
     const pw = document.getElementById("pw");
@@ -162,6 +192,11 @@
       pw.type = "password";
       toggle.textContent = "Show";
     }
+  });
+</script>
+<script>
+  document.getElementById("backToApp").addEventListener("click", () => {
+    window.location.href = "index.html";
   });
 </script>
 
