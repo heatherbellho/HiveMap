@@ -44,7 +44,6 @@ App.Apiaries.switch = function (name) {
 
   // Update UI
   App.Apiaries.updateSelector();
-  App.Notes.load();
   App.Status.renderLegend();
   App.Stats.update();
 
@@ -86,7 +85,6 @@ App.Apiaries.create = function () {
 
   // Update UI
   App.Apiaries.updateSelector();
-  App.Notes.load();
   App.Status.renderLegend();
   App.Stats.update();
 
@@ -133,7 +131,6 @@ App.Apiaries.rename = function () {
 
   // Update UI
   App.Apiaries.updateSelector();
-  App.Notes.load();
   App.Status.renderLegend();
   App.Stats.update();
 
@@ -169,7 +166,6 @@ App.Apiaries.delete = function () {
 
   // Update UI
   App.Apiaries.updateSelector();
-  App.Notes.load();
   App.Status.renderLegend();
   App.Stats.update();
 
@@ -190,12 +186,8 @@ App.Apiaries.init = function () {
 
   // Buttons
   const createBtn = document.getElementById("createApiaryBtn");
-  const renameBtn = document.getElementById("renameApiaryBtn");
-  const deleteBtn = document.getElementById("deleteApiaryBtn");
 
   if (createBtn) createBtn.addEventListener("click", App.Apiaries.create);
-  if (renameBtn) renameBtn.addEventListener("click", App.Apiaries.rename);
-  if (deleteBtn) deleteBtn.addEventListener("click", App.Apiaries.delete);
 
   // Initial UI population
   App.Apiaries.updateSelector();

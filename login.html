@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+
   <title>HiveMap Access</title>
   <style>
     body {
@@ -73,28 +75,40 @@
     }
   </style>
 <script>
-  // Parse URL params once, reuse everywhere
   const params = new URLSearchParams(window.location.search);
   const devMode = params.has("dev");
   const forceRenew = params.get("renew") === "1";
 
-  // If not dev mode and not forced renew, auto-redirect when access is OK
-  if (!devMode && !forceRenew) {   // ← THIS is the only change
-    const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
-    if (access.ok) {
-      window.location.href = "index.html";
+  // Only auto‑redirect when:
+  // - NOT in dev mode
+  // - NOT forcing renew
+  // - access.ok === true
+  // - access.expires exists and is valid
+  if (!devMode && !forceRenew) {
+    try {
+      const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
+
+      if (access.ok && access.expires) {
+        const expiry = new Date(access.expires);
+        if (!isNaN(expiry.getTime()) && Date.now() < expiry.getTime()) {
+          window.location.href = "index.html";
+        }
+      }
+    } catch (e) {
+      // ignore malformed storage
     }
   }
 </script>
+
 
 </head>
 <body>
   <div class="login-box">
     <img src="icons/512-hive-map.png" alt="HiveMap Logo" class="logo">
-    <h1>HiveMap Access</h1>
-    <p>Enter your access code to open HiveMap.<br>You will have received this by e-mail.<br> <a href="https://cornishhoney.co.uk/email_us.php" target="_blank"><strong>E-mail us</strong></a> if you do not have it.</a></p>
+    <h1>HiveMap Subscription</h1>
+    <p>Enter your Subscription Code to open HiveMap.<br>You will have received this by e-mail.<br> <a href="https://cornishhoney.co.uk/email_us.php" target="_blank"><strong>E-mail us</strong></a> if you do not have it.</a></p>
     <div style="position:relative;">
-      <input id="pw" type="password" placeholder="Access code" style="padding-right:40px;">
+      <input id="pw" type="password" placeholder="Subscription Code" style="padding-right:40px;">
       <span id="togglePw"
             style="position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:0.9rem; color:#0078d4;">
         Show
@@ -167,7 +181,7 @@ function checkPassword() {
     });
 
     document.getElementById("accessInfo").innerHTML = `
-      Your access expires on <strong>${formatted}</strong>.
+      Your subscription expires on <strong>${formatted}</strong>.
     `;
   }
 

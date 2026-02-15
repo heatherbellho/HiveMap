@@ -202,6 +202,8 @@ App.Status.init = function () {
   document.getElementById("saveStatusSettingsBtn").addEventListener("click", App.Status.saveSettings);
   document.getElementById("closeStatusSettingsBtn").addEventListener("click", App.Status.closeSettings);
   document.getElementById("closeStatusSettingsBtn2").addEventListener("click", App.Status.closeSettings);
+     if (overlay) overlay.addEventListener("click", App.Status.closeSettings);
+
 
   // Initial legend
   App.Status.renderLegend();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-
+<meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" sizes="16x16" href="icons/16_favicon-fudge.png">
   <link rel="manifest" href="manifest-v2.json">
   <meta name="theme-color" content="#719454">
@@ -16,19 +16,24 @@
   <!-- Storage must load before everything else -->
   <script src="js/storage.js"></script>
 
+  <!-- Help content must load before app.js -->
+  <script src="js/helpContent.js"></script>
+
   <!-- Core modules -->
   <script src="js/utils.js"></script>
   <script src="js/apiaries.js"></script>
   <script src="js/hives.js"></script>
   <script src="js/modals.js"></script>
   <script src="js/status.js"></script>
-  <script src="js/notes.js"></script>
   <script src="js/export.js"></script>
   <script src="js/stats.js"></script>
   <script src="js/version.js"></script>
 
   <!-- Canvas subsystem -->
   <script src="js/canvas.js"></script>
+
+  <!-- Reports subsystem --> 
+  <script src="js/reports.js"></script>
 
   <!-- App orchestrator (must be last) -->
   <script src="js/app.js"></script>
@@ -37,31 +42,34 @@
 </head>
 <script>
   const skip = localStorage.getItem("hivemap_skip_login_check") === "1";
-
   const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
 
-  // Only enforce login if NOT skipping
   if (!skip) {
-    const now = new Date();
+    try {
+      const now = Date.now();
 
-    // Must have ok:true AND expires
-    if (!access.ok || !access.expires) {
-      window.location.href = "login.html";
-    } else {
-      const expiry = new Date(access.expires);
-
-      // Only redirect if truly expired
-      if (now > expiry) {
-        localStorage.removeItem("hivemap_access");
+      // Must have ok:true AND expires
+      if (!access.ok || !access.expires) {
         window.location.href = "login.html";
+      } else {
+        const expiry = new Date(access.expires).getTime();
+
+        // Only redirect if truly expired
+        if (isNaN(expiry) || now > expiry) {
+          localStorage.removeItem("hivemap_access");
+          window.location.href = "login.html";
+        }
       }
+    } catch (e) {
+      // Malformed storage → force login
+      localStorage.removeItem("hivemap_access");
+      window.location.href = "login.html";
     }
   }
 
   // Always clear skip flag
   localStorage.removeItem("hivemap_skip_login_check");
 </script>
-
 
 <body>
   <div id="overlay" tabindex="-1"></div>
@@ -74,17 +82,7 @@
   <!-- LEFT: context + primary actions + counts -->
   <div class="toolbar-group toolbar-left">
 
-    <div class="dropdown-wrapper">
-      <button id="apiaryMenuBtn" class="toolbar-btn">Apiary ▼</button>
-      <div id="apiaryMenu" class="dropdown-menu">
-        <div class="dropdown-item" id="apiaryNew">New Apiary</div>
-        <div class="dropdown-item" id="apiaryRename">Rename Apiary</div>
-        <div class="dropdown-item" id="apiaryDelete">Delete Apiary</div>
-        <div class="dropdown-item" id="hivesArchived">Archived Hives</div>
-        <div class="dropdown-item" id="apiaryPrint" style="border-top: 1px solid #ccc;">Print Apiary</div>
-      </div>
-    </div>
-    <button id="openApiaryNotesBtn" class="toolbar-btn">Apiary Notes</button>
+<button id="apiaryManagerBtn" class="toolbar-btn">Apiary Manager</button>
 
     <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
   </div>
@@ -144,6 +142,7 @@
       <div class="dropdown-item" id="toolsExport">Export Data</div>
       <div class="dropdown-item" id="toolsImport">Import All Data</div>
       <div class="dropdown-item" id="toolsStatus">Statuses</div>
+      <div class="dropdown-item" id="toolsVetReport">Veterinary Medicines Report</div>
     <!--  <div class="dropdown-item" id="toolsHiveSizes">Edit Hive Sizes</div> -->
     <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
     <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
@@ -180,8 +179,6 @@
 
   <button id="printBtn"></button>
   <button id="createApiaryBtn"></button>
-  <button id="renameApiaryBtn"></button>
-  <button id="deleteApiaryBtn"></button>
 
   <div id="controls">
     <button id="addHiveBtn"></button>
@@ -195,6 +192,81 @@
 
   <div id="tooltip"></div>
 
+  <div id="apiaryManagerModal" class="modal modal-small" role="dialog" aria-modal="true" style="display:none;">
+  <header class="modal-header">
+    <h2 id="apiaryManagerTitle">Apiary Manager</h2>
+    <button id="apiaryManagerCloseBtn" class="modal-close">&times;</button>
+  </header>
+
+<main class="modal-body apiary-manager-grid">
+
+  <div class="apiary-left">
+    <div class="apiary-field modal-section">
+      <label><strong>Apiary Name</strong></label>
+      <input type="text" id="apiaryNameInput">
+    </div>
+
+    <div class="apiary-field modal-section">
+      <label><strong>Grid Location</strong></label>
+      <input type="text" id="apiaryGridInput">
+    </div>
+
+    <div class="apiary-field modal-section">
+      <label><strong>Address</strong></label>
+      <textarea id="apiaryAddressInput" rows="2"></textarea>
+    </div>
+  </div>
+
+<div class="apiary-field modal-section">
+  <label><strong>Notes</strong></label>
+
+  <div id="apiaryNotesList" class="notes-list"></div>
+
+  <div class="add-note-row">
+    <input type="date" id="newNoteDate">
+    <input type="text" id="newNoteText" placeholder="Add note…">
+    <button id="addNoteBtn" class="btn-primary">+</button>
+  </div>
+</div>
+
+</main>
+<footer class="modal-footer apiary-footer">
+  <div class="footer-left">
+        <button id="apiaryManagerSaveBtn" class="btn-save">Save</button>
+    <button id="apiaryManagerDeleteBtn" class="btn-danger">Delete</button>
+
+        <button id="apiaryManagerCloseFooterBtn" class="btn-cancel">Close</button>
+
+  </div>
+
+  <div class="footer-right">
+        <button id="apiaryManagerNewBtn" class="btn-primary">New Apiary</button>
+
+        <button id="apiaryManagerPrintBtn" class="btn-info">Print Apiary</button>
+
+  </div>
+</footer>
+
+
+</div>
+
+<div id="confirmDeleteApiaryModal" class="modal modal-small" style="display:none;">
+  <header class="modal-header">
+    <h2>Confirm Delete</h2>
+  </header>
+
+  <main class="modal-body">
+    <p id="confirmDeleteApiaryMessage">
+      This will delete all hives and inspection data associated with this apiary. This action cannot be undone.
+      Are you sure you want to delete this apiary?
+    </p>
+  </main>
+
+  <footer class="modal-footer">
+    <button id="confirmDeleteApiaryYesBtn" class="btn-danger">Confirm Delete</button>
+    <button id="confirmDeleteApiaryCancelBtn" class="btn-cancel">Cancel</button>
+  </footer>
+</div>
 
 <!-- Hive edit modal -->
 <div id="modal" class="modal modal-hive-edit"
@@ -254,7 +326,7 @@
         </div>
   </div>
       <div class="modal-section">
-        <h4 style="margin: 0;">Hive Boxes</h4>
+        <h4>Hive Boxes</h4>
         <div id="boxList" class="box-list"></div>
 
         <div class="inline-row">
@@ -265,7 +337,7 @@
       </div>
 
       <div class="modal-section modal-section-size">
-        <h4 style="margin: 0;">Tile Size</h4>
+        <h4>Tile Size</h4>
         <div id="sizeRow" class="size-row">
           <h5>Width</h5>
           <input id="editHiveWidth" type="number" min="10">
@@ -276,7 +348,7 @@
       </div>
 
       <div class="modal-section">
-  <h4 style="margin: 0;">Entrance</h4>
+  <h4>Entrance</h4>
 <select id="editHiveEntrance">
   <option value="">None</option>
 <option value="❮">❮ (Left)</option>
@@ -284,6 +356,17 @@
 
 </select>
 
+</div>
+
+<!-- ⭐ NEW: Treatment Records -->
+<div class="modal-section">
+  <h4>Treatment Records</h4>
+
+  <div id="treatmentList" class="treatment-list"></div>
+
+  <button type="button" id="addTreatmentBtn" class="btn-primary" style="margin-top: 8px;">
+    + Add Treatment
+  </button>
 </div>
 
     </div>
@@ -314,6 +397,113 @@
 
   </footer>
 </div>
+
+<!-- ⭐ ADD TREATMENT MODAL -->
+<div id="treatmentModal" class="modal modal-small" role="dialog" aria-modal="true">
+  <header class="modal-header">
+    <h2>Add Treatment</h2>
+    <button id="treatmentModalCloseBtn" class="modal-close">&times;</button>
+  </header>
+
+<main class="modal-body">
+
+  <div class="treat-grid">
+
+    <div class="treat-field modal-section">
+      <label><strong>Product Name</strong></label>
+      <input type="text" id="treatProduct" placeholder="e.g., Apivar, Apiguard">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Active Ingredient</strong></label>
+      <input type="text" id="treatIngredient" placeholder="e.g., Amitraz, Thymol">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Batch Number</strong></label>
+      <input type="text" id="treatBatch" placeholder="Batch code">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Expiry Date</strong></label>
+      <input type="date" id="treatExpiry">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Date Administered</strong></label>
+      <input type="date" id="treatDate">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Quantity Used</strong></label>
+      <input type="text" id="treatQuantity" placeholder="e.g., 2 strips, 5 ml">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Withdrawal Period</strong></label>
+      <input type="text" id="treatWithdrawal" placeholder="e.g., 0 days">
+    </div>
+
+    <div class="treat-field modal-section">
+      <label><strong>Supplier</strong></label>
+      <input type="text" id="treatSupplier" placeholder="e.g., Heather Bell Honey Bees Ltd">
+    </div>
+
+  </div>
+
+</main>
+
+  <footer class="modal-footer">
+    <button id="saveTreatmentBtn" class="btn-save">Save</button>
+    <button id="cancelTreatmentBtn" class="btn-cancel">Cancel</button>
+  </footer>
+</div>
+
+<!-- ⭐ VETERINARY MEDICINES REPORT MODAL -->
+<div id="vetReportModal" class="modal modal-large" role="dialog" aria-modal="true">
+  <header class="modal-header">
+    <h2>Veterinary Medicines Report</h2>
+    <button id="vetReportCloseBtn" class="modal-close">&times;</button>
+  </header>
+
+<main class="modal-body">
+
+  <div class="vet-report">
+
+    <!-- FILTER BAR -->
+    <div class="vet-filters">
+      <div class="vet-filter modal-section">
+        <label><strong>Select Apiary</strong></label>
+        <select id="vetReportApiarySelect"></select>
+      </div>
+
+      <div class="vet-filter modal-section">
+        <label><strong>Date Range (optional)</strong></label>
+        <div class="vet-dates">
+          <input type="date" id="vetReportStart">
+          <span>to</span>
+          <input type="date" id="vetReportEnd">
+        </div>
+      </div>
+
+      <div class="vet-filter vet-generate">
+        <button id="vetReportGenerateBtn" class="btn-primary">Generate Report</button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="vetReportOutput" class="vet-results"></div>
+
+  </div>
+
+</main>
+
+  <footer class="modal-footer">
+    <button id="vetReportPrintBtn" class="btn-save" style="display:none;">Print</button>
+    <button id="vetReportCloseBtnFooter" class="btn-cancel">Close</button>
+  </footer>
+</div>
+
 
 <div id="inspectionDetailsModal" class="modal" style="display:none;">
   <div class="modal-content inspection-details-modal">
@@ -407,7 +597,7 @@
   </footer>
 </div>
 
-<!-- Apiary Notes modal -->
+<!-- Apiary Notes modal 
 <div id="apiaryNotesModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="apiaryNotesTitle">
   <header class="modal-header">
     <h2 id="apiaryNotesTitle">Apiary Notes</h2>
@@ -435,6 +625,7 @@
         <button id="apiaryNoteAddBtnModal" class="btn-save">Save</button>
       </div>
 </div>
+-->
 
 <!-- Hive size modal -->
 <div id="hiveSizeModal" class="modal modal-hive-size" role="dialog" aria-modal="true" aria-labelledby="hiveSizeTitle">
@@ -539,60 +730,12 @@
   <div class="help-layout">
 
     <!-- ⭐ LEFT SIDE MENU -->
-    <nav class="help-nav">
-      <ul>
-        <li><a href="#help-start">Getting Started</a></li>
-        <li><a href="#help-editing">Editing Hives</a></li>
-        <li><a href="#help-notes">Notes</a></li>
-        <li><a href="#help-status">Status Colours</a></li>
-        <li><a href="#help-saving">Saving Your Data</a></li>
-      </ul>
-    </nav>
+<nav class="help-nav">
+  <ul id="helpNavList"></ul>
+</nav>
 
     <!-- ⭐ MAIN CONTENT -->
-    <main class="modal-body help-content">
-
-      <h3 id="help-start">Getting Started - the Toolbar</h3>
-      <p>Use <strong>Select Apiary</strong> in the toolbar, or create a new apiary using the <strong>Apiary</strong> menu.</p>
-      <p>Click <strong>Apiary Notes</strong> to see and add notes for the selected apiary.</p>
-      <p><strong>Apiary Count</strong> shows the number of hives for the selected apiary separately for hives where status is not equal to Query and for hives where status equals Query.</p>
-      <p><strong>Total Count</strong> shows the total number of hives across all apiaries.</p>
-      <p>If any hives have a <strong>Next Inspection Date</strong> set,
-        <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M1 21h22L12 2 1 21z" fill="#fff" stroke="#dd0000" stroke-width="1" />
-          <path d="M12 8v6" stroke="#000" stroke-width="2" stroke-linecap="round" />
-          <circle cx="12" cy="17" r="1.5" fill="#000" />
-        </svg>
-        appears with the number of hives with due inspections.<br>
-        Click this to show a list of hives with due inspections grouped by apiary and ordered by date.
-      </p>
-      <p>Use the <strong>Apiary</strong> menu to:<br>
-        - Create a <strong>New Apiary</strong>.<br>
-        - <strong>Rename Apiary</strong> that is selected.<br>
-        - <strong>Delete Apiary</strong> that is selected.<br>
-        - <strong>Print Apiary</strong> that is selected which opens a print window to print the apiary layout and cards for each hive.</p>
-      <p>Use the <strong>Hives</strong> menu to:<br>
-        - Create a <strong>New Hive</strong>.<br>
-        - <strong>Delete Hive</strong> that is selected.</p>
-      <p>Use the <strong>Tools</strong> menu to:<br>
-        - <strong>Export Data</strong> (save all your apiaries and hives to a JSON file).<br>
-        - <strong>Import All Data</strong> (load from a previously exported JSON file).<br>
-        - <strong>Edit Status Colours</strong> to create or edit hive statuses and their colours.<br>
-        - Open this <strong>Help</strong> panel.</p>
-
-      <h4 id="help-editing">Editing Hives</h4>
-      <p>Double-click a hive to open its inspection panel. Add boxes, notes, and inspection history.</p>
-
-      <h4 id="help-notes">Notes</h4>
-      <p>Use the “Apiary Notes” button in the toolbar to record notes for the whole apiary.</p>
-
-      <h4 id="help-status">Status Colours</h4>
-      <p>Edit hive status colours from Tools → Edit Status Colours.</p>
-
-      <h4 id="help-saving">Saving Your Data</h4>
-      <p>Use Tools → Export Data to save everything before closing. Import restores your full setup.</p>
-
-    </main>
+<main id="helpContentContainer" class="modal-body help-content"></main>
   </div>
 
   <div class="modal-footer">
@@ -748,7 +891,7 @@
         <h3>Subscription Status</h3>
         <p id="accountAccessStatus"></p>
         <button id="renewAccessBtn" class="btn-info" style="margin-bottom: 12px;">Renew Subscription</button>
-        <button id="enterNewCodeBtn" class="btn-save">Enter New Access Code</button>
+        <button id="enterNewCodeBtn" class="btn-save">Enter New Subscription Code</button>
 
       </section>
 
@@ -788,8 +931,8 @@
     </p>
 
     <p>
-      Contact us to renew your subscription and we will send a new Access Code by e-mail.<br>
-      Use the Enter New Access Code button in the Account & License panel and enter your renewal Access Code on the login page<br>
+      Contact us to renew your subscription and we will send a new Subscription Code by e-mail.<br>
+      Use the Enter New Subscription Code button in the Account & License panel and enter your renewal Subscription Code on the login page<br>
       If you believe your access should not have expired, or you have not received your code or need help renewing, please contact us.
     </p>
 
@@ -829,6 +972,10 @@
   <button id="exitToastClose" class="toast-close">×</button>
 </div>
 
+<div id="expiryToast" class="expiry-toast hidden">
+  <span id="expiryToastMessage"></span>
+<!--  <button id="expiryToastClose">×</button>-->
+</div>
 
   <!-- Service worker registration -->
   <script>

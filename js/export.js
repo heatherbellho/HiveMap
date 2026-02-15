@@ -146,7 +146,6 @@ App.Export.importLayout = function (event) {
         Storage.saveCurrentApiary(importedName);
 
         App.Apiaries.updateSelector();
-        App.Notes.load();
         App.Canvas.loadLayout();
       } else {
         alert("Invalid file format: Missing hiveLayout.");

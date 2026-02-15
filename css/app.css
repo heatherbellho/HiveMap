@@ -88,16 +88,16 @@ button.save:hover {
 /* Sections */
 .modal-section {
   background: #fafafa;
-  padding: 12px;
+  padding: 0px 12px 6px;
   border-radius: 8px;
   border: 1px solid #eee;
 }
 
 
 /* Inputs */
-.modal-section label {
-  font-weight: 600;
-  margin-top: 8px;
+.modal-section label,
+.modal-section h4 {
+  margin: 8px 0px 4px;
   display: block;
 }
 
@@ -546,33 +546,6 @@ body {
   float: right;
   cursor: pointer;
   font-size: 24px;
-}
-
-.note-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.note-row input[type="date"] {
-  padding: 4px 6px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-}
-
-.note-row button {
-  padding: 6px 12px;
-  font-size: 14px;
-  background: #2d6cdf;
-  color: white;
-  border: none;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.note-row button:hover {
-  background: #1f54b3;
 }
 
 /*=====*/
@@ -1105,12 +1078,10 @@ body {
 .modal-hive-size {
   max-width: 400px !important;
 }
-.modal-help {
-  max-width: 1000px !important;
-}
+
 /* Fix Help modal sizing + scrolling */
 .modal-help {
-  max-width: 1000px !important;
+  max-width: 95vw !important;
   width: 95vw !important;
   max-height: 90vh !important;
   overflow-y: auto !important;
@@ -1118,7 +1089,7 @@ body {
 
 .modal-help .modal-body {
   overflow-y: auto !important;
-  padding: 10px 20px 20px 20px !important;
+  padding: 0px 20px 20px 20px !important;
   flex: 1 1 auto !important;
 }
 /* Fix Hive Edit modal sizing + scrolling 
@@ -1518,7 +1489,8 @@ canvas {
   line-height: 1;
 }
 #inspectionDetailsModal,
-#renewModal{
+#renewModal,
+#confirmDeleteApiaryModal{
   z-index: 1200 !important;
 }
 #inspectionInputModal,
@@ -1698,7 +1670,7 @@ canvas {
   align-self: flex-start;
   max-height: 70vh;
   overflow-y: auto;
-  background: #fff9eb; /* match your modal background */
+  background: #fafafa; /* match your modal background */
   padding-top: 10px;
 }
 
@@ -1724,11 +1696,311 @@ canvas {
 
 /* Main scrollable content */
 .help-content {
+  margin-top: 5px;
   overflow-y: auto;
   padding-right: 10px;
   max-height: 70vh;
+  line-height: 1.6;
+}
+.help-content h3 {
+  margin: 12px 0 12px;
 }
 #accountModal {
   max-width: 800px !important;
   width: 90vw !important;
+}
+#treatmentModal { 
+  z-index: 1200 !important; 
+  height: 80vh !important;
+  width: 95vw !important;
+}
+.treat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  margin-top: 8px;
+}
+
+.treat-field label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.treatment-item {
+padding: 12px 0px;
+}
+#treatmentModal .modal-body { display: block; }
+.treat-grid { width: 100%; }
+
+#treatmentModal .modal-body {
+  padding: 16px 24px;
+  box-sizing: border-box;
+}
+#treatmentModal {
+  padding: 0 !important;
+}
+@media (max-width: 700px) {
+  .treat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* Container */
+.vet-report {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Filter bar */
+.vet-filters {
+  display: grid;
+  grid-template-columns: 1.2fr 1.6fr auto;
+  gap: 12px 24px;
+  align-items: end;
+}
+
+.vet-filter label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.vet-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vet-generate {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Results area */
+.vet-results {
+  border-top: 1px solid #ccc;
+  padding-top: 12px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+/* Table */
+.vet-results table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vet-results th,
+.vet-results td {
+  border: 1px solid #ddd;
+  padding: 4px 6px;
+  font-size: 13px;
+}
+
+.vet-results th {
+  background: #f3f3f3;
+  text-align: left;
+}
+
+/* Responsive: stack filters on small screens */
+@media (max-width: 700px) {
+  .vet-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .vet-generate {
+    justify-content: flex-start;
+  }
+}
+#vetReportModal,
+#apiaryManagerModal {
+  width: 95vw !important;
+}
+.vet-report {
+  width: 100%;
+  margin: 0 auto;
+}
+.apiary-field {
+  margin-bottom: 16px;
+}
+
+.apiary-field input,
+.apiary-field textarea {
+  width: 95%;
+}
+.apiary-manager-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Stack on small screens */
+@media (max-width: 600px) {
+  .apiary-manager-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.apiary-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.footer-left button,
+.footer-right button {
+  margin-right: 8px;
+}
+
+.footer-right button:last-child {
+  margin-right: 0;
+}
+
+/* Stack on small screens */
+@media (max-width: 600px) {
+  .apiary-footer {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footer-left,
+  .footer-right {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+}
+#confirmDeleteApiaryMessage,
+#confirmDeleteApiaryMessage p{
+  margin-top: 0;
+}
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.note-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.note-date {
+  font-weight: bold;
+  color: #444;
+  min-width: 90px;
+}
+
+.note-text {
+  flex: 1;
+}
+
+.add-note-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.add-note-row input[type="date"],
+.add-note-row input[type="text"] {
+  padding: 6px;
+  font-size: 14px;
+}
+
+.note-delete-btn {
+  margin-left: auto;
+  background: #d9534f;
+  color: white;
+  border: none;
+  padding: 2px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.note-delete-btn:hover {
+  background: #c9302c;
+}
+
+.add-note-row .btn-primary {
+  font-size: 24px;
+  padding: 2px 8px
+}
+/* Default (desktop/tablet): left menu stays on the left */
+.help-layout {
+  display: flex;
+  gap: 20px;
+}
+
+/* Make the left nav sticky on all screen sizes */
+.help-nav {
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
+
+/* Small screens: stack vertically, nav goes to top */
+@media (max-width: 700px) {
+  .help-layout {
+    flex-direction: column;
+  }
+
+  .help-nav {
+    width: 95%;
+  }
+}
+
+.expiry-toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0078d4;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.expiry-toast.show {
+  opacity: 1;
+}
+
+.expiry-toast.hidden {
+  display: none;
+}
+
+#expiryToastClose {
+  background: transparent;
+  border: 1px solid #fff;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0px 5px;
+  line-height: 1;
+}
+
+.expiry-btn {
+  background: white;
+  color: #0078d4;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.expiry-btn:hover {
+  background: #e6e6e6;
 }
