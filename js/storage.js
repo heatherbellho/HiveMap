@@ -45,27 +45,14 @@ const Storage = {
   },
 
 
-  /* ------------------ APIARY NOTES ------------------ */
-  getApiaryNote(apiary) {
-    return localStorage.getItem('apiaryNote_' + apiary) || '';
+  /* ------------------ APIARY NOTES (STRUCTURED) ------------------ */
+  getApiaryNotes(apiaryName) {
+    // Always return a JSON array string, never empty string
+    return localStorage.getItem('apiaryNotes_' + apiaryName) || "[]";
   },
 
-  saveApiaryNote(apiary, note) {
-    localStorage.setItem('apiaryNote_' + apiary, note);
-  },
-
-  deleteApiaryNote(apiary) {
-    localStorage.removeItem('apiaryNote_' + apiary);
-  },
-
-  /* ------------------ STRUCTURED APIARY NOTES (NEW) ------------------ */
-  getApiaryNotes(apiary) {
-    const raw = localStorage.getItem('apiaryNotes_' + apiary);
-    return raw ? JSON.parse(raw) : null;
-  },
-
-  saveApiaryNotes(apiary, notes) {
-    localStorage.setItem('apiaryNotes_' + apiary, JSON.stringify(notes));
+  saveApiaryNotes(apiaryName, notesString) {
+    localStorage.setItem('apiaryNotes_' + apiaryName, notesString);
   },
 
 
@@ -82,7 +69,8 @@ const Storage = {
     localStorage.removeItem('hiveLayout_' + apiary);
   },
 
-    /* ------------------ INSPECTION SCHEMA ------------------ */
+
+  /* ------------------ INSPECTION SCHEMA ------------------ */
   getInspectionSchema() {
     const raw = localStorage.getItem('inspectionSchema');
     return raw ? JSON.parse(raw) : null;
@@ -93,4 +81,5 @@ const Storage = {
   },
 
 };
+
 window.Storage = Storage;

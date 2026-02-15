@@ -2,9 +2,6 @@
 //  SHARED MENU TOGGLE LOGIC
 // ============================================================
 
-const apiaryMenuBtn = document.getElementById("apiaryMenuBtn");
-const apiaryMenu = document.getElementById("apiaryMenu");
-
 const hivesMenuBtn = document.getElementById("hivesMenuBtn");
 const hivesMenu = document.getElementById("hivesMenu");
 
@@ -13,7 +10,6 @@ const toolsMenu = document.getElementById("toolsMenu");
 
 // Close all menus
 function closeAllMenus() {
-  apiaryMenu.style.display = "none";
   hivesMenu.style.display = "none";
   toolsMenu.style.display = "none";
 }
@@ -31,38 +27,9 @@ document.addEventListener("click", () => {
 });
 
 // Prevent clicks inside menus from closing them
-apiaryMenu.addEventListener("click", (e) => e.stopPropagation());
 hivesMenu.addEventListener("click", (e) => e.stopPropagation());
 toolsMenu.addEventListener("click", (e) => e.stopPropagation());
 
-// ============================================================
-//  APIARY MENU
-// ============================================================
-
-apiaryMenuBtn.addEventListener("click", (e) => {
-  e.stopPropagation();
-  toggleMenu(apiaryMenu);
-});
-
-document.getElementById("apiaryNew").addEventListener("click", () => {
-  closeAllMenus();
-  App.Apiaries.create();
-});
-
-document.getElementById("apiaryRename").addEventListener("click", () => {
-  closeAllMenus();
-  App.Apiaries.rename();
-});
-
-document.getElementById("apiaryDelete").addEventListener("click", () => {
-  closeAllMenus();
-  App.Apiaries.delete();
-});
-
-document.getElementById("apiaryPrint").addEventListener("click", () => {
-  closeAllMenus();
-  App.Canvas.print();
-});
 
 // ============================================================
 //  HIVES MENU
@@ -84,10 +51,6 @@ document.getElementById("hiveDelete").addEventListener("click", () => {
   App.Canvas.deleteSelected();
 });
 
-document.getElementById("hivesArchived").addEventListener("click", () => {
-  closeAllMenus();
-  App.Modals.openArchivedHivesModal();
-});
 
 // ============================================================
 //  TOOLS MENU
@@ -115,6 +78,11 @@ document.getElementById("toolsStatus").addEventListener("click", () => {
   App.Status.openSettings();
 });
 
+document.getElementById("toolsVetReport").onclick = function () {
+  closeAllMenus();
+  App.Reports.openVetReportModal();
+};
+
 // Configure Inspection Fields
 document.getElementById("toolsConfigureInspection").addEventListener("click", () => {
   closeAllMenus();
@@ -137,7 +105,7 @@ document.getElementById("toolsAccount").addEventListener("click", () => {
     const days = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
 
     accessEl.innerHTML = `
-Access expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
+Subscription expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
       (${days} days remaining)
     `;
   } else {
@@ -204,6 +172,10 @@ document.getElementById("accountModalCloseFooter").addEventListener("click", () 
   document.getElementById("accountModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 });
+  document.getElementById("overlay").addEventListener("click", () => {
+  document.getElementById("accountModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+});
 
 // Renew access
 document.getElementById("renewAccessBtn").addEventListener("click", () => {
@@ -243,7 +215,42 @@ document.getElementById("resetLicenseBtn").addEventListener("click", () => {
 
 
 
-// Help Modal
+// -----------------------------
+// HELP MODAL LOADING
+// -----------------------------
+function loadHelpContent() {
+  const container = document.getElementById("helpContentContainer");
+  const navList = document.getElementById("helpNavList");
+
+  // Only load once
+  if (!container.dataset.loaded) {
+
+    // Insert main content
+    container.innerHTML = window.HELP_CONTENT;
+    container.dataset.loaded = "true";
+
+    // Build navigation
+    navList.innerHTML = window.HELP_SECTIONS.map(section => `
+      <li><a href="#${section.id}" class="help-nav-link">${section.title}</a></li>
+    `).join("");
+
+    // Attach smooth scrolling AFTER nav is built
+    document.querySelectorAll('.help-nav-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+  }
+}
+
+
+// -----------------------------
+// HELP MODAL OPEN/CLOSE
+// -----------------------------
 document.addEventListener("DOMContentLoaded", () => {
   const helpBtn = document.getElementById("toolsHelp");
   const overlay = document.getElementById("overlay");
@@ -258,6 +265,10 @@ document.addEventListener("DOMContentLoaded", () => {
     helpBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       closeAllMenus();
+
+      // Load content + nav dynamically
+      loadHelpContent();
+
       overlay.style.display = "block";
       helpModal.style.display = "block";
     });
@@ -270,16 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     overlay.addEventListener("click", closeHelp);
   }
-});
-
-document.querySelectorAll('.help-nav a').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    const target = document.querySelector(link.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
-  });
 });
 
 document.getElementById("toolbarApiaryCounts").addEventListener("click", App.Modals.openHiveListModal);

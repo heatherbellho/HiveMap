@@ -80,6 +80,7 @@ App.Modals.openHiveModal = function (hiveGroup) {
   // Ensure arrays exist
   data.boxes = data.boxes || [];
   data.inspections = data.inspections || [];
+  data.treatments = data.treatments || [];
 
   // --- Move Hive section ---
   const currentApiary = Storage.getCurrentApiary();
@@ -118,6 +119,7 @@ App.Modals.openHiveModal = function (hiveGroup) {
   // Render boxes + inspection history preview
   App.Modals.renderBoxList();
   App.Modals.renderInspectionHistory();
+  App.Modals.renderTreatmentList();
 
   // 🔹 Archive / Restore buttons
   const archiveBtn = document.getElementById("archiveHiveBtn");
@@ -162,6 +164,11 @@ App.Modals.openHiveModal = function (hiveGroup) {
       App.Modals.openInspectionHistory(hiveGroup);
     };
   }
+
+  const addTreatBtn = document.getElementById("addTreatmentBtn");
+if (addTreatBtn) {
+  addTreatBtn.onclick = () => App.Modals.openTreatmentModal(null);
+}
 
   // Show modal
   document.getElementById("modal").style.display = "block";
@@ -370,6 +377,99 @@ selectedHive._objects[1].set("text", formatEntranceLabel(name, hiveData.entrance
   // 4. CLOSE MODAL
   // -----------------------------
   App.Modals.closeHiveModal();
+};
+
+App.Modals.openTreatmentModal = function (index = null) {
+  const modal = document.getElementById("treatmentModal");
+  const overlay = document.getElementById("overlay");
+
+  const isEdit = index !== null;
+  const t = isEdit ? selectedHive.hiveData.treatments[index] : {};
+
+  // Populate fields
+  document.getElementById("treatProduct").value = t.product || "";
+  document.getElementById("treatIngredient").value = t.activeIngredient || "";
+  document.getElementById("treatBatch").value = t.batch || "";
+  document.getElementById("treatExpiry").value = t.expiry || "";
+  document.getElementById("treatDate").value = t.date || "";
+  document.getElementById("treatQuantity").value = t.quantity || "";
+  document.getElementById("treatWithdrawal").value = t.withdrawal || "";
+  document.getElementById("treatSupplier").value = t.supplier || "";
+
+  modal.dataset.editIndex = isEdit ? index : "";
+
+  overlay.style.zIndex = 1150; // Ensure treatment modal is above inspection history modal
+  modal.style.display = "block";
+  overlay.style.display = "block";
+};
+
+App.Modals.saveTreatment = function () {
+  if (!selectedHive) return;
+
+  const index = document.getElementById("treatmentModal").dataset.editIndex;
+
+  const entry = {
+    product: document.getElementById("treatProduct").value.trim(),
+    activeIngredient: document.getElementById("treatIngredient").value.trim(),
+    batch: document.getElementById("treatBatch").value.trim(),
+    expiry: document.getElementById("treatExpiry").value,
+    date: document.getElementById("treatDate").value,
+    quantity: document.getElementById("treatQuantity").value.trim(),
+    withdrawal: document.getElementById("treatWithdrawal").value.trim(),
+    supplier: document.getElementById("treatSupplier").value.trim()
+  };
+
+  if (index === "") {
+    selectedHive.hiveData.treatments.push(entry);
+  } else {
+    selectedHive.hiveData.treatments[index] = entry;
+  }
+
+  App.Modals.renderTreatmentList();
+  App.Canvas.saveLayout();
+  App.Modals.closeTreatmentModal();
+};
+
+App.Modals.closeTreatmentModal = function () {
+  const modal = document.getElementById("treatmentModal");
+  modal.style.display = "none";
+  overlay.style.zIndex = 900; // Reset z-index
+};
+
+App.Modals.renderTreatmentList = function () {
+  if (!selectedHive) return;
+
+  const list = document.getElementById("treatmentList");
+  const treatments = selectedHive.hiveData.treatments || [];
+
+  if (!list) return;
+
+  if (treatments.length === 0) {
+    list.innerHTML = `<p style="opacity: 0.6;">No treatments recorded.</p>`;
+    return;
+  }
+
+  list.innerHTML = treatments.map((t, index) => `
+    <div class="treatment-item">
+      <strong>${t.date ? App.Utils.formatDateUK(t.date) : "No date"}</strong> — ${t.product || "Unknown"}
+      <button class="btn-info" style="margin-left: 8px;" data-index="${index}">Edit</button>
+      <button class="btn-danger" data-index="${index}">Delete</button>
+    </div>
+  `).join("");
+
+  // Wire edit/delete buttons
+  list.querySelectorAll(".btn-info").forEach(btn => {
+    btn.onclick = () => App.Modals.openTreatmentModal(btn.dataset.index);
+  });
+
+  list.querySelectorAll(".btn-danger").forEach(btn => {
+    btn.onclick = () => {
+      const i = btn.dataset.index;
+      selectedHive.hiveData.treatments.splice(i, 1);
+      App.Modals.renderTreatmentList();
+      App.Canvas.saveLayout();
+    };
+  });
 };
 
 
@@ -2110,6 +2210,235 @@ App.Modals.closeRenewModal = function () {
   }
 };
 
+// ------------------------------------------------------------
+// Apiary Manager modal functions
+// ------------------------------------------------------------
+App.Modals.openApiaryManager = function (mode = "edit") {
+  const overlay = document.getElementById("overlay");
+  const modal = document.getElementById("apiaryManagerModal");
+
+  const titleEl = modal.querySelector("#apiaryManagerTitle");
+  const deleteBtn = modal.querySelector("#apiaryManagerDeleteBtn");
+
+  const nameInput = modal.querySelector("#apiaryNameInput");
+  const gridInput = modal.querySelector("#apiaryGridInput");
+  const addressInput = modal.querySelector("#apiaryAddressInput");
+  const notesList = modal.querySelector("#apiaryNotesList");
+  const dateInput = modal.querySelector("#newNoteDate");
+  const textInput = modal.querySelector("#newNoteText");
+  const addBtn = modal.querySelector("#addNoteBtn");
+
+  if (mode === "create") {
+    titleEl.textContent = "New Apiary";
+    deleteBtn.style.display = "none";
+
+    nameInput.value = "";
+    gridInput.value = "";
+    addressInput.value = "";
+
+    notesList.innerHTML = "";
+
+    dateInput.value = new Date().toISOString().slice(0, 10);
+
+  } else {
+    const apiaryName = Storage.getCurrentApiary();
+
+    titleEl.textContent = "Edit Apiary: " + apiaryName;
+    deleteBtn.style.display = "inline-block";
+
+    nameInput.value = apiaryName || "";
+    gridInput.value = "";
+    addressInput.value = "";
+
+    let notes = [];
+    try {
+      notes = JSON.parse(Storage.getApiaryNotes(apiaryName)) || [];
+    } catch {
+      notes = [];
+    }
+
+    notesList.innerHTML = "";
+notes.slice().reverse().forEach((n, i) => {
+      const row = document.createElement("div");
+      row.className = "note-row";
+      row.innerHTML = `
+        <span class="note-date">${n.date}</span>
+        <span class="note-text">${n.text}</span>
+        <button class="note-delete-btn" data-index="${i}">×</button>
+      `;
+      notesList.appendChild(row);
+    });
+
+    dateInput.value = new Date().toISOString().slice(0, 10);
+  }
+
+  modal.style.display = "block";
+  overlay.style.display = "block";
+
+  // ADD NOTE
+  addBtn.onclick = function () {
+    const date = dateInput.value.trim();
+    const text = textInput.value.trim();
+    const apiaryName = Storage.getCurrentApiary();
+
+    if (!text) return;
+
+    let notes = [];
+    try {
+      notes = JSON.parse(Storage.getApiaryNotes(apiaryName)) || [];
+    } catch {
+      notes = [];
+    }
+
+    notes.push({ text, date });
+    Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
+
+    notesList.innerHTML = "";
+    notes.forEach((n, i) => {
+      const row = document.createElement("div");
+      row.className = "note-row";
+      row.innerHTML = `
+        <span class="note-date">${n.date}</span>
+        <span class="note-text">${n.text}</span>
+        <button class="note-delete-btn" data-index="${i}">×</button>
+      `;
+      notesList.appendChild(row);
+    });
+
+    textInput.value = "";
+  };
+
+  // DELETE NOTE
+  notesList.onclick = function (e) {
+    if (!e.target.classList.contains("note-delete-btn")) return;
+
+    const apiaryName = Storage.getCurrentApiary();
+    const index = parseInt(e.target.dataset.index, 10);
+
+    let notes = [];
+    try {
+      notes = JSON.parse(Storage.getApiaryNotes(apiaryName)) || [];
+    } catch {
+      notes = [];
+    }
+
+    notes.splice(index, 1);
+    Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
+
+    notesList.innerHTML = "";
+    notes.forEach((n, i) => {
+      const row = document.createElement("div");
+      row.className = "note-row";
+      row.innerHTML = `
+        <span class="note-date">${n.date}</span>
+        <span class="note-text">${n.text}</span>
+        <button class="note-delete-btn" data-index="${i}">×</button>
+      `;
+      notesList.appendChild(row);
+    });
+  };
+};
+
+
+App.Modals.saveApiaryManager = function () {
+  const newName = document.getElementById("apiaryNameInput").value.trim();
+  const oldName = Storage.getCurrentApiary();
+
+  // -------------------------
+  // HANDLE RENAME (MIGRATE NOTES + LAYOUT)
+  // -------------------------
+  if (oldName && oldName !== newName) {
+    // migrate notes
+    const oldNotes = Storage.getApiaryNotes(oldName);
+    Storage.saveApiaryNotes(newName, oldNotes || "[]");
+
+    // migrate layout
+    const oldLayout = Storage.getHiveLayout(oldName);
+    if (oldLayout) {
+      Storage.saveHiveLayout(newName, oldLayout);
+    }
+
+    // update apiary list
+    let all = Storage.getAllApiaries();
+    all = all.filter(a => a !== oldName);
+    all.push(newName);
+    Storage.saveAllApiaries(all);
+
+    // clean old keys
+    localStorage.removeItem("apiaryNotes_" + oldName);
+    localStorage.removeItem("hiveLayout_" + oldName);
+  }
+
+  const apiaryName = newName;
+
+  // -------------------------
+  // SAVE STRUCTURED NOTES (NO OVERWRITE)
+  // -------------------------
+  let notes = [];
+  try {
+    const raw = Storage.getApiaryNotes(apiaryName);
+    notes = raw ? JSON.parse(raw) || [] : [];
+  } catch {
+    notes = [];
+  }
+
+  Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
+
+  // -------------------------
+  // ADD OR UPDATE APIARY
+  // -------------------------
+  let all = Storage.getAllApiaries();
+
+  if (!all.includes(apiaryName)) {
+    all.push(apiaryName);
+    Storage.saveAllApiaries(all);
+
+    // Create empty layout for new apiary
+    Storage.saveHiveLayout(apiaryName, JSON.stringify({ objects: [] }));
+  }
+
+  // Set as current apiary
+  Storage.saveCurrentApiary(apiaryName);
+
+  // Refresh dropdown
+  App.Apiaries.updateSelector();
+
+  // Load layout for this apiary
+  App.Canvas.loadLayout();
+
+  App.Modals.closeApiaryManager();
+};
+
+App.Modals.deleteApiaryManager = function () {
+  const name = Storage.getCurrentApiary();
+
+  // Open the confirm delete modal
+  const modal = document.getElementById("confirmDeleteApiaryModal");
+  const overlay = document.getElementById("overlay");
+  const msg = document.getElementById("confirmDeleteApiaryMessage");
+
+  msg.innerHTML = `
+  <p>All associated hives, notes, and layouts will be permanently removed. This cannot be undone.</p>
+  <strong>Delete apiary "${name}"?</strong>
+  `;
+  modal.style.display = "block";
+
+    // When a second modal opens, overlay must rise above the lower modal
+  overlay.style.zIndex = "1050";   // between account (1000) and renew (1200)
+  overlay.style.display = "block";
+
+};
+
+App.Modals.closeApiaryManager = function () {
+  const overlay = document.getElementById("overlay");
+  const modal = document.getElementById("apiaryManagerModal");
+
+  modal.style.display = "none";
+  overlay.style.display = "none";
+};
+
+App.Modals.apiaryManagerMode = "edit"; // "edit" or "create"
+
 
 // ------------------------------------------------------------
 // Initialise modal system
@@ -2120,6 +2449,53 @@ App.Modals.init = function () {
   // Overlay (shared by all modals)
   // ------------------------------------------------------------
   const overlay = document.getElementById("overlay");
+
+document.getElementById("confirmDeleteApiaryCancelBtn")
+  .addEventListener("click", function () {
+    const confirmModal = document.getElementById("confirmDeleteApiaryModal");
+    const overlay = document.getElementById("overlay"); // the shared overlay
+
+    // hide the confirm modal
+    confirmModal.style.display = "none";
+
+    // reset overlay z-index back to default
+    overlay.style.zIndex = "900";
+
+    // DO NOT hide the overlay — ApiaryManagerModal still needs it
+  });
+
+
+document.getElementById("confirmDeleteApiaryYesBtn")
+  .addEventListener("click", function () {
+
+    const name = Storage.getCurrentApiary();
+
+    // Remove from list
+    const all = Storage.getAllApiaries();
+    const idx = all.indexOf(name);
+    if (idx !== -1) all.splice(idx, 1);
+    Storage.saveAllApiaries(all);
+
+    // Remove notes
+    localStorage.removeItem("apiaryNotes_" + name);
+
+    // Remove layout
+    localStorage.removeItem("hiveLayout_" + name);
+
+    // Switch to first apiary if any remain
+    if (all.length > 0) {
+      Storage.saveCurrentApiary(all[0]);
+    } else {
+      Storage.saveCurrentApiary("");
+    }
+
+    App.Apiaries.updateSelector();
+    App.Canvas.loadLayout();
+
+    // Close both modals
+    document.getElementById("confirmDeleteApiaryModal").style.display = "none";
+    App.Modals.closeApiaryManager();
+  });
 
   // ------------------------------------------------------------
   // Hive edit modal
@@ -2163,13 +2539,6 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
   document.getElementById("closeDueInspectionsBtn").addEventListener("click", App.Modals.closeDueInspections);
   document.getElementById("closeDueInspectionsBtn2").addEventListener("click", App.Modals.closeDueInspections);
   if (overlay) overlay.addEventListener("click", App.Modals.closeDueInspections);
-
-  // ------------------------------------------------------------
-  // Archived hives modal
-  // ------------------------------------------------------------
-  document.getElementById("hivesArchived").addEventListener("click", App.Modals.openArchivedHivesModal);
-  //document.getElementById("closeArchivedHivesBtn").addEventListener("click", App.Modals.closeArchivedHivesModal);
-  if (overlay) overlay.addEventListener("click", App.Modals.closeArchivedHives);
 
   // ------------------------------------------------------------
   // Inspection details modal (read-only)
@@ -2224,7 +2593,7 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
 });
 
 document.getElementById("renewCloseBtn").onclick = App.Modals.closeRenewModal;
-
+ if (overlay) overlay.addEventListener("click", App.Modals.closeRenewModal);
 
 // ===============================
 //  CLICK HANDLERS FOR COLOUR LABELS
@@ -2246,6 +2615,43 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 });
   document.getElementById("closeInspectionHistoryBtn").addEventListener("click", App.Modals.closeInspectionHistory);
   document.getElementById("closeInspectionHistoryBtn2").addEventListener("click", App.Modals.closeInspectionHistory);
+   if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionHistory);
+
+
+  document.getElementById("saveTreatmentBtn").onclick = App.Modals.saveTreatment;
+document.getElementById("cancelTreatmentBtn").onclick = App.Modals.closeTreatmentModal;
+document.getElementById("treatmentModalCloseBtn").onclick = App.Modals.closeTreatmentModal;
+   if (overlay) overlay.addEventListener("click", App.Modals.closeTreatmentModal);
+
+
+// ------------------------------------------------------------
+// Apiary Manager modal
+// ------------------------------------------------------------
+const apiaryManagerBtn = document.getElementById("apiaryManagerBtn");
+const apiaryManagerCloseBtn = document.getElementById("apiaryManagerCloseBtn");
+const apiaryManagerCloseFooterBtn = document.getElementById("apiaryManagerCloseFooterBtn");
+const apiaryManagerSaveBtn = document.getElementById("apiaryManagerSaveBtn");
+const apiaryManagerDeleteBtn = document.getElementById("apiaryManagerDeleteBtn");
+
+if (apiaryManagerBtn) apiaryManagerBtn.addEventListener("click", App.Modals.openApiaryManager);
+if (apiaryManagerCloseBtn) apiaryManagerCloseBtn.addEventListener("click", App.Modals.closeApiaryManager);
+if (apiaryManagerCloseFooterBtn) apiaryManagerCloseFooterBtn.addEventListener("click", App.Modals.closeApiaryManager);
+if (apiaryManagerSaveBtn) apiaryManagerSaveBtn.addEventListener("click", App.Modals.saveApiaryManager);
+if (apiaryManagerDeleteBtn) apiaryManagerDeleteBtn.addEventListener("click", App.Modals.deleteApiaryManager);
+   if (overlay) overlay.addEventListener("click", App.Modals.closeApiaryManager);
+
+
+const newApiaryBtn = document.getElementById("newApiaryBtn");
+if (newApiaryBtn) newApiaryBtn.addEventListener("click", () => {
+  App.Modals.openApiaryManager("create");
+});
+
+document.getElementById("apiaryManagerNewBtn")
+  .addEventListener("click", () => App.Modals.openApiaryManager("create"));
+
+document.getElementById("apiaryManagerPrintBtn")
+  .addEventListener("click", App.Canvas.print);
+
 
 };
 

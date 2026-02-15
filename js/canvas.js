@@ -256,6 +256,7 @@ App.Canvas.createHive = function (name, width, height, entrance = "") {
       hiveType: "Hive",
       inspections: [],
       boxes: [],
+      treatments: [],
       status: "active",
       apiaryId: App.Apiaries.currentApiaryId
     }
@@ -274,7 +275,6 @@ App.Canvas.createHive = function (name, width, height, entrance = "") {
 
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
-  App.Notes.load();
   App.Status.renderLegend();
   App.Stats.update();
 };
@@ -381,6 +381,7 @@ canvas.loadFromJSON(json, () => {
       // ⭐ Ensure required arrays exist (prevents tooltip crash)
       obj.hiveData.inspections = obj.hiveData.inspections || [];
       obj.hiveData.boxes = obj.hiveData.boxes || [];
+      obj.hiveData.treatments = obj.hiveData.treatments || [];
 
       // ⭐ Restore modal behaviour
       obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
