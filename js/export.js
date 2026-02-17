@@ -41,7 +41,7 @@ App.Export.exportLayout = function () {
 App.Export.exportAllData = function () {
   const allApiaries = Storage.getAllApiaries();
   if (!allApiaries.length) {
-    alert("No apiaries to export.");
+    App.UI.showToast("No apiaries to export.");
     return;
   }
 
@@ -108,7 +108,7 @@ allApiaries.forEach(apiary => {
   link.click();
   URL.revokeObjectURL(link.href);
 
-  alert(`Exported ${allApiaries.length} apiaries.`);
+  App.UI.showToast(`Exported ${allApiaries.length} apiaries.`);
 };
 
 
@@ -116,6 +116,10 @@ allApiaries.forEach(apiary => {
 // Import a single apiary layout file
 // ------------------------------------------------------------
 App.Export.importLayout = function (event) {
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
   const file = event.target.files[0];
   if (!file) return;
 
@@ -148,10 +152,10 @@ App.Export.importLayout = function (event) {
         App.Apiaries.updateSelector();
         App.Canvas.loadLayout();
       } else {
-        alert("Invalid file format: Missing hiveLayout.");
+        App.UI.showToast("Invalid file format: Missing hiveLayout.");
       }
     } catch (err) {
-      alert("Failed to import: " + err.message);
+      App.UI.showToast("Failed to import: " + err.message);
     }
   };
 
@@ -172,14 +176,9 @@ App.Export.importAllData = function (event) {
       const loaded = JSON.parse(e.target.result);
 
       if (!loaded.apiaries || typeof loaded.apiaries !== "object") {
-        alert("Invalid file format: missing apiaries");
+        App.UI.showToast("Invalid file format: missing apiaries");
         return;
       }
-
-      // ⭐ Preserve login + license BEFORE clearing storage
-      const preservedAccess = localStorage.getItem("hivemap_access");
-      const preservedLicenseKey = localStorage.getItem("hivemap_license_key");
-      const preservedProFlag = localStorage.getItem("hivemap_pro");
 
       // ⭐ Enforce free-version limits on imported data
       if (!isPro) {
@@ -229,19 +228,13 @@ App.Export.importAllData = function (event) {
         Storage.saveQueenStatuses(loaded.settings.queenStatuses || []);
       }
 
-      // ⭐ Restore login + license AFTER import
-      if (preservedAccess) localStorage.setItem("hivemap_access", preservedAccess);
-      if (preservedLicenseKey) localStorage.setItem("hivemap_license_key", preservedLicenseKey);
-      if (preservedProFlag) localStorage.setItem("hivemap_pro", preservedProFlag);
-
-      alert(`Imported ${apiaryNames.length} apiaries successfully.`);
+      App.UI.showToast(`Imported ${apiaryNames.length} apiaries successfully.`);
 
       // ⭐ Skip login check for this reload
-      localStorage.setItem("hivemap_skip_login_check", "1");
       window.location.reload();
 
     } catch (err) {
-      alert("Failed to import: " + err.message);
+      App.UI.showToast("Failed to import: " + err.message);
       console.error(err);
     }
   };
@@ -258,6 +251,12 @@ App.Export.init = function () {
   const importAllFile = document.getElementById("importAllFile");
 
   if (exportAllBtn) exportAllBtn.addEventListener("click", App.Export.exportAllData);
-  if (importAllBtn) importAllBtn.addEventListener("click", () => importAllFile.click());
+if (importAllBtn) importAllBtn.addEventListener("click", () => {
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+  importAllFile.click();
+});
   if (importAllFile) importAllFile.addEventListener("change", App.Export.importAllData);
 };

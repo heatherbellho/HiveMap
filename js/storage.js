@@ -32,9 +32,9 @@ const Storage = {
     return JSON.parse(localStorage.getItem('allApiaries') || '[]');
   },
 
-  saveAllApiaries(list) {
-    localStorage.setItem('allApiaries', JSON.stringify(list));
-  },
+saveAllApiaries(list) {
+  localStorage.setItem('allApiaries', JSON.stringify(list));
+},
 
   getCurrentApiary() {
     return localStorage.getItem('currentApiary') || null;
@@ -53,6 +53,22 @@ const Storage = {
 
   saveApiaryNotes(apiaryName, notesString) {
     localStorage.setItem('apiaryNotes_' + apiaryName, notesString);
+  },
+
+  saveApiaryGrid(apiaryName, value) {
+  localStorage.setItem('apiaryGrid_' + apiaryName, value);
+  },
+
+  getApiaryGrid(apiaryName) {
+    return localStorage.getItem('apiaryGrid_' + apiaryName) || "";
+  },
+
+  saveApiaryAddress(apiaryName, value) {
+    localStorage.setItem('apiaryAddress_' + apiaryName, value);
+  },
+
+  getApiaryAddress(apiaryName) {
+    return localStorage.getItem('apiaryAddress_' + apiaryName) || "";
   },
 
 

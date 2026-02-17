@@ -176,6 +176,10 @@ App.Status.addStatus = function () {
 // Save status settings
 // ------------------------------------------------------------
 App.Status.saveSettings = function () {
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
   const nameEl = document.getElementById("newStatusName");
   const colorEl = document.getElementById("newStatusColor");
 

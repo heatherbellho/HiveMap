@@ -86,8 +86,24 @@ if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
   canvas.on("mouse:out", () => tooltip.style.display = "none");
 
   // Save layout on changes
-  canvas.on("object:modified", App.Canvas.saveLayout);
-  canvas.on("object:added", App.Canvas.saveLayout);
+canvas.on("object:modified", function (e) {
+
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  App.Canvas.saveLayout();
+});
+canvas.on("object:added", function (e) {
+
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  App.Canvas.saveLayout();
+});
 
   // Load initial layout
   App.Canvas.loadLayout();
@@ -258,7 +274,8 @@ App.Canvas.createHive = function (name, width, height, entrance = "") {
       boxes: [],
       treatments: [],
       status: "active",
-      apiaryId: App.Apiaries.currentApiaryId
+      apiaryId: App.Apiaries.currentApiaryId,
+      __uid: crypto.randomUUID()
     }
   });
 
@@ -300,6 +317,10 @@ App.Canvas.getHiveData = function (obj) {
   return null;
 };
 
+App.Canvas.findHiveByUid = function (uid) {
+  return canvas.getObjects().find(o => o.hiveData && o.hiveData.__uid === uid);
+};
+
 // ------------------------------------------------------------
 // Tooltip handler
 // ------------------------------------------------------------
@@ -335,19 +356,23 @@ const latest = inspections[inspections.length - 1] || {};
   tooltip.style.display = "block";
 };
 
-
-
 // ------------------------------------------------------------
 // Save layout to storage
 // ------------------------------------------------------------
 App.Canvas.saveLayout = function () {
+
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
   const current = Storage.getCurrentApiary();
   if (!current) return;
 
-  const json = canvas.toJSON(["hiveData"]); // ONLY hiveData is safe
-
+  const json = canvas.toJSON(["hiveData"]);
   Storage.saveHiveLayout(current, JSON.stringify(json));
 };
+
 
 // ------------------------------------------------------------
 // Load layout from storage
@@ -366,39 +391,44 @@ App.Canvas.loadLayout = function () {
 
 canvas.loadFromJSON(json, () => {
 
-  canvas.getObjects().forEach(obj => {
-    if (obj.type === "group" && obj.hiveData) {
+canvas.getObjects().forEach(obj => {
+  if (obj.hiveData) {
 
-      if (!obj.hiveData.status) {
-        obj.hiveData.status = "active";
-      }
-
-      if (obj.hiveData.status === "archived") {
-        obj.visible = false;
-        return;
-      }
-
-      // ⭐ Ensure required arrays exist (prevents tooltip crash)
-      obj.hiveData.inspections = obj.hiveData.inspections || [];
-      obj.hiveData.boxes = obj.hiveData.boxes || [];
-      obj.hiveData.treatments = obj.hiveData.treatments || [];
-
-      // ⭐ Restore modal behaviour
-      obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
-
-      // ⭐ Restore control visibility (remove resize handles)
-      obj.setControlsVisibility({
-        mt:false, mb:false, ml:false, mr:false,
-        tl:false, tr:false, bl:false, br:false,
-        mtr:true
-      });
-
-      // ⭐ Ensure scaling is locked
-      obj.lockScalingX = true;
-      obj.lockScalingY = true;
-      obj.lockUniScaling = true;
+    // ⭐ Assign UID if missing (fix for old hives)
+    if (!obj.hiveData.__uid) {
+      obj.hiveData.__uid = crypto.randomUUID();
     }
-  });
+
+    if (!obj.hiveData.status) {
+      obj.hiveData.status = "active";
+    }
+
+    if (obj.hiveData.status === "archived") {
+      obj.visible = false;
+    } else {
+      obj.visible = true;
+    }
+
+    obj.hiveData.inspections = obj.hiveData.inspections || [];
+    obj.hiveData.boxes = obj.hiveData.boxes || [];
+    obj.hiveData.treatments = obj.hiveData.treatments || [];
+
+    const label = obj._objects[1];
+    label.set("text", formatEntranceLabel(obj.hiveData.name, obj.hiveData.entrance));
+
+    obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
+
+    obj.setControlsVisibility({
+      mt:false, mb:false, ml:false, mr:false,
+      tl:false, tr:false, bl:false, br:false,
+      mtr:true
+    });
+
+    obj.lockScalingX = true;
+    obj.lockScalingY = true;
+    obj.lockUniScaling = true;
+  }
+});
 
   App.Canvas.requestRender();
 
@@ -406,6 +436,10 @@ canvas.loadFromJSON(json, () => {
     resizeAndFitCanvas();
   }, 50);
 });
+// ⭐ Show expired modal once layout is fully visible
+if (editingDisabled()) {
+  App.Modals.openExpiredModal();
+}
 
 };
 
@@ -425,9 +459,13 @@ App.Canvas.getHiveNames = function () {
 // Delete selected hives
 // ------------------------------------------------------------
 App.Canvas.deleteSelected = function () {
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
   const active = canvas.getActiveObjects();
   if (!active.length) {
-    alert("No hive selected.");
+    App.UI.showToast("No hive selected.");
     return;
   }
 

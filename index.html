@@ -23,6 +23,7 @@
   <script src="js/utils.js"></script>
   <script src="js/apiaries.js"></script>
   <script src="js/hives.js"></script>
+  <script src="js/subscription.js"></script>
   <script src="js/modals.js"></script>
   <script src="js/status.js"></script>
   <script src="js/export.js"></script>
@@ -40,36 +41,6 @@
 
   <link rel="stylesheet" href="css/app.css">
 </head>
-<script>
-  const skip = localStorage.getItem("hivemap_skip_login_check") === "1";
-  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
-
-  if (!skip) {
-    try {
-      const now = Date.now();
-
-      // Must have ok:true AND expires
-      if (!access.ok || !access.expires) {
-        window.location.href = "login.html";
-      } else {
-        const expiry = new Date(access.expires).getTime();
-
-        // Only redirect if truly expired
-        if (isNaN(expiry) || now > expiry) {
-          localStorage.removeItem("hivemap_access");
-          window.location.href = "login.html";
-        }
-      }
-    } catch (e) {
-      // Malformed storage → force login
-      localStorage.removeItem("hivemap_access");
-      window.location.href = "login.html";
-    }
-  }
-
-  // Always clear skip flag
-  localStorage.removeItem("hivemap_skip_login_check");
-</script>
 
 <body>
   <div id="overlay" tabindex="-1"></div>
@@ -129,9 +100,7 @@
         <div class="dropdown-item" id="hiveDelete">Delete Hive</div>
     <!--    <div class="dropdown-item" id="hiveReassign">Reassign Hive Number</div>
         <div class="dropdown-item" id="hivePrint">Print Hive</div>-->
-        
-
-
+        <div class="dropdown-item" id="toolbarShowArchivedHives">Archived Hives</div>
       </div>
     </div>
 
@@ -268,6 +237,26 @@
   </footer>
 </div>
 
+<div id="confirmArchiveHiveModal" class="modal modal-small" style="display:none;">
+  <header class="modal-header">
+    <h2>Confirm Archive</h2>
+  </header>
+
+  <main class="modal-body">
+    <p style="line-height: 1.6;">
+      Archiving this hive will remove it from the selected apiary.<br>
+      It will no longer appear on the map but all data will be retained and viewed in <strong>Hives → Archived</strong> in the toolbar.<br>
+      The hive cannot be restored to the active apiary. This action cannot be undone.
+    </p>
+  </main>
+
+  <footer class="modal-footer">
+    <button id="confirmArchiveHiveYesBtn" class="btn-danger">Archive Hive</button>
+    <button id="confirmArchiveHiveCancelBtn" class="btn-cancel">Cancel</button>
+  </footer>
+</div>
+
+
 <!-- Hive edit modal -->
 <div id="modal" class="modal modal-hive-edit"
   role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
@@ -310,7 +299,7 @@
 
 
       <div class="modal-section">
-  <label for="destinationApiarySelect">Move to Apiary</label>
+  <label for="destinationApiarySelect" style="font-weight: bold;">Move to Apiary</label>
   <select id="destinationApiarySelect"></select>
 
   <button type="button" id="moveHiveBtn" class="btn-primary" style="margin-top: 8px;">
@@ -319,7 +308,7 @@
       </div>
 
   <div class ="modal-section">
-            <label for="hiveType">Hive Type</label>
+            <label for="hiveType" style="font-weight: bold;">Hive Type</label>
         <div class="inline-row">
           <select id="hiveType"></select>
           <button type="button" id="addHiveTypeBtn" class="small-add" title="Add New Hive Type">+</button>
@@ -885,31 +874,27 @@
       <h2>Account & License</h2>
       <button id="accountModalClose" class="modal-close">&times;</button>
     </header>
-    <main class="modal-body">
+<main class="modal-body">
 
-      <section>
-        <h3>Subscription Status</h3>
-        <p id="accountAccessStatus"></p>
-        <button id="renewAccessBtn" class="btn-info" style="margin-bottom: 12px;">Renew Subscription</button>
-        <button id="enterNewCodeBtn" class="btn-save">Enter New Subscription Code</button>
+  <section>
+    <h3>Subscription Status</h3>
 
-      </section>
+    <p id="accountEditionStatus"></p>
+    <p id="accountExpiryStatus"></p>
 
-      <hr>
+    <button id="enterSubscriptionCodeBtn" class="btn-save">Enter Subscription Code</button>
+  </section>
 
-      <section>
-        <h3>License Status</h3>
-        <h4 style="margin-bottom: 12px;">You are using:</h4>
-        <span id="accountLicenseStatus"></span>,&nbsp;<span id="accountVersion"></span>
-       
-        <p id="accountEditionExplanation"></p>
-        <p id="accountLicenseKey"></p>
+  <hr>
 
-        <button id="enterLicenseBtn" class="btn-save">Enter License Key</button>
-        <button id="resetLicenseBtn" class="btn-cancel">Reset License Key</button>
-      </section>
+  <section>
+    <h3>Edition Details</h3>
+    <p id="accountEditionExplanation"></p>
+    <p id="accountVersion"></p>
+  </section>
 
-    </main>
+</main>
+
 
     <footer class="modal-footer">
       <button id="accountModalCloseFooter" class="btn-cancel">Close</button>
@@ -948,6 +933,19 @@
   </div>
 </div>
 
+<div id="expiredModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <header class="modal-header">
+      <h2>Subscription Expired</h2>
+      <button id="expiredModalClose" class="modal-close">&times;</button>
+    </header>
+    <main class="modal-body">
+      <p>Your HiveMap Plus subscription has expired.</p>
+      <p>You can still view all your data, but editing is disabled until you enter a new subscription code.</p>
+      <button id="expiredEnterCodeBtn" class="btn-save">Enter Subscription Code</button>
+    </main>
+  </div>
+</div>
 
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>
@@ -967,12 +965,14 @@
   </div>
 </div>
 
-<div id="exitToast" class="toast hidden">
+<div id="exitToast" class="exit-toast">
   <span>Use the Exit button to safely close and/or save your session.</span>
   <button id="exitToastClose" class="toast-close">×</button>
 </div>
 
-<div id="expiryToast" class="expiry-toast hidden">
+<div id="globalToast" class="global-toast"></div>
+
+<div id="expiryToast" class="expiry-toast">
   <span id="expiryToastMessage"></span>
 <!--  <button id="expiryToastClose">×</button>-->
 </div>

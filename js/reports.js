@@ -73,6 +73,8 @@ App.Reports.generateVetReport = function () {
     output.innerHTML = `<p>No treatments found for the selected filters.</p>`;
     return;
   }
+// ⭐ Sort newest first
+rows.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
   // Build table
   let html = `
@@ -97,7 +99,7 @@ App.Reports.generateVetReport = function () {
   rows.forEach(r => {
     html += `
       <tr>
-        <td>${r.date || ""}</td>
+        <td>${r.date ? App.Utils.formatDateUK(r.date) : ""}</td>
         <td>${r.apiary}</td>
         <td>${r.hive}</td>
         <td>${r.product}</td>

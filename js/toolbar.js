@@ -51,6 +51,11 @@ document.getElementById("hiveDelete").addEventListener("click", () => {
   App.Canvas.deleteSelected();
 });
 
+document.getElementById("toolbarShowArchivedHives")
+  .addEventListener("click", function () {
+    document.getElementById("archivedFilterBtn").click();
+  });
+
 
 // ============================================================
 //  TOOLS MENU
@@ -95,39 +100,30 @@ document.getElementById("toolsAccount").addEventListener("click", () => {
   const modal = document.getElementById("accountModal");
   const overlay = document.getElementById("overlay");
 
-  // LOGIN ACCESS
-  const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
-  const accessEl = document.getElementById("accountAccessStatus");
+// HM2 SUBSCRIPTION STATUS
+const sub = JSON.parse(localStorage.getItem("hivemap_subscription") || "{}");
 
-  if (access.expires) {
-    const expiry = new Date(access.expires);
-    const now = new Date();
-    const days = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+const editionEl = document.getElementById("accountEditionStatus");
+const expiryEl  = document.getElementById("accountExpiryStatus");
 
-    accessEl.innerHTML = `
-Subscription expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
-      (${days} days remaining)
-    `;
-  } else {
-    accessEl.textContent = "No active login session.";
-  }
-
-  // LICENSE STATUS
-  const licenseEl = document.getElementById("accountLicenseStatus");
-  const keyEl = document.getElementById("accountLicenseKey");
-
-  const key = localStorage.getItem("hivemap_license_key");
-
-  licenseEl.innerHTML = isPro ? "Edition: <strong>HiveMapPlus</strong>" : "Edition: <strong>HiveMapFree</strong>";
-
- if (key) {
-  const last4 = key.slice(-4);
-  const masked = "****-****-" + last4;
-  keyEl.textContent = "License Key: " + masked;
+if (sub.edition) {
+  editionEl.innerHTML = `Edition: <strong>${sub.edition}</strong>`;
 } else {
-  keyEl.textContent = "License Key: None";
+  editionEl.innerHTML = `Edition: <strong>None</strong>`;
 }
 
+if (sub.expiry) {
+  const expiry = new Date(sub.expiry);
+  const now = new Date();
+  const days = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+
+  expiryEl.innerHTML = `
+    Subscription expires on <strong>${App.Utils.formatDateUK(expiry)}</strong><br>
+    (${days} days remaining)
+  `;
+} else {
+  expiryEl.innerHTML = "No active subscription.";
+}
 
   // EXPLANATION SECTION (dynamic)
   const explainEl = document.getElementById("accountEditionExplanation");
@@ -177,43 +173,26 @@ document.getElementById("accountModalCloseFooter").addEventListener("click", () 
   document.getElementById("overlay").style.display = "none";
 });
 
-// Renew access
-document.getElementById("renewAccessBtn").addEventListener("click", () => {
-  App.Modals.openRenewModal();
-});
+document.getElementById("enterSubscriptionCodeBtn").addEventListener("click", async () => {
+  const code = prompt("Enter your HiveMap subscription code:");
+  if (!code) return;
 
-document.getElementById("enterNewCodeBtn").addEventListener("click", () => {
-  window.location.href = "login.html?renew=1";
-});
+  const result = await validateHM2Code(code);
 
-
-// Enter license key
-document.getElementById("enterLicenseBtn").addEventListener("click", () => {
-  const key = prompt("Enter your HiveMapPlus license key:");
-  if (!key) return;
-
-  if (!App.validateLicenseKey(key)) {
-    alert("Invalid license key.");
+  if (!result.ok) {
+    App.UI.showToast(result.error);
     return;
   }
 
-  localStorage.setItem("hivemap_license_key", key);
-  localStorage.setItem("hivemap_pro", "true");
+  localStorage.setItem("hivemap_subscription", JSON.stringify({
+    edition: result.edition,
+    expiry: result.expiry,
+    code
+  }));
 
-  alert("HiveMapPlus activated. Click OK to reload.");
+  App.UI.showToast("Subscription updated successfully.");
   window.location.reload();
 });
-
-// Reset license key
-document.getElementById("resetLicenseBtn").addEventListener("click", () => {
-  localStorage.removeItem("hivemap_license_key");
-  localStorage.removeItem("hivemap_pro");
-
-  alert("License key removed, HiveMapPlus deactivated. Click OK to reload.");
-  window.location.reload();
-});
-
-
 
 // -----------------------------
 // HELP MODAL LOADING

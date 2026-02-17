@@ -75,7 +75,14 @@ App.Modals.inspectionSchema =
 
 App.Modals.openHiveModal = function (hiveGroup) {
   selectedHive = hiveGroup;
-  const data = hiveGroup.hiveData || {};
+const data = hiveGroup.hiveData;   // MUST be the live reference
+// Change modal title depending on hive status
+const titleEl = document.getElementById("modalTitle");
+if (data.status === "archived") {
+  titleEl.textContent = "Archived Hive";
+} else {
+  titleEl.textContent = "Edit Hive";
+}
 
   // Ensure arrays exist
   data.boxes = data.boxes || [];
@@ -125,37 +132,71 @@ App.Modals.openHiveModal = function (hiveGroup) {
   const archiveBtn = document.getElementById("archiveHiveBtn");
   const restoreBtn = document.getElementById("restoreHiveBtn");
 
-  if (archiveBtn && restoreBtn) {
-    if (data.status === "archived") {
-      archiveBtn.style.display = "none";
-      restoreBtn.style.display = "inline-block";
-    } else {
-      archiveBtn.style.display = "inline-block";
-      restoreBtn.style.display = "none";
-    }
+// ⭐ ARCHIVED HIVES → READ‑ONLY MODE
+if (data.status === "archived") {
 
-    archiveBtn.onclick = function () {
-      if (!selectedHive) return;
-
-      selectedHive.hiveData.status = "archived";
-      selectedHive.visible = false;
-
-      App.Canvas.saveLayout();
-      App.Canvas.requestRender();
-      App.Modals.closeHiveModal();
-    };
-
-    restoreBtn.onclick = function () {
-      if (!selectedHive) return;
-
-      selectedHive.hiveData.status = "active";
-      selectedHive.visible = true;
-
-      App.Canvas.saveLayout();
-      App.Canvas.requestRender();
-      App.Modals.closeHiveModal();
-    };
+  // Hide Archive + Restore
+  if (archiveBtn) archiveBtn.style.display = "none";
+  if (restoreBtn) {
+    restoreBtn.style.display = "none";
+    restoreBtn.onclick = null;
   }
+
+  // Hide all action buttons
+  const addInspectionBtn = document.getElementById("addInspectionBtn");
+  const addTreatmentBtn = document.getElementById("addTreatmentBtn");
+  const moveHiveBtn = document.getElementById("moveHiveBtn");
+  const saveHiveBtn = document.getElementById("saveHiveBtn");
+  const cancelHiveBtn = document.getElementById("cancelHiveBtn");
+  const addHiveTypeBtn = document.getElementById("addHiveTypeBtn");
+  const addBoxBtn = document.getElementById("addBoxBtn");
+  const saveHiveBtnFooter = document.getElementById("saveHiveBtnFooter");
+  const cancelHiveBtnFooter = document.getElementById("cancelHiveBtnFooter");
+
+  if (addInspectionBtn) addInspectionBtn.style.display = "none";
+  if (addTreatmentBtn) addTreatmentBtn.style.display = "none";
+  if (moveHiveBtn) moveHiveBtn.style.display = "none";
+  if (saveHiveBtn) saveHiveBtn.style.display = "none";
+  if (cancelHiveBtn) cancelHiveBtn.style.display = "none";
+  if (addHiveTypeBtn) addHiveTypeBtn.style.display = "none";
+  if (addBoxBtn) addBoxBtn.style.display = "none";
+  if (saveHiveBtnFooter) saveHiveBtnFooter.style.display = "none";
+  if (cancelHiveBtnFooter) cancelHiveBtnFooter.style.display = "none";
+
+} else {
+
+  // ACTIVE HIVES → FULL CONTROLS
+  if (archiveBtn) archiveBtn.style.display = "inline-block";
+
+  if (restoreBtn) {
+    restoreBtn.style.display = "none";
+    restoreBtn.onclick = null;
+  }
+
+  const addInspectionBtn = document.getElementById("addInspectionBtn");
+  const addTreatmentBtn = document.getElementById("addTreatmentBtn");
+  const moveHiveBtn = document.getElementById("moveHiveBtn");
+  const saveHiveBtn = document.getElementById("saveHiveBtn");
+
+  if (addInspectionBtn) addInspectionBtn.style.display = "inline-block";
+  if (addTreatmentBtn) addTreatmentBtn.style.display = "inline-block";
+  if (moveHiveBtn) moveHiveBtn.style.display = "inline-block";
+  if (saveHiveBtn) saveHiveBtn.style.display = "inline-block";
+
+  // Archive action
+  if (archiveBtn) {
+archiveBtn.onclick = function () {
+  // Open confirmation modal
+  document.getElementById("confirmArchiveHiveModal").style.display = "block";
+
+  // Use the same overlay you already use
+  const overlay = document.getElementById("overlay");
+  overlay.style.display = "block";
+  overlay.style.zIndex = "1150"; // match Apiary Manager behaviour
+};
+
+  }
+}
 
   // 🔹 Wire Inspection History button (THIS WAS THE MISSING PIECE)
   const histBtn = document.getElementById("openInspectionHistoryBtn");
@@ -176,6 +217,11 @@ if (addTreatBtn) {
 };
 
 App.Hives.moveHive = function (hiveGroup, newApiaryName) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   if (!hiveGroup || !hiveGroup.hiveData) return;
 
   const currentApiary = Storage.getCurrentApiary();
@@ -252,6 +298,11 @@ App.Modals.closeHiveModal = function () {
 };
 
 App.Modals.confirmEditHive = function (hive) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
   const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
 
@@ -288,6 +339,11 @@ App.Modals.confirmEditHive = function (hive) {
 // Save hive data from modal
 // ------------------------------------------------------------
 App.Modals.saveHiveData = function () {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   if (!selectedHive) return;
 
   const hiveData = selectedHive.hiveData;
@@ -404,6 +460,11 @@ App.Modals.openTreatmentModal = function (index = null) {
 };
 
 App.Modals.saveTreatment = function () {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   if (!selectedHive) return;
 
   const index = document.getElementById("treatmentModal").dataset.editIndex;
@@ -449,13 +510,25 @@ App.Modals.renderTreatmentList = function () {
     return;
   }
 
-  list.innerHTML = treatments.map((t, index) => `
-    <div class="treatment-item">
-      <strong>${t.date ? App.Utils.formatDateUK(t.date) : "No date"}</strong> — ${t.product || "Unknown"}
-      <button class="btn-info" style="margin-left: 8px;" data-index="${index}">Edit</button>
-      <button class="btn-danger" data-index="${index}">Delete</button>
+  // ⭐ NEW: reverse so newest is first
+  const ordered = treatments.slice().reverse();
+
+list.innerHTML = ordered.map((t, index) => `
+  <div class="treatment-item" style="display:flex; justify-content:space-between; align-items:center;">
+    
+    <div>
+      <strong>${t.date ? App.Utils.formatDateUK(t.date) : "No date"}</strong>
+      — ${t.product || "Unknown"}
     </div>
-  `).join("");
+
+    <div class="treatment-actions">
+      <button class="btn-info" data-index="${treatments.length - 1 - index}">Edit</button>
+      <button class="btn-danger" data-index="${treatments.length - 1 - index}">Delete</button>
+    </div>
+
+  </div>
+`).join("");
+
 
   // Wire edit/delete buttons
   list.querySelectorAll(".btn-info").forEach(btn => {
@@ -464,6 +537,11 @@ App.Modals.renderTreatmentList = function () {
 
   list.querySelectorAll(".btn-danger").forEach(btn => {
     btn.onclick = () => {
+      if (editingDisabled()) {
+        App.UI.showToast("Editing is disabled because your subscription has expired.");
+        return;
+      }
+
       const i = btn.dataset.index;
       selectedHive.hiveData.treatments.splice(i, 1);
       App.Modals.renderTreatmentList();
@@ -471,6 +549,7 @@ App.Modals.renderTreatmentList = function () {
     };
   });
 };
+
 
 
 // ------------------------------------------------------------
@@ -547,6 +626,11 @@ App.Modals.renderInspectionHistory = function () {
 // Delete an inspection
 // ------------------------------------------------------------
 App.Modals.deleteInspection = function (index) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   if (!selectedHive) return;
 
   const hiveData = selectedHive.hiveData;
@@ -605,13 +689,18 @@ App.Modals.renderBoxList = function () {
 // Add a box to the hive
 // ------------------------------------------------------------
 App.Modals.addBox = function () {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   if (!selectedHive) return;
 
   const type = document.getElementById("boxTypeSelect").value;
   const count = parseInt(document.getElementById("boxCountInput").value, 10);
 
   if (!count || count < 1) {
-    alert("Count must be at least 1");
+    App.UI.showToast("Count must be at least 1");
     return;
   }
 
@@ -630,11 +719,17 @@ App.Modals.addBox = function () {
 
 // Open
 App.Modals.openHiveSizeModal = function () {
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
 
   // ⭐ FREE VERSION LIMIT CHECK — block before modal opens
-  const existing = App.Canvas.getHiveNames();
-  if (existing.length >= LIMITS.maxHives) {
-    alert("The free version of HiveMap supports only one hive.");
+  // Count only ACTIVE hives
+  const activeHives = App.Canvas.getAllHives().filter(h => h.hiveData.status !== "archived");
+
+  if (activeHives.length >= LIMITS.maxHives) {
+    App.UI.showToast("The free version of HiveMap supports only one active hive.");
     return;
   }
 
@@ -642,18 +737,24 @@ App.Modals.openHiveSizeModal = function () {
   document.getElementById("hiveSizeModal").style.display = "block";
   document.getElementById("overlay").style.display = "block";
 
-  // Auto-suggest next hive number
-  const used = existing.sort((a, b) => Number(a) - Number(b));
+  // ⭐ Auto-suggest next hive number
+  // Use ACTIVE hive names only
+  const used = activeHives
+    .map(h => h.hiveData.name)
+    .sort((a, b) => Number(a) - Number(b));
 
   let n = 1;
   while (used.includes(String(n).padStart(2, "0"))) {
     n++;
   }
+
   const padded = String(n).padStart(2, "0");
   document.getElementById("hiveNameInput").value = padded;
+
   document.getElementById("usedHiveNumbers").textContent =
     used.length ? "Used: " + used.join(", ") : "No hives yet";
 };
+
 
 // Close
 App.Modals.closeHiveSizeModal = function () {
@@ -672,12 +773,21 @@ App.Modals.toggleCustomSizeFields = function () {
 
 // Confirm creation
 App.Modals.confirmCreateHive = function () {
+if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
+
   const size = document.getElementById("hiveSizeSelect").value;
   const name = document.getElementById("hiveNameInput").value.trim() || "Hive";
 
   // Duplicate check
-  if (App.Canvas.getHiveNames().includes(name)) {
-    alert(`Hive name "${name}" already exists.`);
+const activeNames = App.Canvas.getAllHives()
+  .filter(h => h.hiveData.status !== "archived")
+  .map(h => h.hiveData.name);
+
+if (activeNames.includes(name)) {
+App.UI.showToast(`Hive name "${name}" already exists.`);
     return;
   }
 
@@ -1248,6 +1358,10 @@ App.Modals.closeInspectionFieldConfig = function () {
 };
 
 App.Modals.moveInspectionGroup = function (index, direction) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
   const groups = schema.groups;
 
@@ -1265,6 +1379,10 @@ App.Modals.moveInspectionGroup = function (index, direction) {
 };
 
 App.Modals.deleteInspectionGroup = function (index) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
 
   if (!confirm("Delete this group?")) return;
@@ -1278,6 +1396,10 @@ App.Modals.deleteInspectionGroup = function (index) {
 };
 
 App.Modals.addInspectionField = function (groupIndex) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
   const group = schema.groups[groupIndex];
 
@@ -1303,6 +1425,10 @@ if (!name || !name.trim()) name = "New Field";
 
 
 App.Modals.renameInspectionGroup = function (index) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
   const group = schema.groups[index];
 
@@ -1459,6 +1585,10 @@ App.Modals.renderInspectionGroups = function () {
 };
 
 App.Modals.renameInspectionField = function (groupIndex, fieldIndex) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
   const field = schema.groups[groupIndex].fields[fieldIndex];
 
@@ -1470,6 +1600,10 @@ App.Modals.renameInspectionField = function (groupIndex, fieldIndex) {
 };
 
 App.Modals.changeInspectionFieldType = function (groupIndex, fieldIndex) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
   const field = schema.groups[groupIndex].fields[fieldIndex];
 
@@ -1485,6 +1619,10 @@ App.Modals.changeInspectionFieldType = function (groupIndex, fieldIndex) {
 };
 
 App.Modals.moveInspectionField = function (groupIndex, fieldIndex, direction) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
   const fields = schema.groups[groupIndex].fields;
 
@@ -1501,6 +1639,10 @@ App.Modals.moveInspectionField = function (groupIndex, fieldIndex, direction) {
 };
 
 App.Modals.deleteInspectionField = function (groupIndex, fieldIndex) {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
   const schema = App.Modals.inspectionSchemaWorking;
 
   if (!confirm("Delete this field?")) return;
@@ -1514,6 +1656,10 @@ App.Modals.deleteInspectionField = function (groupIndex, fieldIndex) {
 
 
 App.Modals.addInspectionGroup = function () {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
 const schema = App.Modals.inspectionSchemaWorking;
 
   const newGroup = {
@@ -1565,6 +1711,10 @@ const schema = App.Modals.inspectionSchemaWorking;
 };
 
 App.Modals.saveInspectionFieldConfig = function () {
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
   // Commit working copy to live schema
   App.Modals.inspectionSchema = App.Modals.inspectionSchemaWorking;
 
@@ -1677,7 +1827,7 @@ App.Modals.openHiveListModal = function () {
   tbody.querySelectorAll(".edit-hive-btn").forEach(btn => {
     btn.addEventListener("click", function () {
       const uid = this.getAttribute("data-ref");
-      const hiveObj = HiveObjectMap[uid];
+const hiveObj = App.Canvas.findHiveByUid(uid);
       if (hiveObj) {
         selectedHive = hiveObj;
         App.Modals.openHiveModal(hiveObj);
@@ -2027,6 +2177,10 @@ App.Modals.openInspectionInput = function (hiveObj) {
 };
 
 App.Modals.saveInspectionInput = function () {
+  if (editingDisabled()) {
+  App.UI.showToast("Editing is disabled because your subscription has expired.");
+  return;
+}
 
   const hiveObj = App.Modals.currentHiveForInspection;
   if (!hiveObj) return;
@@ -2214,6 +2368,11 @@ App.Modals.closeRenewModal = function () {
 // Apiary Manager modal functions
 // ------------------------------------------------------------
 App.Modals.openApiaryManager = function (mode = "edit") {
+  if (mode === "create" && editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
   const overlay = document.getElementById("overlay");
   const modal = document.getElementById("apiaryManagerModal");
 
@@ -2228,27 +2387,36 @@ App.Modals.openApiaryManager = function (mode = "edit") {
   const textInput = modal.querySelector("#newNoteText");
   const addBtn = modal.querySelector("#addNoteBtn");
 
+  // ⭐ FIX: restore mode flag
+  nameInput.dataset.mode = mode;
+
   if (mode === "create") {
+
     titleEl.textContent = "New Apiary";
     deleteBtn.style.display = "none";
+    const apiaryName = Storage.getCurrentApiary();
 
-    nameInput.value = "";
-    gridInput.value = "";
-    addressInput.value = "";
+    nameInput.value = apiaryName || "";
+    gridInput.value = Storage.getApiaryGrid(apiaryName);
+    addressInput.value = Storage.getApiaryAddress(apiaryName);
+
 
     notesList.innerHTML = "";
 
     dateInput.value = new Date().toISOString().slice(0, 10);
+    Storage.saveCurrentApiary("");
 
-  } else {
+} else {
     const apiaryName = Storage.getCurrentApiary();
 
     titleEl.textContent = "Edit Apiary: " + apiaryName;
     deleteBtn.style.display = "inline-block";
 
     nameInput.value = apiaryName || "";
-    gridInput.value = "";
-    addressInput.value = "";
+
+    // ⭐ Load grid + address correctly (no overwrites)
+    gridInput.value = Storage.getApiaryGrid(apiaryName);
+    addressInput.value = Storage.getApiaryAddress(apiaryName);
 
     let notes = [];
     try {
@@ -2258,25 +2426,29 @@ App.Modals.openApiaryManager = function (mode = "edit") {
     }
 
     notesList.innerHTML = "";
-notes.slice().reverse().forEach((n, i) => {
+    notes.slice().reverse().forEach((n, i) => {
       const row = document.createElement("div");
       row.className = "note-row";
       row.innerHTML = `
-        <span class="note-date">${n.date}</span>
+        <span class="note-date">${App.Utils.formatDateUK(n.date)}</span>
         <span class="note-text">${n.text}</span>
-        <button class="note-delete-btn" data-index="${i}">×</button>
+        <button class="note-delete-btn" data-index="${notes.length - 1 - i}">×</button>
       `;
       notesList.appendChild(row);
     });
 
     dateInput.value = new Date().toISOString().slice(0, 10);
-  }
+}
 
   modal.style.display = "block";
   overlay.style.display = "block";
 
-  // ADD NOTE
   addBtn.onclick = function () {
+    if (editingDisabled()) {
+      App.UI.showToast("Editing is disabled because your subscription has expired.");
+      return;
+    }
+
     const date = dateInput.value.trim();
     const text = textInput.value.trim();
     const apiaryName = Storage.getCurrentApiary();
@@ -2294,23 +2466,28 @@ notes.slice().reverse().forEach((n, i) => {
     Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
 
     notesList.innerHTML = "";
-    notes.forEach((n, i) => {
+    notes.slice().reverse().forEach((n, i) => {
       const row = document.createElement("div");
       row.className = "note-row";
       row.innerHTML = `
-        <span class="note-date">${n.date}</span>
+        <span class="note-date">${App.Utils.formatDateUK(n.date)}</span>
         <span class="note-text">${n.text}</span>
-        <button class="note-delete-btn" data-index="${i}">×</button>
+        <button class="note-delete-btn" data-index="${notes.length - 1 - i}">×</button>
       `;
       notesList.appendChild(row);
     });
 
+
     textInput.value = "";
   };
 
-  // DELETE NOTE
   notesList.onclick = function (e) {
     if (!e.target.classList.contains("note-delete-btn")) return;
+
+    if (editingDisabled()) {
+      App.UI.showToast("Editing is disabled because your subscription has expired.");
+      return;
+    }
 
     const apiaryName = Storage.getCurrentApiary();
     const index = parseInt(e.target.dataset.index, 10);
@@ -2326,28 +2503,49 @@ notes.slice().reverse().forEach((n, i) => {
     Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
 
     notesList.innerHTML = "";
-    notes.forEach((n, i) => {
-      const row = document.createElement("div");
-      row.className = "note-row";
-      row.innerHTML = `
-        <span class="note-date">${n.date}</span>
-        <span class="note-text">${n.text}</span>
-        <button class="note-delete-btn" data-index="${i}">×</button>
-      `;
-      notesList.appendChild(row);
-    });
+notes.slice().reverse().forEach((n, i) => {
+  const row = document.createElement("div");
+  row.className = "note-row";
+  row.innerHTML = `
+    <span class="note-date">${App.Utils.formatDateUK(n.date)}</span>
+    <span class="note-text">${n.text}</span>
+    <button class="note-delete-btn" data-index="${notes.length - 1 - i}">×</button>
+  `;
+  notesList.appendChild(row);
+});
+
   };
 };
 
-
 App.Modals.saveApiaryManager = function () {
-  const newName = document.getElementById("apiaryNameInput").value.trim();
-  const oldName = Storage.getCurrentApiary();
+
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  const nameInput = document.getElementById("apiaryNameInput");
+  const newName = nameInput.value.trim();
+
+  // Current apiary name from storage
+  const oldName = Storage.getCurrentApiary() || null;
+
+  // Prevent empty name
+  if (!newName) {
+    App.UI.showToast("Please enter a name for the apiary.");
+    return;
+  }
+
+  // Get current list once
+  let all = Storage.getAllApiaries();
+
+  // Decide if this is a rename
+  const isRename = !!oldName && oldName !== newName && all.includes(oldName);
 
   // -------------------------
   // HANDLE RENAME (MIGRATE NOTES + LAYOUT)
   // -------------------------
-  if (oldName && oldName !== newName) {
+  if (isRename) {
     // migrate notes
     const oldNotes = Storage.getApiaryNotes(oldName);
     Storage.saveApiaryNotes(newName, oldNotes || "[]");
@@ -2359,7 +2557,6 @@ App.Modals.saveApiaryManager = function () {
     }
 
     // update apiary list
-    let all = Storage.getAllApiaries();
     all = all.filter(a => a !== oldName);
     all.push(newName);
     Storage.saveAllApiaries(all);
@@ -2367,6 +2564,8 @@ App.Modals.saveApiaryManager = function () {
     // clean old keys
     localStorage.removeItem("apiaryNotes_" + oldName);
     localStorage.removeItem("hiveLayout_" + oldName);
+    localStorage.removeItem("apiaryGrid_" + oldName);
+    localStorage.removeItem("apiaryAddress_" + oldName);
   }
 
   const apiaryName = newName;
@@ -2387,8 +2586,6 @@ App.Modals.saveApiaryManager = function () {
   // -------------------------
   // ADD OR UPDATE APIARY
   // -------------------------
-  let all = Storage.getAllApiaries();
-
   if (!all.includes(apiaryName)) {
     all.push(apiaryName);
     Storage.saveAllApiaries(all);
@@ -2397,15 +2594,21 @@ App.Modals.saveApiaryManager = function () {
     Storage.saveHiveLayout(apiaryName, JSON.stringify({ objects: [] }));
   }
 
-  // Set as current apiary
+  // -------------------------
+  // ⭐ SAVE GRID + ADDRESS (THE FIX)
+  // -------------------------
+  const gridInput = document.getElementById("apiaryGridInput");
+  const addressInput = document.getElementById("apiaryAddressInput");
+
+  Storage.saveApiaryGrid(apiaryName, gridInput.value.trim());
+  Storage.saveApiaryAddress(apiaryName, addressInput.value.trim());
+
+  // -------------------------
+  // FINALISE
+  // -------------------------
   Storage.saveCurrentApiary(apiaryName);
-
-  // Refresh dropdown
   App.Apiaries.updateSelector();
-
-  // Load layout for this apiary
   App.Canvas.loadLayout();
-
   App.Modals.closeApiaryManager();
 };
 
@@ -2492,10 +2695,50 @@ document.getElementById("confirmDeleteApiaryYesBtn")
     App.Apiaries.updateSelector();
     App.Canvas.loadLayout();
 
+    // ⭐ FIX: reset overlay z-index after delete
+    const overlay = document.getElementById("overlay");
+    overlay.style.zIndex = "900";
+
     // Close both modals
     document.getElementById("confirmDeleteApiaryModal").style.display = "none";
     App.Modals.closeApiaryManager();
   });
+
+  // Cancel archive
+document.getElementById("confirmArchiveHiveCancelBtn")
+  .addEventListener("click", function () {
+    const confirmModal = document.getElementById("confirmArchiveHiveModal");
+    const overlay = document.getElementById("overlay");
+
+    confirmModal.style.display = "none";
+
+    // Reset overlay z-index back to default (same as Apiary Manager)
+    overlay.style.zIndex = "900";
+  });
+
+// Confirm archive
+document.getElementById("confirmArchiveHiveYesBtn")
+  .addEventListener("click", function () {
+    if (!selectedHive) return;
+
+    selectedHive.hiveData.status = "archived";
+    selectedHive.visible = false;
+
+    App.Canvas.saveLayout();
+    App.Canvas.requestRender();
+    App.Stats.update();
+
+    // Close confirmation modal
+    document.getElementById("confirmArchiveHiveModal").style.display = "none";
+
+    // Close the Edit Hive modal
+    App.Modals.closeHiveModal();
+
+    // Reset overlay z-index
+    const overlay = document.getElementById("overlay");
+    overlay.style.zIndex = "900";
+  });
+
 
   // ------------------------------------------------------------
   // Hive edit modal
