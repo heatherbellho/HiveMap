@@ -60,7 +60,7 @@ App.Apiaries.create = function () {
 
   // ⭐ Limit: max apiaries in free version
   if (all.length >= LIMITS.maxApiaries) {
-    alert("The free version of HiveMap supports only one apiary.");
+    App.UI.showToast("The free version of HiveMap supports only one apiary.");
     return;
   }
 
@@ -68,7 +68,7 @@ App.Apiaries.create = function () {
   if (!name) return;
 
   if (all.includes(name)) {
-    alert("That apiary already exists.");
+    App.UI.showToast("That apiary already exists.");
     return;
   }
 
@@ -103,7 +103,7 @@ App.Apiaries.rename = function () {
 
   const all = Storage.getAllApiaries();
   if (all.includes(newName)) {
-    alert("That name already exists.");
+    App.UI.showToast("That name already exists.");
     return;
   }
 
@@ -146,7 +146,7 @@ App.Apiaries.delete = function () {
   const current = Storage.getCurrentApiary();
 
   if (all.length === 1) {
-    alert("You must have at least one apiary.");
+    App.UI.showToast("You must have at least one apiary.");
     return;
   }
 

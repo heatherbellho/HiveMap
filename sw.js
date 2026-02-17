@@ -1,4 +1,4 @@
-const cacheName = 'hive-map-cache-v2.2.4';
+const cacheName = 'hive-map-cache-v2.2.5';
 
 const filesToCache = [
   'index.html',

@@ -6,30 +6,47 @@
 
 window.App = window.App || {};
 
-// ------------------------------------------------------------
-// License Key Validation  (MUST come before isPro)
-// ------------------------------------------------------------
-App.validateLicenseKey = function (key) {
-  if (!key || typeof key !== "string") return false;
+App.UI = App.UI || {};
 
-  const pattern = /^HIVEMAP-(\d{4})-(\d{4})-(\d{4})$/;
-  const match = key.trim().toUpperCase().match(pattern);
-  if (!match) return false;
+App.UI.showToast = function (msg) {
+  const el = document.getElementById("globalToast");
+  if (!el) return;
 
-  const [_, a, b, c] = match;
+  el.textContent = msg;
+  el.classList.add("show");
 
-  const sum = (parseInt(a) + parseInt(b)) % 997;
-  const check = parseInt(c) % 997;
-
-  return sum === check;
+  setTimeout(() => {
+    el.classList.remove("show");
+  }, 3000);
 };
 
 // ------------------------------------------------------------
 // Free vs Pro limits
 // ------------------------------------------------------------
-const isPro =
-  localStorage.getItem("hivemap_pro") === "true" &&
-  App.validateLicenseKey(localStorage.getItem("hivemap_license_key"));
+const sub = JSON.parse(localStorage.getItem("hivemap_subscription") || "{}");
+const isPro = sub.edition === "PLUS";
+
+const subscriptionExpiry = sub.expiry ? new Date(sub.expiry) : null;
+
+const now = new Date();
+const isExpired = subscriptionExpiry && subscriptionExpiry < now;
+
+if (isExpired) {
+  const expiredModal = document.getElementById("expiredModal");
+  expiredModal.classList.remove("hidden");
+
+  document.getElementById("expiredEnterCodeBtn").addEventListener("click", () => {
+    document.getElementById("toolsAccount").click();
+  });
+
+  document.getElementById("expiredModalClose").addEventListener("click", () => {
+    expiredModal.classList.add("hidden");
+  });
+}
+
+function editingDisabled() {
+  return isExpired;
+}
 
 const LIMITS = {
   maxApiaries: isPro ? Infinity : 1,
@@ -137,54 +154,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 400);
   });
 
-  // ------------------------------------------------------------
-  // EXPIRY WARNING TOAST (14 days)
-  // ------------------------------------------------------------
-  (function() {
-    const access = JSON.parse(localStorage.getItem("hivemap_access") || "{}");
-    if (!access.ok || !access.expires) return;
-
-    const expiry = new Date(access.expires).getTime();
-    const now = Date.now();
-    const daysRemaining = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
-
-    // Only warn if within 14 days
-    if (daysRemaining > 14) return;
-
-    // Only show once per day
-    const today = new Date().toISOString().slice(0, 10);
-    const lastShown = localStorage.getItem("hivemap_last_expiry_warning");
-    if (lastShown === today) return;
-
-    // Toast elements (NO variable name collisions)
-    const expiryToast = document.getElementById("expiryToast");
-    const expiryMsg = document.getElementById("expiryToastMessage");
-    const expiryClose = document.getElementById("expiryToastClose");
-
-    // Set message
-expiryMsg.innerHTML =
-  `<strong>Your subscription expires in ${daysRemaining} day${daysRemaining !== 1 ? "s" : ""}.</strong><br>
-   Renew your subscription and enter a new subscription code before the expiration date to continue using HiveMap.<br><br>
-   <button id="openAccountFromExpiry" class="expiry-btn">Renew Subscription</button>`;
-
-document.getElementById("openAccountFromExpiry").addEventListener("click", () => {
-  // Reuse the existing toolsAccount handler
-  document.getElementById("toolsAccount").click();
-});
-
-    // Show toast
-    expiryToast.classList.remove("hidden");
-    setTimeout(() => expiryToast.classList.add("show"), 50);
-
-    // Dismiss
-    expiryClose.addEventListener("click", () => {
-      expiryToast.classList.remove("show");
-      setTimeout(() => expiryToast.classList.add("hidden"), 300);
-    });
-
-    // Mark as shown today
-    localStorage.setItem("hivemap_last_expiry_warning", today);
-  })();
 });
 
 

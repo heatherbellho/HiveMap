@@ -1451,8 +1451,7 @@ canvas {
   flex-direction: column;
   gap: 10px;
 }
-
-.toast {
+#exitToast {
   position: fixed;
   bottom: 20px;
   left: 50%;
@@ -1466,15 +1465,15 @@ canvas {
   gap: 12px;
   opacity: 0;
   transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 9999;
+  z-index: 9999 !important;
 }
 
-.toast.show {
-  opacity: 1;
+.exit-toast.show {
+  opacity: 1 !important;
   transform: translateX(-50%) translateY(0);
 }
 
-.toast.hidden {
+.exit-toast.hidden {
   display: none;
 }
 
@@ -1488,11 +1487,40 @@ canvas {
   padding: 0px 5px;
   line-height: 1;
 }
+
+#globalToast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #ff6666;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 9999 !important;
+}
+
+.global-toast.show {
+  opacity: 1 !important;
+  transform: translateX(-50%) translateY(0);
+}
+
+.global-toast.hidden {
+  display: none;
+}
+
 #inspectionDetailsModal,
 #renewModal,
-#confirmDeleteApiaryModal{
-  z-index: 1200 !important;
+#confirmDeleteApiaryModal,
+#confirmArchiveHiveModal{
+  z-index: 1300 !important;
 }
+
 #inspectionInputModal,
 #inspectionHistoryModal {
   z-index: 1300 !important;
