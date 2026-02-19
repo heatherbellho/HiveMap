@@ -2375,6 +2375,8 @@ App.Modals.closeRenewModal = function () {
 // Apiary Manager modal functions
 // ------------------------------------------------------------
 App.Modals.openApiaryManager = function (mode = "edit") {
+  App.Modals.apiaryManagerMode = mode;
+
   if (mode === "create" && editingDisabled()) {
     App.UI.showToast("Editing is disabled because your subscription has expired.");
     return;
@@ -2536,8 +2538,11 @@ App.Modals.saveApiaryManager = function () {
   const nameInput = document.getElementById("apiaryNameInput");
   const newName = nameInput.value.trim();
 
-  // Current apiary name from storage
-  const oldName = Storage.getCurrentApiary() || null;
+  // Use the global mode flag — the ONLY reliable source
+  const mode = App.Modals.apiaryManagerMode;   // "create" or "edit"
+
+  // Only load oldName when renaming
+  const oldName = (mode === "edit") ? Storage.getCurrentApiary() : null;
 
   // Prevent empty name
   if (!newName) {
@@ -2548,13 +2553,14 @@ App.Modals.saveApiaryManager = function () {
   // Get current list once
   let all = Storage.getAllApiaries();
 
-  // Decide if this is a rename
-  const isRename = !!oldName && oldName !== newName && all.includes(oldName);
+  // Explicit rename flag — ONLY true in edit mode
+  const isRename = (mode === "edit");
 
   // -------------------------
   // HANDLE RENAME (MIGRATE NOTES + LAYOUT)
   // -------------------------
   if (isRename) {
+
     // migrate notes
     const oldNotes = Storage.getApiaryNotes(oldName);
     Storage.saveApiaryNotes(newName, oldNotes || "[]");
@@ -2604,7 +2610,7 @@ App.Modals.saveApiaryManager = function () {
   }
 
   // -------------------------
-  // ⭐ SAVE GRID + ADDRESS (THE FIX)
+  // SAVE GRID + ADDRESS
   // -------------------------
   const gridInput = document.getElementById("apiaryGridInput");
   const addressInput = document.getElementById("apiaryAddressInput");

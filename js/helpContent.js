@@ -13,16 +13,16 @@ window.HELP_SECTIONS = [
       <p>Maintaining good records is a must for good colony management and a valuable learning tool. Keeping records of veterinary treatments is also a legal requirement in many countries.</p>
 
       <p>Over many years as professional bee farmers we have trialled numerous systems and commercial products but never found something that worked for us. It can be a challenge to find a system that truly fits the practicalities of beekeeping.<br>
-      Paper record sheets kept with hives still have their uses. Spreadsheets work for data entry and display but have their limitations as a visual tool. So we created the first simple iteration of HiveMap to help us manage our own apiaries and hives ussing a simple, visual way to organise our hives and keep track of inspections and notes while not relying on internet access.</p>
+      Paper record sheets kept with hives still have their uses. Spreadsheets work for data entry and display but have their limitations as a visual tool. So we created the first simple iteration of HiveMap to help us manage our own apiaries and hives ussing a simple, visual way to organise our hives and keep track of inspections and notes.</p>
 
       <p>HiveMap is a browser-based tool for organising and managing apiaries, beehives and records. It is designed to be simple and intuitive to use, with a focus on visual organisation and easy access to hive information.</p>
 
-      <p>HiveMap is specifically designed for offline use — no internet access is required. Everything you create is stored locally on your device so your data stays private and loads instantly but everything can also be exported as a single backup file to import and use on other devices.</p>
+      <p>Everything you create is stored locally on your device so your data stays private and loads instantly but everything can also be exported as a single backup file to import and use on other devices.</p>
 
       <p><strong>HiveMap Free</strong> edition is limited to 1 apiary and 1 hive but is fully functional.<br>
       <strong>HiveMap Plus</strong> edition supports unlimited apiaries and hives.</p>
 
-      <p>Both editions operate using a subscription licence key with an expiry date. When your licence expires, you will need to renew or enter a new valid key to continue using HiveMap.</p>
+      <p>Both editions require a licence code to activate. When your licence expires, you will need to renew or enter a new valid code to continue using HiveMap.</p>
 
       <p>Development is ongoing, with updates and new features that make it a work in progress.</p>
 
@@ -43,8 +43,12 @@ window.HELP_SECTIONS = [
     html: `
       <h4 id="help-overview">Overview</h4>
       <p>HiveMap is divided into two main sections, the Toolbar and Field View.</p>
-      <p>The Toolbar is at the top of the screen and contains buttons and menus for managing apiaries, hives, and other features.</p>
+      <p>The Toolbar is at the top of the screen and contains buttons and menus for managing apiaries, hives, and other features.<br>
+      Clicking buttons or selecting menu items here will open panels on the screen to enter, edit or view data.</p>
+
       <p>The Field View is the main visual area. Think of it as an aerial view of your apiary where you can position and organise your hives visually as they are in the real apiary. It also gives you an immediate overview of hive details and colony status.</p>
+      
+      <hr>
     `
   },
 
@@ -54,26 +58,24 @@ window.HELP_SECTIONS = [
     html: `
       <h3 id="help-quick">Quick Start</h3>
 
-      <p>You will have received an e-mail from us with a link to HiveMap and/or a license key.<br>
-       HiveMap will open in your browser and you'll be prompted to enter your license key. Once entered, you can start using HiveMap.<br>
-       You check the status</p>
+      <p>You will have received an e-mail from us with a link to HiveMap and/or a license code.<br>
+       HiveMap will open in your browser and you'll be prompted to enter your license code. Once entered, you can start using HiveMap.<br>
+       You can check the status of your license in the <b>Tools</b> menu - <b>License</b>.</p>
        <ul>
-       <li>Create an apiary using Apiary Manager → New Apiary.<br>
-       A panel will open to set up the apiary.<br>
-       Enter Apiary Name and optional Grid Location and Address.<br>
-       Multiple Dated Notes can be added [+] at any time and they will be stored here.<br>
-       The Apiary name and other data can be edited at any time using Apiary Manager.</li>
+       <li>Create an apiary: click <b>Apiary</b> button - a panel will open to set up the apiary - click <b>New Apiary</b> button.<br>
+       Enter <b>Apiary Name</b> and optional <b>Grid Location</b> and <b>Address</b>.<br>
+       Multiple dated <b>Notes</b> can be added <b>[+]</b> at any time and they will be stored here.<br>
+       The Apiary Name and other data can be edited at any time using the <b>Apiary</b> button.</li>
 
-      <li>Add a hive using Hives → New Hive.<br>
-      First use Select Apiary to add the hive to. Then click New Hive and a panel will open to set up the hive.<br>
-      Choose a Tile Size in the menu or enter a Custom size. This determines the size of the hive in the 'green field' visual layout.<br>
-      Enter a Hive Name/Number. Keep it short and meaningful, it will be shown on the hive in the visual layout.<br>
-      Choose an Entrance Direction. This is used to help you orient the hive in the visual layout and can be changed later if needed. It will be shown simply on the hive in the visual layout as < or >.<br>
-      Click Save and the Hive Tile will be immediately shown in the visual layout.</li>
+      <li>Add a hive: first use <b>Select Apiary</b> to choose the apiary where the hive will be added - click <b>Hives</b> menu - click <b>New Hive</b> - a panel will open to set up the hive.<br>
+      Choose a <b>Tile Size</b> or enter a Custom size. This determines the size of the hive as shown in the Field View.<br>
+      Enter a <b>Hive Name/Number</b>. Keep it short and meaningful, it will be shown on the hive in Field View.<br>
+      Choose an <b>Entrance Direction</b>. This is used to help you orient the hive in the Field View and can be changed later if needed. It will be shown simply on the hive in the Field View as <b><</b> or <b>></b>.<br>
+      Click <b>Save</b> and the hive will be immediately shown in the Field View.<br>
+      Hover your cursor over a hive to see a pop-up panel with basic hive details.<br>
+      Position a hive in the Field View in 2 ways. Click the hive and a 'handle' will appear. Click and hold the mouse button this to rotate the hive around its center to match its real position. Click and hold the mouse button to drag the hive to match its real position.</li>
 
-      <li>Hover your cursor over a hive to see a tooltip with details.<br>
-      Click the hive and a 'handle' will appear. Use this to rotate the hive around its center to match its real position.<br>
-      Click and hold the mouse button to drag the hive within the green field to match its real position.
+      <li>
       </li>
 
       <li>Double click the hive and a panel will open to enter or edit the hive details.<br>
