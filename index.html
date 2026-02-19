@@ -101,12 +101,12 @@
 
         <div id="toolsMenu" class="dropdown-menu">
         <div class="dropdown-item" id="toolsExport">Export Data</div>
-        <div class="dropdown-item" id="toolsImport">Import All Data</div>
+        <div class="dropdown-item" id="toolsImport">Import Data</div>
         <div class="dropdown-item" id="toolsStatus">Statuses</div>
         <div class="dropdown-item" id="toolsVetReport">Treatments Report</div>
         <div class="dropdown-item" id="toolsSettings">Count Settings</div>
         <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
-        <div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">Account & License</div>
+        <div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">License</div>
         <div class="dropdown-item" id="toolsHelp">Help</div>
       </div>
     </div>
@@ -611,35 +611,36 @@
   <main class="modal-body">
     <div class="modal-column">
       <div class="modal-section">
-
-        <label for="hiveSizeSelect">Tile Size</label>
+        <label for="hiveSizeSelect"><strong>Tile Size</strong></label>
         <select id="hiveSizeSelect">
           <option value="40x40">Standard Hive (40×40)</option>
           <option value="40x20">Nucleus (40×20)</option>
           <option value="30x30">Mini (30×30)</option>
           <option value="custom">Custom</option>
         </select>
-
         <div id="customSizeFields" style="display:none;">
-          <label for="hiveWidthInput">Width (px)</label>
+          <label for="hiveWidthInput"><strong>Width (px)</strong></label>
           <input type="number" id="hiveWidthInput" min="1" placeholder="e.g. 40">
 
-          <label for="hiveHeightInput">Height (px)</label>
+          <label for="hiveHeightInput"><strong>Height (px)</strong></label>
           <input type="number" id="hiveHeightInput" min="1" placeholder="e.g. 40">
         </div>
-
-        <label for="hiveNameInput">Name/Number</label>
+      </div>
+        
+      <div class="modal-section">
+        <label for="hiveNameInput"><strong>Hive Name/Number</strong></label>
         <input type="text" id="hiveNameInput" placeholder="e.g. 12">
 
         <div id="usedHiveNumbers" class="used-hive-numbers"></div>
-<label for="hiveEntranceInput">Entrance</label>
-<select id="hiveEntranceInput">
-  <option value="">None</option>
-<option value="❮">❮ (Left)</option>
-<option value="❯">❯ (Right)</option>
+      </div>
 
-</select>
-
+      <div class="modal-section">
+        <label for="hiveEntranceInput"><strong>Entrance</strong></label>
+        <select id="hiveEntranceInput">
+          <option value="">None</option>
+        <option value="❮">❮ (Left)</option>
+        <option value="❯">❯ (Right)</option>
+        </select>
       </div>
     </div>
   </main>
@@ -895,8 +896,8 @@
         <h3 style="margin-top: 0;">Edition Details</h3>
         <p id="accountEditionStatus"></p>
         <p id="accountVersion"></p>
+        <p id="accountUpdateNotice" style="color:#c00; font-weight:bold;"></p>
         <p id="accountEditionExplanation"></p>
-
       </section>
 
     </main>
@@ -1011,13 +1012,18 @@
 </div>
 
   <!-- Service worker registration -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(() => console.log('Service Worker registered'))
-        .catch(err => console.error('SW registration failed:', err));
-    }
-  </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => {
+        console.log('Service Worker registered');
+
+        // Force the SW to check for updates immediately
+        reg.update();
+      })
+      .catch(err => console.error('SW registration failed:', err));
+  }
+</script>
 
   <!-- Accordion behaviour -->
   <script>
