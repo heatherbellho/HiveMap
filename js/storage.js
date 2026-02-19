@@ -5,10 +5,10 @@ const Storage = {
   /* ------------------ QUEEN STATUSES ------------------ */
   getQueenStatuses() {
     return JSON.parse(localStorage.getItem('queenStatuses')) || [
-      { name: 'Marked', color: '#bdf' },
-      { name: 'Unmarked', color: '#ffd' },
-      { name: 'Missing', color: '#fbb' },
-      { name: 'Default', color: '#cfc' }
+      { name: 'Queenless', color: '#bbddff' },
+      { name: 'Query', color: '#ffffdd' },
+      { name: 'Queen Cells', color: '#ffbbbb' },
+      { name: 'Queenright', color: '#ccffcc' }
     ];
   },
 
@@ -26,6 +26,17 @@ const Storage = {
     localStorage.setItem('hiveTypes', JSON.stringify(list));
   },
 
+  /* ------------------ HIVE COUNT SEPARATION SETTINGS ------------------ */
+  getHiveCountSettings() {
+    return JSON.parse(localStorage.getItem('hiveCountSettings')) || {
+      mode: 'none',            // 'none' | 'queryStatus' | 'specificStatus'
+      status: null             // used only when mode === 'specificStatus'
+    };
+  },
+
+  saveHiveCountSettings(obj) {
+    localStorage.setItem('hiveCountSettings', JSON.stringify(obj));
+  },
 
   /* ------------------ APIARIES ------------------ */
   getAllApiaries() {

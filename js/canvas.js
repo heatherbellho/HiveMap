@@ -225,7 +225,7 @@ function resizeAndFitCanvas() {
 // ------------------------------------------------------------
 // Create a hive (Fabric group)
 // ------------------------------------------------------------
-App.Canvas.createHive = function (name, width, height, entrance = "") {
+App.Canvas.createHive = function (name, width, height, entrance = "", queenStatus = "") {
 
   // Ensure canvas is fitted BEFORE placing the hive
   if (typeof resizeAndFitCanvas === "function") {
@@ -266,10 +266,15 @@ App.Canvas.createHive = function (name, width, height, entrance = "") {
     lockUniScaling: true,
     lockSkewingX: true,
     lockSkewingY: true,
+
     hiveData: {
       name,
-      entrance,   // ⭐ STORE ENTRANCE HERE
+      entrance,
       hiveType: "Hive",
+
+      // ⭐ NEW: ensure new hives always have queenStatus
+      queenStatus: queenStatus,
+
       inspections: [],
       boxes: [],
       treatments: [],
@@ -293,8 +298,12 @@ App.Canvas.createHive = function (name, width, height, entrance = "") {
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
   App.Status.renderLegend();
-  App.Stats.update();
+  if (App.Toolbar && App.Toolbar.refreshCounts) {
+  App.Toolbar.refreshCounts();
+}
+
 };
+
 
 App.Canvas.getAllHives = function () {
   if (!canvas) return [];
@@ -438,7 +447,8 @@ canvas.getObjects().forEach(obj => {
 });
 // ⭐ Show expired modal once layout is fully visible
 if (editingDisabled()) {
-  App.Modals.openExpiredModal();
+const accountBtn = document.getElementById("toolsAccount");
+if (accountBtn) accountBtn.click();
 }
 
 };
@@ -476,7 +486,6 @@ App.Canvas.deleteSelected = function () {
   canvas.discardActiveObject();
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
-  App.Stats.update();
 };
 
 
