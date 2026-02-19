@@ -1,6 +1,15 @@
-const cacheName = 'hive-map-cache-v2.2.5';
+/* ------------------------------------------------------------
+   Safe Service Worker for HiveMap
+   - No skipWaiting()
+   - No clients.claim()
+   - No destructive activation
+   - Stable updates
+   - Offline caching
+------------------------------------------------------------ */
 
-const filesToCache = [
+const CACHE_NAME = 'hive-map-cache-v2.2.6';
+
+const FILES_TO_CACHE = [
   'index.html',
   'manifest-v2.json',
 
@@ -11,6 +20,9 @@ const filesToCache = [
   // Core app files
   'js/app.js',
   'js/storage.js',
+  'js/helpContent.js',
+  'js/subscription.js',
+  'js/reports.js',
   'js/utils.js',
   'js/toolbar.js',
   'js/canvas.js',
@@ -19,30 +31,33 @@ const filesToCache = [
   'js/modals.js',
   'js/status.js',
   'js/export.js',
-  'js/stats.js',
   'js/version.js',
   'css/app.css'
 ];
 
+// Install: cache static assets
 self.addEventListener('install', event => {
-  self.skipWaiting();
   event.waitUntil(
-    caches.open(cacheName).then(cache => cache.addAll(filesToCache))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
   );
 });
 
+// Activate: remove old caches (safe)
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(key => key !== cacheName && caches.delete(key)))
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
+      )
     )
   );
-  clients.claim();
 });
 
+// Fetch: network-first, fallback to cache
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(resp => resp || fetch(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
-

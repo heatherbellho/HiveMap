@@ -281,7 +281,6 @@ App.Hives.moveHive = function (hiveGroup, newApiaryName) {
   App.Canvas.loadLayout();
 
   App.Modals.closeHiveModal();
-  App.Stats.update();
 };
 
 
@@ -413,6 +412,8 @@ label.set("text", formatEntranceLabel(hiveData.name, hiveData.entrance));
 
   // Update label + colour
   const currentInspection = hiveData.inspections[hiveData.inspections.length - 1] || {};
+  hiveData.queenStatus = currentInspection.queenStatus || "";
+
 selectedHive._objects[1].set("text", formatEntranceLabel(name, hiveData.entrance));
 
   const color = App.Status.getColor(currentInspection.queenStatus || "");
@@ -424,14 +425,11 @@ selectedHive._objects[1].set("text", formatEntranceLabel(name, hiveData.entrance
   // -----------------------------
   App.Canvas.saveLayout();
   App.updateDueInspectionsBadge();
-  App.Stats.update();
-
   resizeAndFitCanvas();
   canvas.requestRenderAll();
-
-  // -----------------------------
-  // 4. CLOSE MODAL
-  // -----------------------------
+if (App.Toolbar && App.Toolbar.refreshCounts) {
+  App.Toolbar.refreshCounts();
+}
   App.Modals.closeHiveModal();
 };
 
@@ -728,8 +726,8 @@ App.Modals.openHiveSizeModal = function () {
   // Count only ACTIVE hives
   const activeHives = App.Canvas.getAllHives().filter(h => h.hiveData.status !== "archived");
 
-  if (activeHives.length >= LIMITS.maxHives) {
-    App.UI.showToast("The free version of HiveMap supports only one active hive.");
+  if (activeHives.length >= getLimits().maxHives) {
+    App.UI.showToast("The Free version of HiveMap supports only one active hive.");
     return;
   }
 
@@ -806,7 +804,6 @@ App.UI.showToast(`Hive name "${name}" already exists.`);
   // ⭐ Pass entrance into createHive
   App.Canvas.createHive(name, width, height, entrance);
 
-  App.Stats.update();
   App.Modals.closeHiveSizeModal();
 };
 
@@ -881,7 +878,7 @@ App.Modals.renderInspectionList = function (title, includeFn) {
 
   if (dueHives.length === 0) {
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="6">No inspections found.</td>`;
+    row.innerHTML = `<td colspan="6">None found.</td>`;
     tbody.appendChild(row);
     return;
   }
@@ -1113,7 +1110,6 @@ li.innerHTML = `
         App.Canvas.requestRender();
         App.Modals.openArchivedHives(); // refresh list
         App.Modals.closeArchivedHives();
-        App.Stats.update();
       };
 li.querySelector(".viewArchivedBtn").onclick = () => {
   App.Modals.closeArchivedHives();
@@ -1321,7 +1317,6 @@ App.Modals.saveInspectionDetails = function () {
   App.Canvas.saveLayout();
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
-  App.Stats.update();
 
   App.Modals.closeInspectionDetails();
 
@@ -1726,6 +1721,7 @@ App.Modals.saveInspectionFieldConfig = function () {
 };
 
 App.Modals.openHiveListModal = function () {
+  App.Modals.resetHiveListHeader();
   document.getElementById("archiveBtns").style.display = "block";
   document.getElementById("dueInspectionBtns").style.display = "none";
 
@@ -1748,7 +1744,7 @@ App.Modals.openHiveListModal = function () {
     return;
   }
 
-  // FIXED FILTER — get all non-archived hives
+  // Get all Fabric.js hive objects (not raw data)
   let hives = App.Canvas.getAllHives().filter(h => {
     const data = App.Canvas.getHiveData(h);
     return data && data.status !== "archived";
@@ -1771,25 +1767,29 @@ App.Modals.openHiveListModal = function () {
   window.HiveObjectMap = window.HiveObjectMap || {};
 
   // Build rows
-  hives.forEach(hive => {
-    const data = App.Canvas.getHiveData(hive);
+  hives.forEach(hiveObj => {
+    const data = App.Canvas.getHiveData(hiveObj);
     if (!data) return;
 
-    if (!hive.__uid) hive.__uid = crypto.randomUUID();
-    HiveObjectMap[hive.__uid] = hive;
+    // Ensure stable UID on the actual Fabric.js object
+    if (!hiveObj.__uid) hiveObj.__uid = crypto.randomUUID();
+
+    // Store the exact Fabric.js instance
+    HiveObjectMap[hiveObj.__uid] = hiveObj;
 
     const name = data.name || "—";
     const hiveType = data.hiveType || "—";
     const memo = data.memo || "—";
 
+    // ⭐ NEW: use hiveData.queenStatus with fallback
+    const queenStatus = (data.queenStatus === undefined || data.queenStatus === null)
+      ? ""
+      : data.queenStatus;
+
     const inspections = data.inspections || [];
     const lastEntry = inspections.length > 0
       ? inspections[inspections.length - 1]
       : null;
-
-    const queenStatus = lastEntry
-      ? (lastEntry.queenStatus || "—")
-      : "—";
 
     const lastDate = lastEntry && lastEntry.date
       ? App.Utils.formatDateUK(lastEntry.date)
@@ -1806,7 +1806,7 @@ App.Modals.openHiveListModal = function () {
       <td>${name}</td>
       <td>
         <span class="status-badge" style="background:${badgeColor}">
-          ${queenStatus}
+          ${queenStatus || "—"}
         </span>
       </td>
       <td class="col-date">${lastDate}</td>
@@ -1814,7 +1814,7 @@ App.Modals.openHiveListModal = function () {
       <td>${hiveType}</td>
       <td>${memo}</td>
       <td class="col-action">
-        <button class="btn-primary edit-hive-btn" data-ref="${hive.__uid}">
+        <button class="btn-primary edit-hive-btn" data-ref="${hiveObj.__uid}">
           View
         </button>
       </td>
@@ -1823,11 +1823,12 @@ App.Modals.openHiveListModal = function () {
     tbody.appendChild(row);
   });
 
-  // Wire up Edit buttons
+  // Wire up Edit buttons (using exact Fabric.js instance)
   tbody.querySelectorAll(".edit-hive-btn").forEach(btn => {
     btn.addEventListener("click", function () {
       const uid = this.getAttribute("data-ref");
-const hiveObj = App.Canvas.findHiveByUid(uid);
+      const hiveObj = HiveObjectMap[uid];
+
       if (hiveObj) {
         selectedHive = hiveObj;
         App.Modals.openHiveModal(hiveObj);
@@ -1841,10 +1842,18 @@ App.Modals.closeHiveListModal = function () {
   document.getElementById("overlay").style.display = "none";
 };
 
+App.Modals.resetHiveListHeader = function () {
+  document.getElementById("archiveBtns").style.display = "none";
+  document.getElementById("overallArchiveBtns").style.display = "none";
+  document.getElementById("dueInspectionBtns").style.display = "none";
+};
+
+
 App.Modals.openOverallHiveListModal = function () {
-document.getElementById("dueInspectionBtns").style.display = "none";
-document.getElementById("archiveBtns").style.display = "none";
-document.getElementById("overallArchiveBtns").style.display = "block";
+  App.Modals.resetHiveListHeader();
+  document.getElementById("dueInspectionBtns").style.display = "none";
+  document.getElementById("archiveBtns").style.display = "none";
+  document.getElementById("overallArchiveBtns").style.display = "block";
 
   const modal = document.getElementById("hiveListModal");
   const overlay = document.getElementById("overlay");
@@ -1942,14 +1951,15 @@ document.getElementById("overallArchiveBtns").style.display = "block";
     const hiveType = data.hiveType || "—";
     const memo = data.memo || "—";
 
+    // ⭐ NEW: use hiveData.queenStatus with fallback
+    const queenStatus = (data.queenStatus === undefined || data.queenStatus === null)
+      ? ""
+      : data.queenStatus;
+
     const inspections = data.inspections || [];
     const lastEntry = inspections.length > 0
       ? inspections[inspections.length - 1]
       : null;
-
-    const queenStatus = lastEntry
-      ? (lastEntry.queenStatus || "—")
-      : "—";
 
     const lastDate = lastEntry && lastEntry.date
       ? App.Utils.formatDateUK(lastEntry.date)
@@ -1965,15 +1975,13 @@ document.getElementById("overallArchiveBtns").style.display = "block";
     row.classList.add("apiary-group-item");
     row.setAttribute("data-group", groupIndex);
 
-    // collapse all groups by default
-    // row.style.display = "none";
     row.style.display = "";
 
     row.innerHTML = `
       <td>${name}</td>
       <td>
         <span class="status-badge" style="background:${badgeColor}">
-          ${queenStatus}
+          ${queenStatus || "—"}
         </span>
       </td>
       <td class="col-date">${lastDate}</td>
@@ -2041,7 +2049,7 @@ document.getElementById("overallArchiveBtns").style.display = "block";
       Storage.saveCurrentApiary(apiaryName);
       App.Canvas.loadLayout();
 
-      const hiveObj = HiveObjectMap[uid];   // ← exact Fabric.js instance
+      const hiveObj = HiveObjectMap[uid];
 
       if (hiveObj) {
         selectedHive = hiveObj;
@@ -2233,7 +2241,6 @@ App.Modals.saveInspectionInput = function () {
   // Save + update
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
-  App.Stats.update();
 
   // Refresh Edit Hive modal
   App.Modals.closeInspectionInput();
@@ -2270,7 +2277,7 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
 
   // Build header
   let header = "<tr><th>Date</th><th>Time</th>";
-  header += "<th>Queen Status</th>";
+  header += "<th>Status</th>";
   header += "<th>Notes</th>";
 
   schema.groups
@@ -2390,23 +2397,25 @@ App.Modals.openApiaryManager = function (mode = "edit") {
   // ⭐ FIX: restore mode flag
   nameInput.dataset.mode = mode;
 
-  if (mode === "create") {
+if (mode === "create") {
 
     titleEl.textContent = "New Apiary";
     deleteBtn.style.display = "none";
-    const apiaryName = Storage.getCurrentApiary();
 
-    nameInput.value = apiaryName || "";
-    gridInput.value = Storage.getApiaryGrid(apiaryName);
-    addressInput.value = Storage.getApiaryAddress(apiaryName);
+    // ⭐ Blank fields for new apiary
+    nameInput.value = "";
+    gridInput.value = "";
+    addressInput.value = "";
 
-
+    // ⭐ Clear notes
     notesList.innerHTML = "";
 
+    // ⭐ Default date for new note
     dateInput.value = new Date().toISOString().slice(0, 10);
-    Storage.saveCurrentApiary("");
 
-} else {
+    // ⭐ Do NOT overwrite current apiary selection here
+}
+ else {
     const apiaryName = Storage.getCurrentApiary();
 
     titleEl.textContent = "Edit Apiary: " + apiaryName;
@@ -2726,7 +2735,6 @@ document.getElementById("confirmArchiveHiveYesBtn")
 
     App.Canvas.saveLayout();
     App.Canvas.requestRender();
-    App.Stats.update();
 
     // Close confirmation modal
     document.getElementById("confirmArchiveHiveModal").style.display = "none";

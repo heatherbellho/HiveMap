@@ -1,15 +1,15 @@
-// ------------------------------------------------------------
-// export.js
-// Handles exporting/importing layouts, apiaries, and full data.
-// ------------------------------------------------------------
+/* ------------------------------------------------------------
+   export.js
+   Handles exporting/importing layouts, apiaries, and full data.
+------------------------------------------------------------ */
 
 window.App = window.App || {};
 App.Export = {};
 
 
-// ------------------------------------------------------------
-// Export the current apiary layout only
-// ------------------------------------------------------------
+/* ------------------------------------------------------------
+   Export the current apiary layout only
+------------------------------------------------------------ */
 App.Export.exportLayout = function () {
   const apiaryName = Storage.getCurrentApiary() || "Untitled Apiary";
   const layoutJSON = canvas.toJSON(["hiveData"]);
@@ -35,9 +35,9 @@ App.Export.exportLayout = function () {
 };
 
 
-// ------------------------------------------------------------
-// Export ALL apiaries into one JSON file
-// ------------------------------------------------------------
+/* ------------------------------------------------------------
+   Export ALL apiaries into one JSON file
+------------------------------------------------------------ */
 App.Export.exportAllData = function () {
   const allApiaries = Storage.getAllApiaries();
   if (!allApiaries.length) {
@@ -45,49 +45,46 @@ App.Export.exportAllData = function () {
     return;
   }
 
-  const exportObj = {
-    version: 2,
-    apiaries: {},
-    settings: {
-      hiveTypes: Storage.getHiveTypes(),
-      queenStatuses: Storage.getQueenStatuses(),
-      zoom: 1,
-      snap: true
-    },
-    media: { images: {} },
-    lastUsed: Storage.getCurrentApiary() || ""
-  };
+const exportObj = {
+  version: 2,
+  apiaries: {},
+  settings: {
+    hiveTypes: Storage.getHiveTypes(),
+    queenStatuses: Storage.getQueenStatuses(),
+    zoom: 1,
+    snap: true,
+    hiveCountSettings: Storage.getHiveCountSettings()   // ⭐ ADD THIS
+  },
+  media: { images: {} },
+  lastUsed: Storage.getCurrentApiary() || ""
+};
 
-allApiaries.forEach(apiary => {
-  const layoutJSON = Storage.getHiveLayout(apiary);
+  allApiaries.forEach(apiary => {
+    const layoutJSON = Storage.getHiveLayout(apiary);
+    const note = Storage.getApiaryNotes(apiary) || [];
+    let hives = {};
 
-  // FIX: use structured notes, not old single-note API
-  const note = Storage.getApiaryNotes(apiary) || [];
-
-  let hives = {};
-
-  if (layoutJSON) {
-    const tempCanvas = new fabric.Canvas(null);
-    tempCanvas.loadFromJSON(layoutJSON, () => {
-      tempCanvas.getObjects().forEach(obj => {
-        if (obj.type === "group" && obj.hiveData) {
-          hives[obj.hiveData.name || "Unnamed"] = {
-            name: obj.hiveData.name || "Unnamed",
-            hiveType: obj.hiveData.hiveType || "N/A",
-            inspections: obj.hiveData.inspections || []
-          };
-        }
+    if (layoutJSON) {
+      const tempCanvas = new fabric.Canvas(null);
+      tempCanvas.loadFromJSON(layoutJSON, () => {
+        tempCanvas.getObjects().forEach(obj => {
+          if (obj.type === "group" && obj.hiveData) {
+            hives[obj.hiveData.name || "Unnamed"] = {
+              name: obj.hiveData.name || "Unnamed",
+              hiveType: obj.hiveData.hiveType || "N/A",
+              inspections: obj.hiveData.inspections || []
+            };
+          }
+        });
       });
-    });
-  }
+    }
 
-  exportObj.apiaries[apiary] = {
-    canvas: layoutJSON ? JSON.parse(layoutJSON) : {},
-    hives,
-    note
-  };
-});
-
+    exportObj.apiaries[apiary] = {
+      canvas: layoutJSON ? JSON.parse(layoutJSON) : {},
+      hives,
+      note
+    };
+  });
 
   const now = new Date();
   const day = String(now.getDate()).padStart(2, "0");
@@ -112,9 +109,9 @@ allApiaries.forEach(apiary => {
 };
 
 
-// ------------------------------------------------------------
-// Import a single apiary layout file
-// ------------------------------------------------------------
+/* ------------------------------------------------------------
+   Import a single apiary layout file
+------------------------------------------------------------ */
 App.Export.importLayout = function (event) {
   if (editingDisabled()) {
     App.UI.showToast("Editing is disabled because your subscription has expired.");
@@ -163,9 +160,9 @@ App.Export.importLayout = function (event) {
 };
 
 
-// ------------------------------------------------------------
-// Import ALL apiaries from a single JSON file
-// ------------------------------------------------------------
+/* ------------------------------------------------------------
+   Import ALL apiaries from a single JSON file
+------------------------------------------------------------ */
 App.Export.importAllData = function (event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -180,10 +177,9 @@ App.Export.importAllData = function (event) {
         return;
       }
 
-      // ⭐ Enforce free-version limits on imported data
+      // ⭐ Enforce free-version limits (unchanged)
       if (!isPro) {
         const names = Object.keys(loaded.apiaries);
-
         const firstName = names[0];
         const firstApiary = loaded.apiaries[firstName];
 
@@ -207,8 +203,11 @@ App.Export.importAllData = function (event) {
         loaded.lastUsed = firstName || loaded.lastUsed;
       }
 
-      // ⭐ Clear existing data (but we will restore access + license)
-      localStorage.clear();
+      // ⭐ Remove ONLY HiveMap keys — keep licence intact
+      Object.keys(localStorage).forEach(key => {
+        if (key === "hivemap_license_code") return;
+        localStorage.removeItem(key);
+      });
 
       // Restore apiaries
       const apiaryNames = Object.keys(loaded.apiaries);
@@ -226,11 +225,16 @@ App.Export.importAllData = function (event) {
       if (loaded.settings) {
         Storage.saveHiveTypes(loaded.settings.hiveTypes || []);
         Storage.saveQueenStatuses(loaded.settings.queenStatuses || []);
+
+        if (loaded.settings.hiveCountSettings) {
+          Storage.saveHiveCountSettings(loaded.settings.hiveCountSettings);
+        }
       }
+
 
       App.UI.showToast(`Imported ${apiaryNames.length} apiaries successfully.`);
 
-      // ⭐ Skip login check for this reload
+      // Reload normally
       window.location.reload();
 
     } catch (err) {
@@ -242,21 +246,26 @@ App.Export.importAllData = function (event) {
   reader.readAsText(file);
 };
 
-// ------------------------------------------------------------
-// Initialise export system
-// ------------------------------------------------------------
+
+/* ------------------------------------------------------------
+   Initialise export system
+------------------------------------------------------------ */
 App.Export.init = function () {
   const exportAllBtn = document.getElementById("exportAllBtn");
   const importAllBtn = document.getElementById("importAllBtn");
   const importAllFile = document.getElementById("importAllFile");
 
   if (exportAllBtn) exportAllBtn.addEventListener("click", App.Export.exportAllData);
-if (importAllBtn) importAllBtn.addEventListener("click", () => {
-  if (editingDisabled()) {
-    App.UI.showToast("Editing is disabled because your subscription has expired.");
-    return;
+
+  if (importAllBtn) {
+    importAllBtn.addEventListener("click", () => {
+      if (editingDisabled()) {
+        App.UI.showToast("Editing is disabled because your subscription has expired.");
+        return;
+      }
+      importAllFile.click();
+    });
   }
-  importAllFile.click();
-});
+
   if (importAllFile) importAllFile.addEventListener("change", App.Export.importAllData);
 };

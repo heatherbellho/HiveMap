@@ -27,7 +27,6 @@
   <script src="js/modals.js"></script>
   <script src="js/status.js"></script>
   <script src="js/export.js"></script>
-  <script src="js/stats.js"></script>
   <script src="js/version.js"></script>
 
   <!-- Canvas subsystem -->
@@ -44,83 +43,73 @@
 
 <body>
   <div id="overlay" tabindex="-1"></div>
+  <div id="toolbar">
+    <div class="toolbar-group toolbar-icon">
+      <a href="https://cornishhoney.co.uk/" target="_blank" title="Visit HiveMap Website">
+      <img src="icons/192-hive-map.png" alt="HiveMap Logo" class="toolbar-logo">
+      </a>
+    </div>
+  
+    <div class="toolbar-group toolbar-apiary">
+        <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
+        <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
+        <button id="apiaryManagerBtn" class="toolbar-btn">Apiary</button>
+    </div>
+    <!-- LEFT: context + primary actions + counts -->
+    <div class="toolbar-group toolbar-left">
+      
+      <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
+    </div>
 
-<div id="toolbar">
-<div class="toolbar-group toolbar-apiary">
-    <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
-    <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
-</div>
-  <!-- LEFT: context + primary actions + counts -->
-  <div class="toolbar-group toolbar-left">
+    <!-- CENTER: dropdown menus -->
+    <div class="toolbar-group toolbar-center">
+      <button id="toolbarOverallCounts" class="toolbar-btn"></button>
+      <button id="dueInspectionsBtn" class="toolbar-btn-alert" style="display:none; position:relative;">
+      <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <!-- Triangle with black border -->
+        <path d="M1 21h22L12 2 1 21z"
+              fill="#fff"
+              stroke="#dd0000"
+              stroke-width="1" />
 
-<button id="apiaryManagerBtn" class="toolbar-btn">Apiary Manager</button>
+        <!-- Exclamation line -->
+        <path d="M12 8v6"
+              stroke="#000"
+              stroke-width="2"
+              stroke-linecap="round" />
 
-    <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
-  </div>
+        <!-- Exclamation dot -->
+        <circle cx="12" cy="17" r="1.5" fill="#000" />
+      </svg>
+      <span id="dueBadge" class="badge" style="display:none;">0</span>
+      </button>
+    </div>
 
-  <!-- CENTER: dropdown menus -->
-  <div class="toolbar-group toolbar-center">
-    <button id="toolbarOverallCounts" class="toolbar-btn"></button>
-    <button id="dueInspectionsBtn" class="toolbar-btn-alert" style="display:none; position:relative;">
-<svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
-  <!-- Triangle with black border -->
-  <path d="M1 21h22L12 2 1 21z"
-        fill="#fff"
-        stroke="#dd0000"
-        stroke-width="1" />
-
-  <!-- Exclamation line -->
-  <path d="M12 8v6"
-        stroke="#000"
-        stroke-width="2"
-        stroke-linecap="round" />
-
-  <!-- Exclamation dot -->
-  <circle cx="12" cy="17" r="1.5" fill="#000" />
-</svg>
-
-
-  <span id="dueBadge" class="badge" style="display:none;">0</span>
-</button>
-
-  </div>
-
-
-
-  <!-- RIGHT: empty for now -->
-  <div class="toolbar-group toolbar-right">
-
-
-    <div class="dropdown-wrapper">
-      <button id="hivesMenuBtn" class="toolbar-btn">Hives ▼</button>
-
-      <div id="hivesMenu" class="dropdown-menu">
+    <!-- RIGHT: empty for now -->
+    <div class="toolbar-group toolbar-right">
+      <div class="dropdown-wrapper">
+        <button id="hivesMenuBtn" class="toolbar-btn">Hives ▼</button>
+        <div id="hivesMenu" class="dropdown-menu">
         <div class="dropdown-item" id="hiveNew">New Hive</div>
-    <!--    <div class="dropdown-item" id="hiveDuplicate">Duplicate Hive</div>-->
         <div class="dropdown-item" id="hiveDelete">Delete Hive</div>
-    <!--    <div class="dropdown-item" id="hiveReassign">Reassign Hive Number</div>
-        <div class="dropdown-item" id="hivePrint">Print Hive</div>-->
         <div class="dropdown-item" id="toolbarShowArchivedHives">Archived Hives</div>
       </div>
     </div>
 
-   <div class="dropdown-wrapper">
-      <button id="toolsMenuBtn" class="toolbar-btn">Tools ▼</button>
+      <div class="dropdown-wrapper">
+        <button id="toolsMenuBtn" class="toolbar-btn">Tools ▼</button>
 
-    <div id="toolsMenu" class="dropdown-menu">
-      <div class="dropdown-item" id="toolsExport">Export Data</div>
-      <div class="dropdown-item" id="toolsImport">Import All Data</div>
-      <div class="dropdown-item" id="toolsStatus">Statuses</div>
-      <div class="dropdown-item" id="toolsVetReport">Veterinary Medicines Report</div>
-    <!--  <div class="dropdown-item" id="toolsHiveSizes">Edit Hive Sizes</div> -->
-    <!--  <div class="dropdown-item" id="toolsStats">View Stats</div> -->
-    <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
-<div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">Account & License</div>
-      <div class="dropdown-item" id="toolsHelp">Help</div>
+        <div id="toolsMenu" class="dropdown-menu">
+        <div class="dropdown-item" id="toolsExport">Export Data</div>
+        <div class="dropdown-item" id="toolsImport">Import All Data</div>
+        <div class="dropdown-item" id="toolsStatus">Statuses</div>
+        <div class="dropdown-item" id="toolsVetReport">Treatments Report</div>
+        <div class="dropdown-item" id="toolsSettings">Count Settings</div>
+        <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
+        <div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">Account & License</div>
+        <div class="dropdown-item" id="toolsHelp">Help</div>
+      </div>
     </div>
-  </div>
-
-
   </div>
 
 </div>
@@ -130,13 +119,12 @@
     <div id="canvas-container">
       <!-- ID must match what canvas.js uses -->
 
-        <canvas id="hiveCanvas"</canvas>
+        <canvas id="hiveCanvas"></canvas>
       </div>
 
     <div id="side-panel">
 
       <div id="queenLegend"></div>
-<!---->
 <div id="legacy-ui" style="display:none">
 
   <div id="hiveStatsContent"></div>
@@ -155,8 +143,7 @@
   </div>
 
 </div>
-      <div style="margin: 0px 0px 18px; text-align: center;"><small>&copy; 2026 <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></small></div>
-    </div>
+
   </div>
 
   <div id="tooltip"></div>
@@ -164,6 +151,7 @@
   <div id="apiaryManagerModal" class="modal modal-small" role="dialog" aria-modal="true" style="display:none;">
   <header class="modal-header">
     <h2 id="apiaryManagerTitle">Apiary Manager</h2>
+    <button id="apiaryManagerNewBtn" class="btn-primary">New Apiary</button>
     <button id="apiaryManagerCloseBtn" class="modal-close">&times;</button>
   </header>
 
@@ -209,10 +197,7 @@
   </div>
 
   <div class="footer-right">
-        <button id="apiaryManagerNewBtn" class="btn-primary">New Apiary</button>
-
         <button id="apiaryManagerPrintBtn" class="btn-info">Print Apiary</button>
-
   </div>
 </footer>
 
@@ -513,7 +498,7 @@
 </div>
 
 <div>
-  <strong>Queen Status:</strong>
+  <strong>Status:</strong>
   <select id="inspectionDetailsQueenStatusInput">
   </select>
 </div>
@@ -619,7 +604,7 @@
 <!-- Hive size modal -->
 <div id="hiveSizeModal" class="modal modal-hive-size" role="dialog" aria-modal="true" aria-labelledby="hiveSizeTitle">
   <header class="modal-header">
-    <h2 id="hiveSizeTitle">Create Hive</h2>
+    <h2 id="hiveSizeTitle">New Hive</h2>
     <button id="hiveSizeCloseBtn" class="modal-close">&times;</button>
   </header>
 
@@ -630,7 +615,7 @@
         <label for="hiveSizeSelect">Tile Size</label>
         <select id="hiveSizeSelect">
           <option value="40x40">Standard Hive (40×40)</option>
-          <option value="40x20">Nuc (40×20)</option>
+          <option value="40x20">Nucleus (40×20)</option>
           <option value="30x30">Mini (30×30)</option>
           <option value="custom">Custom</option>
         </select>
@@ -767,7 +752,7 @@
 <thead>
   <tr>
     <th class="col-hive">Hive</th>
-    <th class="col-status">Queen</th>
+    <th class="col-status">Status</th>
     <th class="col-date">Last</th>
     <th class="col-date">Next Due</th>
     <th class="col-type">Type</th>
@@ -803,7 +788,7 @@
   </div>
 
   <div>
-    <strong>Queen Status:</strong>
+    <strong>Status:</strong>
     <select id="inspectionInputQueenStatus"></select>
   </div>
 
@@ -868,37 +853,54 @@
   </div>
 </div>
 
+<!-- Account & License Modal -->
+
 <div id="accountModal" class="modal" style="display:none;">
   <div class="modal-content">
     <header class="modal-header">
       <h2>Account & License</h2>
       <button id="accountModalClose" class="modal-close">&times;</button>
     </header>
-<main class="modal-body">
 
-  <section>
-    <h3>Subscription Status</h3>
+    <main class="modal-body">
 
-    <p id="accountEditionStatus"></p>
-    <p id="accountExpiryStatus"></p>
+      <section>
+        <h3 style="margin-top: 0;">Subscription Status</h3>
+        <p id="accountExpiryStatus"></p>
+        <p>Enter your HM2 licence code below:</p>
 
-    <button id="enterSubscriptionCodeBtn" class="btn-save">Enter Subscription Code</button>
-  </section>
+        <input id="hm2Input"
+              class="input-field"
+              type="text"
+              style="width: 260px;"
+              placeholder="HM2-XXXX-XXXX-XXXX">
 
-  <hr>
+        <div class="button-row" style="margin-top: 10px;">
+          <button id="saveHm2Btn" class="btn-save">Save Licence</button>
+      <!--<button id="removeHm2Btn" class="btn-cancel">Remove</button>-->
+        </div>
+        <p>Contact us for a License Code to use HiveMap or to upgrade, renew or extend your subscription.</p>
+        <a href="https://cornishhoney.co.uk/email_us.php"
+         target="_blank"
+         class="toolbar-btn"
+         style="text-decoration: none;">
+         Contact Us
+      </a>
+        <!-- Old button removed -->
+      </section>
 
-  <section>
-    <h3>Edition Details</h3>
-    <p id="accountEditionExplanation"></p>
-    <p id="accountVersion"></p>
-  </section>
+      <hr>
 
-</main>
+      <section>
+        <h3 style="margin-top: 0;">Edition Details</h3>
+        <p id="accountEditionStatus"></p>
+        <p id="accountVersion"></p>
+        <p id="accountEditionExplanation"></p>
 
+      </section>
 
-    <footer class="modal-footer">
-      <button id="accountModalCloseFooter" class="btn-cancel">Close</button>
-    </footer>
+    </main>
+
   </div>
 </div>
 
@@ -947,6 +949,37 @@
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+
+<div id="settingsModal" class="modal" style="display:none;">
+        <header class="modal-header">
+    <h2>Count Settings</h2>
+    <button id="settingsCloseBtn" class="modal-close">&times;</button>
+    </header>
+  <div class="modal-content">
+
+    <div class="modal-section">
+      <label for="hiveCountMode" style="font-weight: bold;">Hive Count Separation</label>
+      <select id="hiveCountMode">
+        <option value="none">None</option>
+        <option value="specificStatus">By Status</option>
+      </select>
+    </div>
+
+    <div class="modal-section" id="hiveCountStatusRow" style="display:none;">
+      <label for="hiveCountStatus" style="font-weight: bold;">Status</label>
+      <select id="hiveCountStatus"></select>
+    </div>
+
+    <footer class="modal-footer">
+      <button id="settingsSaveBtn" class="btn-save">Save</button>
+      <button id="settingsCancelBtn" class="btn-cancel">Cancel</button>
+    </footer>
+  </div>
+</div>
+
+
+
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>
 
@@ -974,7 +1007,7 @@
 
 <div id="expiryToast" class="expiry-toast">
   <span id="expiryToastMessage"></span>
-<!--  <button id="expiryToastClose">×</button>-->
+  <button id="expiryToastClose" class="toast-close">×</button>
 </div>
 
   <!-- Service worker registration -->
@@ -999,5 +1032,9 @@
 <input type="file" id="importAllFile" accept="application/json" style="display:none">
 <button id="importAllBtn" style="display:none"></button>
 <script src="js/toolbar.js"></script>
+</div>
+<div id="footer">
+      <div style="text-align: center;">&copy; 2026 <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></div>
+    </div>
 </body>
 </html>

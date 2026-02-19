@@ -1,3 +1,6 @@
+// HM2 subscription logic (duration-based, stacking)
+
+// IMPORTANT: must match SECRET used in the generator
 const HM2_PUBLIC_SECRET = "REPLACE_WITH_YOUR_PRIVATE_SECRET";
 
 async function hm2HmacSHA256(message, secret) {
@@ -16,6 +19,10 @@ async function hm2HmacSHA256(message, secret) {
     .toUpperCase();
 }
 
+/**
+ * Validate an HM2 code and return its edition + duration (days).
+ * Format: HM2-<EDITION>-<DURATION>-<SIGNATURE>
+ */
 async function validateHM2Code(code) {
   if (!code || !code.startsWith("HM2-")) {
     return { valid: false, error: "Invalid code format." };
@@ -27,14 +34,19 @@ async function validateHM2Code(code) {
   }
 
   const edition = parts[1];
-  const expiryRaw = parts[2];
+  const durationRaw = parts[2];
   const signature = parts[3];
 
-  if (!/^\d{8}$/.test(expiryRaw)) {
-    return { valid: false, error: "Invalid expiry date." };
+  if (!/^\d+$/.test(durationRaw)) {
+    return { valid: false, error: "Invalid duration." };
   }
 
-  const message = `${edition}-${expiryRaw}`;
+  const durationDays = parseInt(durationRaw, 10);
+  if (durationDays <= 0) {
+    return { valid: false, error: "Duration must be positive." };
+  }
+
+  const message = `${edition}-${durationDays}`;
   const fullSig = await hm2HmacSHA256(message, HM2_PUBLIC_SECRET);
   const shortSig = fullSig.slice(0, 10);
 
@@ -42,14 +54,75 @@ async function validateHM2Code(code) {
     return { valid: false, error: "Invalid signature." };
   }
 
-  const expiryISO = `${expiryRaw.slice(0,4)}-${expiryRaw.slice(4,6)}-${expiryRaw.slice(6,8)}`;
-  const expired = new Date() > new Date(expiryISO);
-
   return {
     valid: true,
     edition,
-    expiry: expiryISO,
-    expired,
+    duration: durationDays,
     raw: code
   };
+}
+
+/**
+ * Apply a validated HM2 code:
+ * - If no expiry or expiry in the past → start from today
+ * - If expiry in the future → add duration on top of existing expiry
+ */
+async function applyHM2Code(rawCode) {
+  const result = await validateHM2Code(rawCode);
+  if (!result.valid) {
+    return result; // { valid:false, error:... }
+  }
+
+  const durationDays = result.duration;
+
+  // Read existing expiry (stored as YYYY-MM-DD)
+  const existingStr = localStorage.getItem("hivemap_license_expiry");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  let baseDate;
+  if (existingStr) {
+    const existing = new Date(existingStr);
+    existing.setHours(0, 0, 0, 0);
+    baseDate = existing > today ? existing : today;
+  } else {
+    baseDate = today;
+  }
+
+  // Add duration
+  baseDate.setDate(baseDate.getDate() + durationDays);
+
+  // Save new expiry as YYYY-MM-DD
+  const yyyy = baseDate.getFullYear();
+  const mm = String(baseDate.getMonth() + 1).padStart(2, "0");
+  const dd = String(baseDate.getDate()).padStart(2, "0");
+  const newExpiryStr = `${yyyy}-${mm}-${dd}`;
+
+  localStorage.setItem("hivemap_license_expiry", newExpiryStr);
+  localStorage.setItem("hivemap_license_code", result.raw);
+  localStorage.setItem("hivemap_license_edition", result.edition);
+
+  return {
+    valid: true,
+    edition: result.edition,
+    duration: durationDays,
+    newExpiry: newExpiryStr
+  };
+}
+
+/**
+ * Helper: check if editing is allowed based on expiry.
+ * (Use this wherever you currently call editingDisabled().)
+ */
+function isHM2Expired() {
+  const expiryStr = localStorage.getItem("hivemap_license_expiry");
+  if (!expiryStr) return true;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expiry = new Date(expiryStr);
+  expiry.setHours(0, 0, 0, 0);
+
+  return expiry < today;
 }

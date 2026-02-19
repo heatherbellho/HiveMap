@@ -1,8 +1,8 @@
-// ------------------------------------------------------------
-// app.js
-// Main orchestrator. Initialises all modules in the correct
-// order once the DOM is ready.
-// ------------------------------------------------------------
+/* ------------------------------------------------------------
+   app.js
+   Main orchestrator. Initialises all modules in the correct
+   order once the DOM is ready.
+------------------------------------------------------------ */
 
 window.App = window.App || {};
 
@@ -20,27 +20,98 @@ App.UI.showToast = function (msg) {
   }, 3000);
 };
 
-// ------------------------------------------------------------
-// Free vs Pro limits
-// ------------------------------------------------------------
-const sub = JSON.parse(localStorage.getItem("hivemap_subscription") || "{}");
-const isPro = sub.edition === "PLUS";
 
-const subscriptionExpiry = sub.expiry ? new Date(sub.expiry) : null;
+/* ------------------------------------------------------------
+   HM2 Licensing (v2.2.6)
+------------------------------------------------------------ */
 
-const now = new Date();
-const isExpired = subscriptionExpiry && subscriptionExpiry < now;
+let isPro = false;
+let isExpired = false;
+let edition = "NONE";
+let expiryDate = null;
 
-if (isExpired) {
-  const expiredModal = document.getElementById("expiredModal");
-  expiredModal.classList.remove("hidden");
+// We delay reading the licence until DOM is ready,
+// so the browser has finished writing localStorage after import.
+document.addEventListener("DOMContentLoaded", () => {
+  const hm2Code = localStorage.getItem("hivemap_license_code") || "";
+  startLicenseCheck(hm2Code);
+});
 
-  document.getElementById("expiredEnterCodeBtn").addEventListener("click", () => {
-    document.getElementById("toolsAccount").click();
-  });
+function startLicenseCheck(hm2Code) {
+  if (!hm2Code) {
+    const accountBtn = document.getElementById("toolsAccount");
+    if (accountBtn) accountBtn.click();
 
-  document.getElementById("expiredModalClose").addEventListener("click", () => {
-    expiredModal.classList.add("hidden");
+    const statusEl = document.getElementById("licenseStatus");
+    if (statusEl) statusEl.textContent = "Unlicensed";
+    return;
+  }
+
+  validateHM2Code(hm2Code).then(result => {
+
+    if (result.valid) {
+      edition = result.edition;
+
+      // ⭐ READ THE SAME EXPIRY THE ACCOUNT MODAL USES
+      const expiryStr = localStorage.getItem("hivemap_license_expiry");
+      expiryDate = expiryStr ? new Date(expiryStr) : null;
+
+      if (expiryDate instanceof Date && !isNaN(expiryDate)) {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        isExpired = expiryDate < today;
+        isPro = edition === "PLUS" && !isExpired;
+      }
+
+    } else {
+      edition = "NONE";
+      isPro = false;
+      isExpired = false;
+
+      const accountBtn = document.getElementById("toolsAccount");
+      if (accountBtn) accountBtn.click();
+    }
+
+    if (isExpired) {
+      const accountBtn = document.getElementById("toolsAccount");
+      if (accountBtn) accountBtn.click();
+    }
+
+    const statusEl = document.getElementById("licenseStatus");
+    if (statusEl) statusEl.textContent = isPro ? "Plus" : "Unlicensed";
+
+    // ⭐ EXPIRY WARNING — EXACT SAME LOGIC AS ACCOUNT MODAL
+    const expiryStr = localStorage.getItem("hivemap_license_expiry");
+
+    if (expiryStr) {
+      const expiryDate = new Date(expiryStr);
+
+      if (!isNaN(expiryDate)) {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 0 && diffDays <= 7) {
+          const msg = `Your HiveMap Plus subscription expires in ${diffDays} day${diffDays === 1 ? "" : "s"}.`;
+          const toast = document.getElementById("expiryToast");
+          const msgEl = document.getElementById("expiryToastMessage");
+
+if (toast && msgEl) {
+  msgEl.innerHTML = `
+    ${msg}<br>
+    <a id="expiryToastLink" class="toast-link" style="color:#fff; text-decoration:underline; cursor:pointer;">
+      See your Account & License
+    </a>
+  `;
+
+  toast.classList.add("show");
+}
+
+        }
+      }
+    }
   });
 }
 
@@ -48,15 +119,18 @@ function editingDisabled() {
   return isExpired;
 }
 
-const LIMITS = {
-  maxApiaries: isPro ? Infinity : 1,
-  maxHives:    isPro ? Infinity : 1
-};
+function getLimits() {
+  return {
+    maxApiaries: isPro ? Infinity : 1,
+    maxHives:    isPro ? Infinity : 1
+  };
+}
 
 
-// ------------------------------------------------------------
-// Update the Inspections Due badge and button visibility
-// ------------------------------------------------------------
+
+/* ------------------------------------------------------------
+   Update the Inspections Due badge and button visibility
+------------------------------------------------------------ */
 App.updateDueInspectionsBadge = function () {
   const due = App.Hives.getDueInspections();
   const btn = document.getElementById("dueInspectionsBtn");
@@ -75,85 +149,90 @@ App.updateDueInspectionsBadge = function () {
 };
 
 
-
+/* ------------------------------------------------------------
+   App Initialisation
+------------------------------------------------------------ */
 App.init = function () {
-  // Initialise subsystems in correct dependency order
-  App.Apiaries.init();   // Loads apiary list + selector
-  App.Hives.init();      // Hive types + box types
-  App.Status.init();     // Queen status legend + modal
-  App.Modals.init();     // Hive edit modal + hive size modal
+  App.Apiaries.init();
+  App.Hives.init();
+  App.Status.init();
+  App.Modals.init();
   App.Modals.inspectionSchema = Storage.getInspectionSchema() || App.Modals.defaultInspectionSchema;
-  App.Export.init();     // Export/import buttons
-  App.Stats.init();      // Hive status summary
-  App.Canvas.init();     // Fabric canvas engine
+  App.Export.init();
+  App.Canvas.init();
 
-  // Print button
   const printBtn = document.getElementById("printBtn");
   if (printBtn) {
     printBtn.addEventListener("click", App.Canvas.print);
   }
 
-  // Delete selected hives
   const deleteSelectedBtn = document.getElementById("deleteSelectedBtn");
   if (deleteSelectedBtn) {
     deleteSelectedBtn.addEventListener("click", App.Canvas.deleteSelected);
   }
 
   document.getElementById("dueInspectionsBtn")
-  .addEventListener("click", App.Modals.openDueInspectionsModal);
-const due = App.Hives.getDueInspections();
-const btn = document.getElementById("dueInspectionsBtn");
-const badge = document.getElementById("dueBadge");
+    .addEventListener("click", App.Modals.openDueInspectionsModal);
 
-if (due.length > 0) {
-  btn.style.display = "inline-block";
-  badge.textContent = due.length;
-  badge.style.display = "inline-block";
-} else {
-  btn.style.display = "none";
-  badge.style.display = "none";
-}
-document.getElementById("appVersion").textContent =
-`HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
+  const due = App.Hives.getDueInspections();
+  const btn = document.getElementById("dueInspectionsBtn");
+  const badge = document.getElementById("dueBadge");
 
-document.title = `HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
+  if (due.length > 0) {
+    btn.style.display = "inline-block";
+    badge.textContent = due.length;
+    badge.style.display = "inline-block";
+  } else {
+    btn.style.display = "none";
+    badge.style.display = "none";
+  }
 
-// Show Free vs Pro status
-const statusEl = document.getElementById("licenseStatus");
-if (statusEl) {
-  statusEl.textContent = isPro ? "Plus" : "Free";
-}
+  document.getElementById("appVersion").textContent =
+    `HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
 
+  document.title = `HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
+
+  const statusEl = document.getElementById("licenseStatus");
+  if (statusEl) {
+    statusEl.textContent = isPro ? "Plus" : "Free";
+  }
 };
 
-// ------------------------------------------------------------
-// Start the app when DOM is ready
-// ------------------------------------------------------------
+
+/* ------------------------------------------------------------
+   Start the app when DOM is ready
+------------------------------------------------------------ */
 document.addEventListener("DOMContentLoaded", () => {
   App.init();
+document.getElementById("expiryToastClose")?.addEventListener("click", () => {
+  document.getElementById("expiryToast").classList.remove("show");
+});
 
-  // ------------------------------------------------------------
-  // EXIT TOAST (existing)
-  // ------------------------------------------------------------
+// When the toast link is clicked → close toast → open account modal
+document.addEventListener("click", (e) => {
+  if (e.target && e.target.id === "expiryToastLink") {
+    document.getElementById("expiryToast").classList.remove("show");
+
+    // Open the Account & License modal
+    const accountBtn = document.getElementById("toolsAccount");
+    if (accountBtn) accountBtn.click();
+  }
+});
+
+
   const exitToast = document.getElementById("exitToast");
   const exitCloseBtn = document.getElementById("exitToastClose");
 
-  // Show the exit toast once per session
   setTimeout(() => {
     exitToast.classList.remove("hidden");
     exitToast.classList.add("show");
   }, 800);
 
-  // Manual dismiss
   exitCloseBtn.addEventListener("click", () => {
     exitToast.classList.remove("show");
 
-    // Remove from layout after fade-out
     setTimeout(() => {
       exitToast.classList.add("hidden");
     }, 400);
   });
-
 });
-
-

@@ -29,7 +29,6 @@ App.Apiaries.updateSelector = function () {
   });
 };
 
-
 // ------------------------------------------------------------
 // Switch to a different apiary
 // ------------------------------------------------------------
@@ -45,12 +44,15 @@ App.Apiaries.switch = function (name) {
   // Update UI
   App.Apiaries.updateSelector();
   App.Status.renderLegend();
-  App.Stats.update();
 
   // Load new apiary layout
   App.Canvas.loadLayout();
-};
 
+  // 🔹 Refresh toolbar counts for the newly selected apiary
+  if (App.Toolbar && App.Toolbar.refreshCounts) {
+    App.Toolbar.refreshCounts();
+  }
+};
 
 // ------------------------------------------------------------
 // Create a new apiary
@@ -59,8 +61,8 @@ App.Apiaries.create = function () {
   const all = Storage.getAllApiaries();
 
   // ⭐ Limit: max apiaries in free version
-  if (all.length >= LIMITS.maxApiaries) {
-    App.UI.showToast("The free version of HiveMap supports only one apiary.");
+  if (all.length >= getLimits().maxApiaries) {
+    App.UI.showToast("The Free version of HiveMap supports only one apiary.");
     return;
   }
 
@@ -86,7 +88,6 @@ App.Apiaries.create = function () {
   // Update UI
   App.Apiaries.updateSelector();
   App.Status.renderLegend();
-  App.Stats.update();
 
   App.Canvas.loadLayout();
 };
@@ -132,8 +133,6 @@ App.Apiaries.rename = function () {
   // Update UI
   App.Apiaries.updateSelector();
   App.Status.renderLegend();
-  App.Stats.update();
-
   App.Canvas.loadLayout();
 };
 
@@ -167,8 +166,6 @@ App.Apiaries.delete = function () {
   // Update UI
   App.Apiaries.updateSelector();
   App.Status.renderLegend();
-  App.Stats.update();
-
   App.Canvas.loadLayout();
 };
 
