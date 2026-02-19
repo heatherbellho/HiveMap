@@ -7,7 +7,7 @@
    - Offline caching
 ------------------------------------------------------------ */
 
-const CACHE_NAME = 'hive-map-cache-v2.2.6';
+const CACHE_NAME = 'hive-map-cache-v2.2.7';
 
 const FILES_TO_CACHE = [
   'index.html',
@@ -61,3 +61,4 @@ self.addEventListener('fetch', event => {
     fetch(event.request).catch(() => caches.match(event.request))
   );
 });
+
