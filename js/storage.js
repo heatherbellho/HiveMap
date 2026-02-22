@@ -16,15 +16,30 @@ const Storage = {
     localStorage.setItem('queenStatuses', JSON.stringify(statuses));
   },
 
+/* ------------------ HIVE TYPES ------------------ */
+getHiveTypes() {
+  const raw = localStorage.getItem('hiveTypes');
+  return raw ? JSON.parse(raw) : ['N/A'];
+},
 
-  /* ------------------ HIVE TYPES ------------------ */
-  getHiveTypes() {
-    return JSON.parse(localStorage.getItem('hiveTypes')) || ['N/A'];
-  },
+saveHiveTypes(list) {
+  localStorage.setItem('hiveTypes', JSON.stringify(list));
+},
 
-  saveHiveTypes(list) {
-    localStorage.setItem('hiveTypes', JSON.stringify(list));
-  },
+
+  /* ------------------ HIVE BOX TYPES ------------------ */
+getBoxTypes() {
+  return JSON.parse(localStorage.getItem('boxTypes')) || [
+    "Standard Deep 11",
+    "Extra Deep 11",
+    "Standard Shallow"
+  ];
+},
+
+saveBoxTypes(list) {
+  localStorage.setItem('boxTypes', JSON.stringify(list));
+},
+
 
   /* ------------------ HIVE COUNT SEPARATION SETTINGS ------------------ */
   getHiveCountSettings() {

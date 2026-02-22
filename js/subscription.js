@@ -33,7 +33,7 @@ async function validateHM2Code(code) {
     return { valid: false, error: "Invalid code structure." };
   }
 
-  const edition = parts[1];
+  const edition = parts[1];   // now CORE or PLUS
   const durationRaw = parts[2];
   const signature = parts[3];
 
@@ -56,7 +56,7 @@ async function validateHM2Code(code) {
 
   return {
     valid: true,
-    edition,
+    edition,          // CORE or PLUS
     duration: durationDays,
     raw: code
   };
@@ -70,12 +70,11 @@ async function validateHM2Code(code) {
 async function applyHM2Code(rawCode) {
   const result = await validateHM2Code(rawCode);
   if (!result.valid) {
-    return result; // { valid:false, error:... }
+    return result;
   }
 
   const durationDays = result.duration;
 
-  // Read existing expiry (stored as YYYY-MM-DD)
   const existingStr = localStorage.getItem("hivemap_license_expiry");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -89,10 +88,8 @@ async function applyHM2Code(rawCode) {
     baseDate = today;
   }
 
-  // Add duration
   baseDate.setDate(baseDate.getDate() + durationDays);
 
-  // Save new expiry as YYYY-MM-DD
   const yyyy = baseDate.getFullYear();
   const mm = String(baseDate.getMonth() + 1).padStart(2, "0");
   const dd = String(baseDate.getDate()).padStart(2, "0");
@@ -100,7 +97,7 @@ async function applyHM2Code(rawCode) {
 
   localStorage.setItem("hivemap_license_expiry", newExpiryStr);
   localStorage.setItem("hivemap_license_code", result.raw);
-  localStorage.setItem("hivemap_license_edition", result.edition);
+  localStorage.setItem("hivemap_license_edition", result.edition); // CORE or PLUS
 
   return {
     valid: true,
@@ -112,7 +109,6 @@ async function applyHM2Code(rawCode) {
 
 /**
  * Helper: check if editing is allowed based on expiry.
- * (Use this wherever you currently call editingDisabled().)
  */
 function isHM2Expired() {
   const expiryStr = localStorage.getItem("hivemap_license_expiry");

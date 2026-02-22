@@ -43,76 +43,90 @@
 
 <body>
   <div id="overlay" tabindex="-1"></div>
-  <div id="toolbar">
-    <div class="toolbar-group toolbar-icon">
-      <a href="https://cornishhoney.co.uk/" target="_blank" title="Visit HiveMap Website">
-      <img src="icons/192-hive-map.png" alt="HiveMap Logo" class="toolbar-logo">
-      </a>
-    </div>
-  
-    <div class="toolbar-group toolbar-apiary">
-        <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
-        <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
-        <button id="apiaryManagerBtn" class="toolbar-btn">Apiary</button>
-    </div>
-    <!-- LEFT: context + primary actions + counts -->
-    <div class="toolbar-group toolbar-left">
-      
-      <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
-    </div>
 
-    <!-- CENTER: dropdown menus -->
-    <div class="toolbar-group toolbar-center">
-      <button id="toolbarOverallCounts" class="toolbar-btn"></button>
-      <button id="dueInspectionsBtn" class="toolbar-btn-alert" style="display:none; position:relative;">
+<div id="toolbar">
+
+  <!-- LOGO -->
+  <div class="toolbar-group toolbar-icon" style="gap: 0;">
+    <a href="https://cornishhoney.co.uk/" target="_blank" title="Visit HiveMap Website">
+      <img src="icons/192-hive-map.png" alt="HiveMap Logo" class="toolbar-logo">
+    </a>
+    <div id="expiryBadge" class="expiry-badge hidden"><span style="font-size: 25px; font-weight: 700; position: relative; bottom: 2px;">!</span></div>
+  </div>
+
+  <!-- APIARY SELECT -->
+  <div class="toolbar-group toolbar-apiary">
+    <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
+    <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
+    <button id="apiaryManagerBtn" class="toolbar-btn">Apiary</button>
+  </div>
+
+  <!-- LEFT GROUP -->
+  <div class="toolbar-group toolbar-left">
+    <button id="toolbarApiaryCounts" class="toolbar-btn"></button>
+  </div>
+
+  <!-- CENTER GROUP -->
+  <div class="toolbar-group toolbar-center">
+    <button id="toolbarOverallCounts" class="toolbar-btn"></button>
+
+    <button id="dueInspectionsBtn" class="toolbar-btn-alert" style="display:none; position:relative;">
       <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <!-- Triangle with black border -->
         <path d="M1 21h22L12 2 1 21z"
               fill="#fff"
               stroke="#dd0000"
               stroke-width="1" />
-
-        <!-- Exclamation line -->
         <path d="M12 8v6"
               stroke="#000"
               stroke-width="2"
               stroke-linecap="round" />
-
-        <!-- Exclamation dot -->
         <circle cx="12" cy="17" r="1.5" fill="#000" />
       </svg>
       <span id="dueBadge" class="badge" style="display:none;">0</span>
-      </button>
-    </div>
+    </button>
+  </div>
 
-    <!-- RIGHT: empty for now -->
-    <div class="toolbar-group toolbar-right">
-      <div class="dropdown-wrapper">
-        <button id="hivesMenuBtn" class="toolbar-btn">Hives ▼</button>
-        <div id="hivesMenu" class="dropdown-menu">
-        <div class="dropdown-item" id="hiveNew">New Hive</div>
+  <!-- RIGHT GROUP -->
+  <div class="toolbar-group toolbar-right">
+
+    <!-- HIVES MENU -->
+    <div class="dropdown-wrapper">
+      <button id="hivesMenuBtn" class="toolbar-btn">Hives ▼</button>
+      <div id="hivesMenu" class="dropdown-menu">
+        <div class="dropdown-item" id="hiveNew">Create Hive</div>
         <div class="dropdown-item" id="hiveDelete">Delete Hive</div>
         <div class="dropdown-item" id="toolbarShowArchivedHives">Archived Hives</div>
+        <div class="dropdown-item" id="toolsVetReport">Treatments Report</div>
       </div>
     </div>
 
-      <div class="dropdown-wrapper">
-        <button id="toolsMenuBtn" class="toolbar-btn">Tools ▼</button>
+    <!-- SETTINGS MENU -->
+    <div class="dropdown-wrapper">
+      <button id="settingsMenuBtn" class="toolbar-btn">Settings ▼</button>
+      <div id="settingsMenu" class="dropdown-menu">
+        <div class="dropdown-item" id="toolsStatus">Statuses</div>
+        <div class="dropdown-item" id="toolsSettings">Hive Counts</div>
+        <div class="dropdown-item" id="toolsHiveTypes">Hive Types</div>
+        <div class="dropdown-item" id="toolsBoxTypes">Box Types</div>
+        <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
+      </div>
+    </div>
 
-        <div id="toolsMenu" class="dropdown-menu">
+
+    <!-- TOOLS MENU -->
+    <div class="dropdown-wrapper">
+      <button id="toolsMenuBtn" class="toolbar-btn">Tools ▼</button>
+      <div id="toolsMenu" class="dropdown-menu">
         <div class="dropdown-item" id="toolsExport">Export Data</div>
         <div class="dropdown-item" id="toolsImport">Import Data</div>
-        <div class="dropdown-item" id="toolsStatus">Statuses</div>
-        <div class="dropdown-item" id="toolsVetReport">Treatments Report</div>
-        <div class="dropdown-item" id="toolsSettings">Count Settings</div>
-        <div class="dropdown-item" id="toolsConfigureInspection">Inspection Fields</div>
         <div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">License</div>
         <div class="dropdown-item" id="toolsHelp">Help</div>
       </div>
     </div>
-  </div>
 
-</div>
+  </div> <!-- /toolbar-right -->
+
+</div> <!-- /toolbar -->
 
   <div id="main-container">
     
@@ -151,7 +165,7 @@
   <div id="apiaryManagerModal" class="modal modal-small" role="dialog" aria-modal="true" style="display:none;">
   <header class="modal-header">
     <h2 id="apiaryManagerTitle">Apiary Manager</h2>
-    <button id="apiaryManagerNewBtn" class="btn-primary">New Apiary</button>
+    <button id="apiaryManagerNewBtn" class="btn-primary">Create Apiary</button>
     <button id="apiaryManagerCloseBtn" class="modal-close">&times;</button>
   </header>
 
@@ -222,6 +236,33 @@
   </footer>
 </div>
 
+<div id="confirmDeleteHiveModal" class="modal modal-small" style="display:none;">
+  <header class="modal-header">
+    <h2>Confirm Delete</h2>
+  </header>
+
+  <main class="modal-body">
+    <p id="confirmDeleteHiveMessage">
+      Delete selected hive(s)? This cannot be undone.
+    </p>
+  </main>
+
+  <footer class="modal-footer">
+    <button id="confirmDeleteHiveYesBtn" class="btn-danger">Confirm Delete</button>
+    <button id="confirmDeleteHiveCancelBtn" class="btn-cancel">Cancel</button>
+  </footer>
+</div>
+
+<div id="confirmDeleteArchivedHiveModal" class="modal">
+  <div class="modal-content">
+    <h3>Delete Archived Hive</h3>
+    <p>This action cannot be undone. Delete this hive?</p>
+
+    <button id="confirmDeleteArchivedHiveYes" class="btn-danger">Delete</button>
+    <button id="confirmDeleteArchivedHiveNo" class="btn-cancel">Cancel</button>
+  </div>
+</div>
+
 <div id="confirmArchiveHiveModal" class="modal modal-small" style="display:none;">
   <header class="modal-header">
     <h2>Confirm Archive</h2>
@@ -229,8 +270,10 @@
 
   <main class="modal-body">
     <p style="line-height: 1.6;">
-      Archiving this hive will remove it from the selected apiary.<br>
-      It will no longer appear on the map but all data will be retained and viewed in <strong>Hives → Archived</strong> in the toolbar.<br>
+      Archiving a hive will remove it from the Field View.<br>
+      All data will be retained and this can be viewed in <strong>Hives → Archived Hives</strong> in the toolbar.<br>
+      It can also be viewed in other table lists that show a black Archived button.<br>
+      Data cannot be edited after archiving so make any required changes and save now before archiving.<br>
       The hive cannot be restored to the active apiary. This action cannot be undone.
     </p>
   </main>
@@ -246,9 +289,13 @@
 <div id="modal" class="modal modal-hive-edit"
   role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
   <header class="modal-header">
-    <h2 id="modalTitle">Edit Hive</h2>
-    <div>
-      <button id="addInspectionBtn" class="btn-info" style="margin-right: 12px;"> Add Inspection </button>
+    <h2 id="modalTitle">Hive Details</h2>
+    <div id="deleteArchivedHive" style="margin-right: 12px; display: none;">
+      <button id="deleteArchivedHiveBtn" class="btn-danger">Delete Hive</button>
+    </div>
+    <div style="margin-right: 12px;">
+      <button id="addInspectionBtn" class="btn-info"> Add Inspection </button>
+
           <button id="archiveHiveBtn" class="btn-danger" style="display:none;">Archive Hive</button>
     <button id="restoreHiveBtn" class="btn-primary" style="display:none;">Restore Hive</button>
       <button id="saveHiveBtn" class="btn-save">Save</button>
@@ -261,7 +308,7 @@
 
   <div class="subheader-item">
     <label for="hiveName"><strong>Hive ID:</strong></label>
-    <input type="text" id="hiveName" placeholder="Hive Name">
+    <input type="text" id="hiveName" placeholder="Hive ID">
   </div>
 
   <div class="subheader-item">
@@ -280,9 +327,6 @@
 
     <!-- LEFT COLUMN -->
     <div class="modal-column">
-        <h3 class="section-title" style="margin: 0;">Hive Details</h3>
-
-
       <div class="modal-section">
   <label for="destinationApiarySelect" style="font-weight: bold;">Move to Apiary</label>
   <select id="destinationApiarySelect"></select>
@@ -292,13 +336,13 @@
   </button>
       </div>
 
-  <div class ="modal-section">
-            <label for="hiveType" style="font-weight: bold;">Hive Type</label>
-        <div class="inline-row">
-          <select id="hiveType"></select>
-          <button type="button" id="addHiveTypeBtn" class="small-add" title="Add New Hive Type">+</button>
-        </div>
+<div class ="modal-section">
+  <label for="hiveType" style="font-weight: bold;">Hive Type</label>
+  <div class="inline-row">
+    <select id="hiveType"></select>
   </div>
+</div>
+
       <div class="modal-section">
         <h4>Hive Boxes</h4>
         <div id="boxList" class="box-list"></div>
@@ -309,6 +353,17 @@
           <button type="button" id="addBoxBtn" class="small-add">+</button>
         </div>
       </div>
+
+      <!-- ⭐ NEW: Treatment Records -->
+<div class="modal-section">
+  <h4>Treatment Records</h4>
+
+  <div id="treatmentList" class="treatment-list"></div>
+
+  <button type="button" id="addTreatmentBtn" class="btn-primary" style="margin-top: 8px;">
+    Record Treatment
+  </button>
+</div>
 
       <div class="modal-section modal-section-size">
         <h4>Tile Size</h4>
@@ -332,34 +387,19 @@
 
 </div>
 
-<!-- ⭐ NEW: Treatment Records -->
-<div class="modal-section">
-  <h4>Treatment Records</h4>
-
-  <div id="treatmentList" class="treatment-list"></div>
-
-  <button type="button" id="addTreatmentBtn" class="btn-primary" style="margin-top: 8px;">
-    + Add Treatment
-  </button>
-</div>
-
     </div>
 
     <!-- RIGHT COLUMN -->
     <div class="modal-column">
 
+      <h4 class="section-title" style="margin: 0;">Inspections</h4>
+              <div id ="nextInspectionDateDisplay"></div>
 
-        <h3 class="section-title" style="margin: 0;">Inspection History</h3>
-        <button id="openInspectionHistoryBtn" class="btn-info">Inspection History Report</button>
-<div class="modal-section">
-
-
-  <div id ="nextInspectionDateDisplay"></div>
-  </div>
       <div class="modal-section">
 
         <ul id="inspectionHistoryList" class="inspection-list"></ul>
       </div>
+      <button id="openInspectionHistoryBtn" class="btn-info">Full History Report</button>
 
     </div>
 
@@ -375,7 +415,7 @@
 <!-- ⭐ ADD TREATMENT MODAL -->
 <div id="treatmentModal" class="modal modal-small" role="dialog" aria-modal="true">
   <header class="modal-header">
-    <h2>Add Treatment</h2>
+    <h2>Record Treatment</h2>
     <button id="treatmentModalCloseBtn" class="modal-close">&times;</button>
   </header>
 
@@ -528,21 +568,6 @@
   </div>
 </div>
 
-<!-- Archived Hives list 
-<div id="archivedHivesModal" class="modal">
-  <div class="modal-header">
-    <h2>Archived Hives</h2>
-    </div>
-    <div id="archivedHivesScroll">
-      <ul id="archivedHivesList"></ul>
-    </div>
-
-    <div class="modal-footer">
-      <button id="closeArchivedHivesBtn" class="btn-cancel">Close</button>
-    </div>
-  </div>
--->
-
 <!-- Status settings modal -->
 <div id="statusModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="statusModalTitle">
   <header class="modal-header">
@@ -571,40 +596,10 @@
   </footer>
 </div>
 
-<!-- Apiary Notes modal 
-<div id="apiaryNotesModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="apiaryNotesTitle">
-  <header class="modal-header">
-    <h2 id="apiaryNotesTitle">Apiary Notes</h2>
-    <button id="closeApiaryNotesBtn" class="modal-close">&times;</button>
-  </header>
-
-  <div class="modal-content">
-
-
-    <div id="apiaryNotesListModal"></div>
-
-    <div class="apiary-note-add">
-      <div class="form-row">
-        <label for="apiaryNoteInputModal">New note</label>
-        <textarea id="apiaryNoteInputModal" rows="4" placeholder="Write your note…"></textarea>
-      </div>
-
-      <div class="form-row">
-        <label for="apiaryNoteDateInputModal">Date</label>
-        <input id="apiaryNoteDateInputModal" type="date">
-      </div>
-    </div>
-  </div>
-        <div class="modal-footer">
-        <button id="apiaryNoteAddBtnModal" class="btn-save">Save</button>
-      </div>
-</div>
--->
-
 <!-- Hive size modal -->
 <div id="hiveSizeModal" class="modal modal-hive-size" role="dialog" aria-modal="true" aria-labelledby="hiveSizeTitle">
   <header class="modal-header">
-    <h2 id="hiveSizeTitle">New Hive</h2>
+    <h2 id="hiveSizeTitle">Create Hive</h2>
     <button id="hiveSizeCloseBtn" class="modal-close">&times;</button>
   </header>
 
@@ -628,7 +623,7 @@
       </div>
         
       <div class="modal-section">
-        <label for="hiveNameInput"><strong>Hive Name/Number</strong></label>
+        <label for="hiveNameInput"><strong>Hive ID</strong></label>
         <input type="text" id="hiveNameInput" placeholder="e.g. 12">
 
         <div id="usedHiveNumbers" class="used-hive-numbers"></div>
@@ -723,21 +718,21 @@
     <h2 id="hiveListTitle"></h2>
 
     <div id="archiveBtns" style="display: none;">
-    <span id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</span>
-    <span id="hiveListAllFilterBtn" class="filter-btn" data-filter="hiveListShowAll" style="margin-left: 18px;">All Hives</span>
+    <button id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</button>
+    <button id="hiveListAllFilterBtn" class="filter-btn" data-filter="hiveListShowAll" style="margin-left: 18px;">All Hives</button>
     </div>
 
     <div id="overallArchiveBtns" style="display: none;">
-    <span id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</span>
-    <span id="overallListAllFilterBtn" class="filter-btn" data-filter="overallListShowAll" style="margin-left: 18px;">All Hives</span>
+    <button id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</button>
+    <button id="overallListAllFilterBtn" class="filter-btn" data-filter="overallListShowAll" style="margin-left: 18px;">All Hives</button>
     </div>
 
     <div id="dueInspectionBtns" style="display: none;">
       
-      <span class="btn-show-all filter-btn" data-filter="all" style="margin-left: 18px; font-weight:600;">Show All</span>
-      <span class="btn-due-today filter-btn" data-filter="today" style="margin-left: 18px;">Due Today</span>
-      <span class="btn-overdue filter-btn" data-filter="overdue" style="margin-left: 18px;">Overdue</span>
-      <span class="btn-future filter-btn" data-filter="future" style="margin-left: 18px;">Due Future</span>
+      <button class="btn-show-all filter-btn" data-filter="all" style="margin-left: 18px; font-weight:600;">Show All</button>
+      <button class="btn-due-today filter-btn" data-filter="today" style="margin-left: 18px;">Due Today</button>
+      <button class="btn-overdue filter-btn" data-filter="overdue" style="margin-left: 18px;">Overdue</button>
+      <button class="btn-future filter-btn" data-filter="future" style="margin-left: 18px;">Due Future</button>
     </div>
 
     <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
@@ -954,7 +949,7 @@
 
 <div id="settingsModal" class="modal" style="display:none;">
         <header class="modal-header">
-    <h2>Count Settings</h2>
+    <h2>Hive Counts</h2>
     <button id="settingsCloseBtn" class="modal-close">&times;</button>
     </header>
   <div class="modal-content">
@@ -979,7 +974,50 @@
   </div>
 </div>
 
+<!-- ------------------------------------------------------------
+     Manage Box Types Modal (SKELETON ONLY — no logic yet)
+------------------------------------------------------------- -->
+<div id="boxTypesModal" class="modal" style="display:none;">
+  <header class="modal-header">
+    <h2>Box Types</h2>
+    <button id="closeBoxTypesBtn" class="modal-close">&times;</button>
+  </header>
+  <div class="modal-content">
+    <div class="modal-section">
+    <!-- List container (will be populated in later steps) -->
+    <div id="boxTypesList"></div>
 
+    <!-- Add new box type -->
+    <div class="modal-actions">
+      <input id="newBoxTypeInput" type="text" placeholder="New box type">
+      <button id="addBoxTypeBtn" class="btn-save">Add</button>
+    </div>
+</div>
+
+  </div>
+</div>
+
+<!-- ============================
+     MANAGE HIVE TYPES MODAL
+=============================== -->
+<div id="manageHiveTypesModal" class="modal">
+    <header class="modal-header">
+    <h2>Hive Types</h2>
+    <button id="closeHiveTypesModalBtn" class="modal-close">&times;</button>
+  </header>
+  <div class="modal-content">
+
+<div class="modal-section">
+    <div id="hiveTypesList"></div>
+
+    <div class="add-row">
+      <input id="newHiveTypeInput" type="text" placeholder="New hive type">
+      <button id="addHiveTypeBtnModal" class="btn-save">Add</button>
+    </div>
+</div>
+
+  </div>
+</div>
 
 <!-- Floating Exit FAB -->
 <button id="exitFab" class="fab-exit">Exit</button>
@@ -1006,10 +1044,10 @@
 
 <div id="globalToast" class="global-toast"></div>
 
-<div id="expiryToast" class="expiry-toast">
+<!--<div id="expiryToast" class="expiry-toast">
   <span id="expiryToastMessage"></span>
   <button id="expiryToastClose" class="toast-close">×</button>
-</div>
+</div>-->
 
   <!-- Service worker registration -->
 <script>

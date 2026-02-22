@@ -8,9 +8,13 @@ const hivesMenu = document.getElementById("hivesMenu");
 const toolsMenuBtn = document.getElementById("toolsMenuBtn");
 const toolsMenu = document.getElementById("toolsMenu");
 
+const settingsMenuBtn = document.getElementById("settingsMenuBtn");
+const settingsMenu = document.getElementById("settingsMenu");
+
 // Close all menus
 function closeAllMenus() {
   hivesMenu.style.display = "none";
+  settingsMenu.style.display = "none";
   toolsMenu.style.display = "none";
 }
 
@@ -28,6 +32,7 @@ document.addEventListener("click", () => {
 
 // Prevent clicks inside menus from closing them
 hivesMenu.addEventListener("click", (e) => e.stopPropagation());
+settingsMenu.addEventListener("click", (e) => e.stopPropagation());
 toolsMenu.addEventListener("click", (e) => e.stopPropagation());
 
 
@@ -43,8 +48,17 @@ hivesMenuBtn.addEventListener("click", (e) => {
 // Only REAL actions included
 document.getElementById("hiveNew").addEventListener("click", () => {
   closeAllMenus();
+
+const apiaryId = Storage.getCurrentApiary();
+
+  if (!apiaryId) {
+    App.UI.showToast("Create an apiary first.");
+    return;
+  }
+
   App.Modals.openHiveSizeModal();
 });
+
 
 document.getElementById("hiveDelete").addEventListener("click", () => {
   closeAllMenus();
@@ -56,6 +70,74 @@ document.getElementById("toolbarShowArchivedHives")
     document.getElementById("archivedFilterBtn").click();
   });
 
+document.getElementById("toolsVetReport").onclick = function () {
+  closeAllMenus();
+  App.Reports.openVetReportModal();
+};
+
+// ============================================================
+//  SETTINGS MENU
+
+settingsMenuBtn.addEventListener("click", (e) => {
+  e.stopPropagation();
+  toggleMenu(settingsMenu);
+});
+
+// Status colours
+document.getElementById("toolsStatus").addEventListener("click", () => {
+  closeAllMenus();
+  App.Status.openSettings();
+});
+
+// Settings (Hive Count Separation)
+document.getElementById("toolsSettings").addEventListener("click", () => {
+  closeAllMenus();
+  openSettingsModal();
+});
+
+const boxTypesBtn = document.getElementById("toolsBoxTypes");
+if (boxTypesBtn) {
+  boxTypesBtn.addEventListener("click", () => {
+    closeAllMenus();
+    App.Modals.openBoxTypesManager();   // placeholder for now
+  });
+}
+
+// Open Manage Hive Types modal
+const toolsHiveTypes = document.getElementById("toolsHiveTypes");
+if (toolsHiveTypes) {
+  toolsHiveTypes.onclick = function () {
+    closeAllMenus();
+    document.getElementById("manageHiveTypesModal").style.display = "block";
+    document.getElementById("overlay").style.display = "block";
+  };
+}
+
+// Close button inside the modal
+const closeHiveTypesModalBtn = document.getElementById("closeHiveTypesModalBtn");
+if (closeHiveTypesModalBtn) {
+  closeHiveTypesModalBtn.onclick = function () {
+        document.getElementById("manageHiveTypesModal").style.display = "none";
+    document.getElementById("overlay").style.display = "none";
+  };
+}
+if (overlay) overlay.addEventListener("click", function() {
+  document.getElementById("manageHiveTypesModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+});
+
+const addHiveTypeBtnModal = document.getElementById("addHiveTypeBtnModal");
+if (addHiveTypeBtnModal) {
+  addHiveTypeBtnModal.onclick = function () {
+    App.Modals.addHiveType();
+  };
+}
+
+// Configure Inspection Fields
+document.getElementById("toolsConfigureInspection").addEventListener("click", () => {
+  closeAllMenus();
+  App.Modals.openInspectionFieldConfig();
+});
 
 // ============================================================
 //  TOOLS MENU
@@ -77,129 +159,8 @@ document.getElementById("toolsImport").addEventListener("click", () => {
   document.getElementById("importAllBtn").click();
 });
 
-// Status colours
-document.getElementById("toolsStatus").addEventListener("click", () => {
-  closeAllMenus();
-  App.Status.openSettings();
-});
-
-document.getElementById("toolsVetReport").onclick = function () {
-  closeAllMenus();
-  App.Reports.openVetReportModal();
-};
-
-// Settings (Hive Count Separation)
-document.getElementById("toolsSettings").addEventListener("click", () => {
-  closeAllMenus();
-  openSettingsModal();
-});
-
-// Configure Inspection Fields
-document.getElementById("toolsConfigureInspection").addEventListener("click", () => {
-  closeAllMenus();
-  App.Modals.openInspectionFieldConfig();
-});
-
-document.getElementById("toolsAccount").addEventListener("click", async () => {
-  closeAllMenus();
-
-  const modal = document.getElementById("accountModal");
-  const overlay = document.getElementById("overlay");
-
-// ------------------------------------------------------------
-// HM2 LICENSING (duration-based, stacking)
-// ------------------------------------------------------------
-
-const hm2Code = localStorage.getItem("hivemap_license_code") || "";
-const editionEl = document.getElementById("accountEditionStatus");
-const expiryEl  = document.getElementById("accountExpiryStatus");
-const explainEl = document.getElementById("accountEditionExplanation");
-const inputEl   = document.getElementById("hm2Input");
-
-inputEl.value = "";
-inputEl.placeholder = hm2Code ? "Key saved (enter new to replace)" : "";
-
-let edition = localStorage.getItem("hivemap_license_edition") || "NONE";
-let expiryStr = localStorage.getItem("hivemap_license_expiry") || null;
-
-let expiryDate = expiryStr ? new Date(expiryStr) : null;
-let isExpired = false;
-let isProLocal = false;
-
-if (expiryDate instanceof Date && !isNaN(expiryDate)) {
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  isExpired = expiryDate < today;
-  isProLocal = edition === "PLUS" && !isExpired;
-}
-
-// Update Edition display
-editionEl.innerHTML = `Edition: <strong>${edition}</strong>`;
-
-// Update Expiry display
-if (expiryDate && !isNaN(expiryDate)) {
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-
-  if (isExpired) {
-    expiryEl.innerHTML = `
-      Licence expired on <strong>${App.Utils.formatDateUK(expiryDate)}</strong><br>
-      (${Math.abs(diffDays)} days ago)
-    `;
-  } else {
-    expiryEl.innerHTML = `
-      Licence expires on <strong>${App.Utils.formatDateUK(expiryDate)}</strong><br>
-      (${diffDays} days remaining)
-    `;
-  }
-
-} else {
-  expiryEl.innerHTML = "No active licence.";
-}
-
-// Explanation text
-if (isExpired && edition === "PLUS") {
-  explainEl.innerHTML = `
-    <strong>Licence expired.</strong><br>
-    Enter a valid HM2 licence code to reactivate HiveMapPlus.
-  `;
-} else if (isProLocal) {
-  explainEl.innerHTML = `
-    <strong>HiveMapPlus</strong> unlocks unlimited apiaries and hives.<br>
-    You also receive priority updates and access to all future Plus features.<br>
-    Your data remains fully local and private.
-  `;
-} else if (edition === "FREE") {
-  explainEl.innerHTML = `
-    <strong>HiveMapFree</strong> is fully functional but limited to one apiary and one hive.<br>
-    Upgrade to <strong>HiveMapPlus</strong> to unlock unlimited apiaries and hives.<br>
-    You also receive priority updates and access to any future Plus features.<br>
-    Your data remains fully local and private.<br>
-    <p><a href="https://cornishhoney.co.uk/email_us.php"
-       target="_blank"
-       class="toolbar-btn"
-       style="text-decoration: none;">
-       Contact Us to Upgrade
-    </a></p>
-  `;
-} else {
-  explainEl.innerHTML = `
-    <strong>No active licence.</strong><br>
-    Enter a valid HM2 licence code to activate HiveMapPlus.
-  `;
-}
-
-  // VERSION SECTION
-  document.getElementById("accountVersion").innerHTML =
-    `Version: <strong>${App.Version}</strong>`;
-
-  // OPEN MODAL
-  overlay.style.zIndex = "900";
-  overlay.style.display = "block";
-  modal.style.display = "block";
+document.getElementById("toolsAccount").addEventListener("click", () => {
+  App.Modals.openAccountModal();
 });
 
 // ------------------------------------------------------------
@@ -223,6 +184,13 @@ document.getElementById("saveHm2Btn").addEventListener("click", async () => {
   window.location.reload();
 });
 
+const expiryBadge = document.getElementById("expiryBadge");
+if (expiryBadge) {
+  expiryBadge.addEventListener("click", () => {
+    App.Modals.openAccountModal();
+  });
+}
+
 // ------------------------------------------------------------
 // REMOVE HM2 LICENCE CODE
 // ------------------------------------------------------------
@@ -233,16 +201,47 @@ document.getElementById("saveHm2Btn").addEventListener("click", async () => {
 //});
 
 // ------------------------------------------------------------
-// CLOSE MODAL
+// CLOSE ACCOUNT MODAL (BLOCK IF NO LICENCE)
 // ------------------------------------------------------------
-document.getElementById("accountModalClose").addEventListener("click", () => {
-  document.getElementById("accountModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-});
+// ------------------------------------------------------------
+// CLOSE ACCOUNT MODAL (BLOCK IF NO LICENCE)
+// ------------------------------------------------------------
+App.Modals.closeAccountModal = function () {
+  const hasLicence = !!localStorage.getItem("hivemap_license_code");
 
-document.getElementById("overlay").addEventListener("click", () => {
+  if (!hasLicence) {
+    App.UI.showToast("Please enter your licence code to continue.");
+    return;
+  }
+
   document.getElementById("accountModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
+};
+
+// ------------------------------------------------------------
+// CLOSE BUTTON
+// ------------------------------------------------------------
+document.getElementById("accountModalClose")
+  .addEventListener("click", App.Modals.closeAccountModal);
+
+// ------------------------------------------------------------
+// OVERLAY CLICK — SINGLE HANDLER ONLY
+// ------------------------------------------------------------
+document.getElementById("overlay").addEventListener("click", (e) => {
+  const accountOpen =
+    document.getElementById("accountModal").style.display === "block";
+
+  if (accountOpen) {
+    // Block ALL other overlay handlers
+    e.stopImmediatePropagation();
+
+    // Run licence-gated close logic
+    App.Modals.closeAccountModal();
+    return;
+  }
+
+  // If account modal is NOT open, allow normal overlay behaviour
+  // (your global modal system will handle this)
 });
 
 // -----------------------------
@@ -366,6 +365,11 @@ document.getElementById("settingsCancelBtn").onclick = () => {
   document.getElementById("settingsModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 };
+// Close Settings modal if overlay is clicked
+document.getElementById("overlay").addEventListener("click", function () {
+  document.getElementById("settingsModal").style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+});
 
 // Save settings
 document.getElementById("settingsSaveBtn").onclick = () => {
@@ -385,6 +389,7 @@ document.getElementById("settingsSaveBtn").onclick = () => {
   if (App.Toolbar && App.Toolbar.refreshCounts) {
     App.Toolbar.refreshCounts();
   }
+  
 };
 
 /* ============================================================

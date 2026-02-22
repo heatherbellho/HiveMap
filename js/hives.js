@@ -8,33 +8,6 @@
 window.App = window.App || {};
 App.Hives = {};
 
-
-// ------------------------------------------------------------
-// Hive box types (static list for dropdown)
-// ------------------------------------------------------------
-App.Hives.boxTypes = [
-  "Standard Deep 11",
-  "Extra Deep 11",
-  "Standard Shallow"
-];
-
-
-// ------------------------------------------------------------
-// Load hive types from storage
-// ------------------------------------------------------------
-App.Hives.getTypes = function () {
-  return Storage.getHiveTypes() || [];
-};
-
-
-// ------------------------------------------------------------
-// Save hive types
-// ------------------------------------------------------------
-App.Hives.saveTypes = function (types) {
-  Storage.saveHiveTypes(types);
-};
-
-
 // ------------------------------------------------------------
 // Populate the hive type <select> in the edit modal
 // ------------------------------------------------------------
@@ -44,7 +17,7 @@ App.Hives.populateTypeSelect = function (selected = "") {
 
   sel.innerHTML = "";
 
-  const types = App.Hives.getTypes();
+const types = Storage.getHiveTypes();
   types.forEach(type => {
     const opt = document.createElement("option");
     opt.value = type;
@@ -53,22 +26,6 @@ App.Hives.populateTypeSelect = function (selected = "") {
     sel.appendChild(opt);
   });
 };
-
-
-// ------------------------------------------------------------
-// Add a new hive type
-// ------------------------------------------------------------
-App.Hives.addType = function () {
-  const newType = prompt("Enter new hive type:");
-  if (!newType) return;
-
-  const types = App.Hives.getTypes();
-  types.push(newType);
-
-  App.Hives.saveTypes(types);
-  App.Hives.populateTypeSelect(newType);
-};
-
 
 // ------------------------------------------------------------
 // Populate the box type dropdown in the hive modal
@@ -79,7 +36,9 @@ App.Hives.populateBoxTypeSelect = function () {
 
   sel.innerHTML = "";
 
-  App.Hives.boxTypes.forEach(type => {
+  const list = Storage.getBoxTypes();   // ⭐ now storage-backed
+
+  list.forEach(type => {
     const opt = document.createElement("option");
     opt.value = type;
     opt.textContent = type;
@@ -87,16 +46,10 @@ App.Hives.populateBoxTypeSelect = function () {
   });
 };
 
-
 // ------------------------------------------------------------
 // Initialise hive system (buttons only)
 // ------------------------------------------------------------
 App.Hives.init = function () {
-  const addHiveTypeBtn = document.getElementById("addHiveTypeBtn");
-  if (addHiveTypeBtn) {
-    addHiveTypeBtn.addEventListener("click", App.Hives.addType);
-  }
-
   // Populate dropdowns on startup
   App.Hives.populateTypeSelect();
   App.Hives.populateBoxTypeSelect();
