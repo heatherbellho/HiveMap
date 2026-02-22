@@ -81,7 +81,16 @@ const titleEl = document.getElementById("modalTitle");
 if (data.status === "archived") {
   titleEl.textContent = "Archived Hive";
 } else {
-  titleEl.textContent = "Edit Hive";
+  titleEl.textContent = "Hive Details";
+}
+const deleteBtn = document.getElementById("deleteArchivedHiveBtn");
+
+// Always reset first
+deleteBtn.style.display = "none";
+
+// Only show delete for archived hives
+if (data.status === "archived") {
+  deleteBtn.style.display = "block";
 }
 
   // Ensure arrays exist
@@ -137,10 +146,6 @@ if (data.status === "archived") {
 
   // Hide Archive + Restore
   if (archiveBtn) archiveBtn.style.display = "none";
-  if (restoreBtn) {
-    restoreBtn.style.display = "none";
-    restoreBtn.onclick = null;
-  }
 
   // Hide all action buttons
   const addInspectionBtn = document.getElementById("addInspectionBtn");
@@ -148,7 +153,6 @@ if (data.status === "archived") {
   const moveHiveBtn = document.getElementById("moveHiveBtn");
   const saveHiveBtn = document.getElementById("saveHiveBtn");
   const cancelHiveBtn = document.getElementById("cancelHiveBtn");
-  const addHiveTypeBtn = document.getElementById("addHiveTypeBtn");
   const addBoxBtn = document.getElementById("addBoxBtn");
   const saveHiveBtnFooter = document.getElementById("saveHiveBtnFooter");
   const cancelHiveBtnFooter = document.getElementById("cancelHiveBtnFooter");
@@ -158,20 +162,102 @@ if (data.status === "archived") {
   if (moveHiveBtn) moveHiveBtn.style.display = "none";
   if (saveHiveBtn) saveHiveBtn.style.display = "none";
   if (cancelHiveBtn) cancelHiveBtn.style.display = "none";
-  if (addHiveTypeBtn) addHiveTypeBtn.style.display = "none";
   if (addBoxBtn) addBoxBtn.style.display = "none";
   if (saveHiveBtnFooter) saveHiveBtnFooter.style.display = "none";
   if (cancelHiveBtnFooter) cancelHiveBtnFooter.style.display = "none";
+
+  // ⭐ Show delete button for archived hives
+    const deleteBtn = document.getElementById("deleteArchivedHive");
+    deleteBtn.style.display = "block";
+
+deleteBtn.onclick = function () {
+
+  // Open confirm delete modal
+  const confirmModal = document.getElementById("confirmDeleteArchivedHiveModal");
+  const overlay = document.getElementById("overlay");
+
+  confirmModal.style.display = "block";
+  overlay.style.display = "block";
+  overlay.style.zIndex = "1150";
+
+  // Wire NO button (cancel)
+  const noBtn = document.getElementById("confirmDeleteArchivedHiveNo");
+  noBtn.onclick = function () {
+    confirmModal.style.display = "none";
+    // Reset overlay back to normal — DO NOT hide it
+    overlay.style.zIndex = "";
+  };
+
+  // Wire YES button (perform delete)
+  const yesBtn = document.getElementById("confirmDeleteArchivedHiveYes");
+  yesBtn.onclick = function () {
+
+    confirmModal.style.display = "none";
+    // Reset overlay back to normal — DO NOT hide it
+    overlay.style.zIndex = "";
+
+    // --- your existing delete logic begins here ---
+
+    const uid = selectedHive?.hiveData?.__uid;
+    const hiveApiary = selectedHive?.__apiaryName;
+
+    if (!uid || !hiveApiary) {
+      console.warn("Cannot delete archived hive — missing UID or apiary name.");
+      return;
+    }
+
+    const originalApiary = Storage.getCurrentApiary();
+
+    // Switch to the hive’s apiary only if needed
+    if (originalApiary !== hiveApiary) {
+      Storage.saveCurrentApiary(hiveApiary);
+      App.Canvas.loadLayout();
+    }
+
+    // Find the real hive object in that apiary
+    const objs = canvas.getObjects();
+    const real = objs.find(o => o.hiveData && o.hiveData.__uid === uid);
+
+    if (!real) {
+      console.warn("Archived hive not found in canvas — aborting delete.");
+
+      // Restore original apiary if needed
+      if (originalApiary !== hiveApiary) {
+        Storage.saveCurrentApiary(originalApiary);
+        App.Canvas.loadLayout();
+      }
+
+      App.Modals.closeHiveModal();
+      App.Modals.openArchivedHivesModal();
+      return;
+    }
+
+    // Remove the hive and persist
+    canvas.remove(real);
+    App.Canvas.saveLayout();
+
+    // Restore original apiary
+    if (originalApiary !== hiveApiary) {
+      Storage.saveCurrentApiary(originalApiary);
+      App.Canvas.loadLayout();
+    }
+
+    // Close modal and refresh archive list
+    App.Modals.closeHiveModal();
+    App.Modals.openArchivedHivesModal();
+
+    if (App.Toolbar && App.Toolbar.refreshCounts) {
+      App.Toolbar.refreshCounts();
+    }
+
+    // --- end of your existing delete logic ---
+  };
+};
 
 } else {
 
   // ACTIVE HIVES → FULL CONTROLS
   if (archiveBtn) archiveBtn.style.display = "inline-block";
-
-  if (restoreBtn) {
-    restoreBtn.style.display = "none";
-    restoreBtn.onclick = null;
-  }
 
   const addInspectionBtn = document.getElementById("addInspectionBtn");
   const addTreatmentBtn = document.getElementById("addTreatmentBtn");
@@ -183,12 +269,19 @@ if (data.status === "archived") {
   if (moveHiveBtn) moveHiveBtn.style.display = "inline-block";
   if (saveHiveBtn) saveHiveBtn.style.display = "inline-block";
 
+  // Restore Cancel buttons for active hives
+const cancelHiveBtn = document.getElementById("cancelHiveBtn");
+const cancelHiveBtnFooter = document.getElementById("cancelHiveBtnFooter");
+
+if (cancelHiveBtn) cancelHiveBtn.style.display = "inline-block";
+if (cancelHiveBtnFooter) cancelHiveBtnFooter.style.display = "inline-block";
+
   // Archive action
   if (archiveBtn) {
 archiveBtn.onclick = function () {
   // Open confirmation modal
   document.getElementById("confirmArchiveHiveModal").style.display = "block";
-
+  
   // Use the same overlay you already use
   const overlay = document.getElementById("overlay");
   overlay.style.display = "block";
@@ -419,6 +512,9 @@ selectedHive._objects[1].set("text", formatEntranceLabel(name, hiveData.entrance
   const color = App.Status.getColor(currentInspection.queenStatus || "");
   selectedHive._objects[0].set("fill", color);
 
+// Ensure coordinates are always saved correctly
+hiveData.x = selectedHive.left;
+hiveData.y = selectedHive.top;
 
   // -----------------------------
   // 3. SAVE + RENDER
@@ -459,9 +555,9 @@ App.Modals.openTreatmentModal = function (index = null) {
 
 App.Modals.saveTreatment = function () {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
 
   if (!selectedHive) return;
 
@@ -485,9 +581,15 @@ App.Modals.saveTreatment = function () {
   }
 
   App.Modals.renderTreatmentList();
+
+  // ⭐ FIX: Preserve hive coordinates so saveLayout doesn't wipe them
+  selectedHive.hiveData.x = selectedHive.left;
+  selectedHive.hiveData.y = selectedHive.top;
+
   App.Canvas.saveLayout();
   App.Modals.closeTreatmentModal();
 };
+
 
 App.Modals.closeTreatmentModal = function () {
   const modal = document.getElementById("treatmentModal");
@@ -584,19 +686,25 @@ App.Modals.renderInspectionHistory = function () {
     const timeStr = ins.time || ""; // already HH:MM
 
     li.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:start; gap:6px;">
-        <div>
-          <strong>${dateStr} ${timeStr}</strong>
-          - Status: ${ins.queenStatus || "N/A"}<br>
-          Notes: ${ins.notes || ""}
-        </div>
-        <button class="inspectionDetailsBtn btn-info" data-index="${originalIndex}">Details</button>
-        <button type="button"
-                class="deleteInspectionBtn small-delete"
-                data-index="${originalIndex}">
-                ×
-        </button>
-      </div>
+  <div style="display:flex; justify-content:space-between; align-items:start; gap:6px; width:100%;">
+    
+    <div>
+      <strong>${dateStr} ${timeStr}</strong>
+      - Status: ${ins.queenStatus || "N/A"}<br>
+      Notes: ${ins.notes || ""}
+    </div>
+
+    <div style="display:flex; gap:6px; margin-left:auto;">
+      <button class="inspectionDetailsBtn btn-info" data-index="${originalIndex}">Details</button>
+      <button type="button"
+              class="deleteInspectionBtn small-delete"
+              data-index="${originalIndex}">
+        ×
+      </button>
+    </div>
+
+  </div>
+
     `;
 
     container.appendChild(li);
@@ -722,12 +830,12 @@ App.Modals.openHiveSizeModal = function () {
     return;
   }
 
-  // ⭐ FREE VERSION LIMIT CHECK — block before modal opens
+  // ⭐ CORE VERSION LIMIT CHECK — block before modal opens
   // Count only ACTIVE hives
   const activeHives = App.Canvas.getAllHives().filter(h => h.hiveData.status !== "archived");
 
   if (activeHives.length >= getLimits().maxHives) {
-    App.UI.showToast("The Free version of HiveMap supports only one active hive.");
+    App.UI.showToast("The Core version of HiveMap supports only one active hive.");
     return;
   }
 
@@ -1008,26 +1116,28 @@ App.Modals.renderInspectionList = function (title, includeFn) {
   // ------------------------------------------------------------
   // EDIT BUTTONS
   // ------------------------------------------------------------
-  tbody.querySelectorAll(".edit-hive-btn").forEach(btn => {
-    btn.addEventListener("click", function () {
+tbody.querySelectorAll(".edit-hive-btn").forEach(btn => {
+  btn.addEventListener("click", function () {
 
-      const uid = this.getAttribute("data-ref");
-      const apiaryName = this.getAttribute("data-apiary");
+    const uid = this.getAttribute("data-ref");
+    const apiaryName = this.getAttribute("data-apiary");
 
-      Storage.saveCurrentApiary(apiaryName);
-      App.Canvas.loadLayout();
+    Storage.saveCurrentApiary(apiaryName);
+    App.Canvas.loadLayout();
 
-      const hiveObj = HiveObjectMap[uid];
+    const hiveObj = HiveObjectMap[uid];
 
-      if (hiveObj) {
-        selectedHive = hiveObj;
-        App.Modals.openHiveModal(hiveObj);
-      }
+    if (hiveObj) {
+      selectedHive = hiveObj;
+      selectedHive.__apiaryName = apiaryName;   // ⭐ remember which apiary this hive belongs to
+      App.Modals.openHiveModal(hiveObj);
+    }
 
-      Storage.saveCurrentApiary(originalApiary);
-      App.Canvas.loadLayout();
-    });
+    Storage.saveCurrentApiary(originalApiary);
+    App.Canvas.loadLayout();
   });
+});
+
 };
 
 // ===============================
@@ -2322,10 +2432,7 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
   const close1 = document.getElementById("closeInspectionHistoryBtn");
   const close2 = document.getElementById("closeInspectionHistoryBtn2");
 
-  const closeFn = function () {
-    document.getElementById("inspectionHistoryModal").style.display = "none";
-    document.getElementById("overlay").style.display = "none";
-  };
+const closeFn = App.Modals.closeInspectionHistory;
 
   if (close1) close1.onclick = closeFn;
   if (close2) close2.onclick = closeFn;
@@ -2337,8 +2444,13 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
 
 App.Modals.closeInspectionHistory = function () {
   document.getElementById("inspectionHistoryModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
+
+  const anyOpen = [...document.querySelectorAll('.modal')]
+    .some(m => window.getComputedStyle(m).display !== "none");
+
+  document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
 };
+
 
 App.Modals.openRenewModal = function () {
   const overlay = document.getElementById("overlay");
@@ -2396,36 +2508,36 @@ App.Modals.openApiaryManager = function (mode = "edit") {
   const textInput = modal.querySelector("#newNoteText");
   const addBtn = modal.querySelector("#addNoteBtn");
 
-  // ⭐ FIX: restore mode flag
   nameInput.dataset.mode = mode;
 
-if (mode === "create") {
+  // ⭐ Correct clean-slate detection
+  const currentApiary = Storage.getCurrentApiary();
+  const hasApiary = !!currentApiary;
 
-    titleEl.textContent = "New Apiary";
+  // ⭐ If no apiary exists, force CREATE mode
+  if (!hasApiary) {
+    mode = "create";
+  }
+
+  if (mode === "create") {
+    titleEl.textContent = "Create Apiary";
     deleteBtn.style.display = "none";
 
-    // ⭐ Blank fields for new apiary
     nameInput.value = "";
     gridInput.value = "";
     addressInput.value = "";
 
-    // ⭐ Clear notes
     notesList.innerHTML = "";
-
-    // ⭐ Default date for new note
     dateInput.value = new Date().toISOString().slice(0, 10);
 
-    // ⭐ Do NOT overwrite current apiary selection here
-}
- else {
-    const apiaryName = Storage.getCurrentApiary();
+  } else {
+    // ⭐ EDIT MODE
+    const apiaryName = currentApiary;
 
-    titleEl.textContent = "Edit Apiary: " + apiaryName;
+    titleEl.textContent = "Apiary Details: " + apiaryName;
     deleteBtn.style.display = "inline-block";
 
     nameInput.value = apiaryName || "";
-
-    // ⭐ Load grid + address correctly (no overwrites)
     gridInput.value = Storage.getApiaryGrid(apiaryName);
     addressInput.value = Storage.getApiaryAddress(apiaryName);
 
@@ -2449,11 +2561,12 @@ if (mode === "create") {
     });
 
     dateInput.value = new Date().toISOString().slice(0, 10);
-}
+  }
 
   modal.style.display = "block";
   overlay.style.display = "block";
 
+  // ⭐ Add note handler (unchanged)
   addBtn.onclick = function () {
     if (editingDisabled()) {
       App.UI.showToast("Editing is disabled because your subscription has expired.");
@@ -2488,10 +2601,10 @@ if (mode === "create") {
       notesList.appendChild(row);
     });
 
-
     textInput.value = "";
   };
 
+  // ⭐ Delete note handler (unchanged)
   notesList.onclick = function (e) {
     if (!e.target.classList.contains("note-delete-btn")) return;
 
@@ -2514,17 +2627,16 @@ if (mode === "create") {
     Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
 
     notesList.innerHTML = "";
-notes.slice().reverse().forEach((n, i) => {
-  const row = document.createElement("div");
-  row.className = "note-row";
-  row.innerHTML = `
-    <span class="note-date">${App.Utils.formatDateUK(n.date)}</span>
-    <span class="note-text">${n.text}</span>
-    <button class="note-delete-btn" data-index="${notes.length - 1 - i}">×</button>
-  `;
-  notesList.appendChild(row);
-});
-
+    notes.slice().reverse().forEach((n, i) => {
+      const row = document.createElement("div");
+      row.className = "note-row";
+      row.innerHTML = `
+        <span class="note-date">${App.Utils.formatDateUK(n.date)}</span>
+        <span class="note-text">${n.text}</span>
+        <button class="note-delete-btn" data-index="${notes.length - 1 - i}">×</button>
+      `;
+      notesList.appendChild(row);
+    });
   };
 };
 
@@ -2538,45 +2650,42 @@ App.Modals.saveApiaryManager = function () {
   const nameInput = document.getElementById("apiaryNameInput");
   const newName = nameInput.value.trim();
 
-  // Use the global mode flag — the ONLY reliable source
   const mode = App.Modals.apiaryManagerMode;   // "create" or "edit"
-
-  // Only load oldName when renaming
   const oldName = (mode === "edit") ? Storage.getCurrentApiary() : null;
 
-  // Prevent empty name
   if (!newName) {
     App.UI.showToast("Please enter a name for the apiary.");
     return;
   }
 
-  // Get current list once
   let all = Storage.getAllApiaries();
-
-  // Explicit rename flag — ONLY true in edit mode
   const isRename = (mode === "edit");
 
+  // CORE EDITION LIMIT: only 1 apiary allowed
+if (mode === "create") {
+  const all = Storage.getAllApiaries();
+  if (all.length >= getLimits().maxApiaries) {
+    App.UI.showToast("The Core version of HiveMap supports only one apiary.");
+    return;
+  }
+}
+
   // -------------------------
-  // HANDLE RENAME (MIGRATE NOTES + LAYOUT)
+  // HANDLE RENAME
   // -------------------------
   if (isRename) {
-
-    // migrate notes
     const oldNotes = Storage.getApiaryNotes(oldName);
     Storage.saveApiaryNotes(newName, oldNotes || "[]");
 
-    // migrate layout
     const oldLayout = Storage.getHiveLayout(oldName);
     if (oldLayout) {
       Storage.saveHiveLayout(newName, oldLayout);
     }
 
-    // update apiary list
     all = all.filter(a => a !== oldName);
     all.push(newName);
     Storage.saveAllApiaries(all);
 
-    // clean old keys
     localStorage.removeItem("apiaryNotes_" + oldName);
     localStorage.removeItem("hiveLayout_" + oldName);
     localStorage.removeItem("apiaryGrid_" + oldName);
@@ -2586,7 +2695,7 @@ App.Modals.saveApiaryManager = function () {
   const apiaryName = newName;
 
   // -------------------------
-  // SAVE STRUCTURED NOTES (NO OVERWRITE)
+  // SAVE NOTES
   // -------------------------
   let notes = [];
   try {
@@ -2605,7 +2714,6 @@ App.Modals.saveApiaryManager = function () {
     all.push(apiaryName);
     Storage.saveAllApiaries(all);
 
-    // Create empty layout for new apiary
     Storage.saveHiveLayout(apiaryName, JSON.stringify({ objects: [] }));
   }
 
@@ -2619,9 +2727,14 @@ App.Modals.saveApiaryManager = function () {
   Storage.saveApiaryAddress(apiaryName, addressInput.value.trim());
 
   // -------------------------
+  // ⭐ CRITICAL FIX
+  // Guarantee the current apiary is set for hive creation
+  // -------------------------
+Storage.saveCurrentApiary(apiaryName);
+
+  // -------------------------
   // FINALISE
   // -------------------------
-  Storage.saveCurrentApiary(apiaryName);
   App.Apiaries.updateSelector();
   App.Canvas.loadLayout();
   App.Modals.closeApiaryManager();
@@ -2657,6 +2770,468 @@ App.Modals.closeApiaryManager = function () {
 
 App.Modals.apiaryManagerMode = "edit"; // "edit" or "create"
 
+// ------------------------------------------------------------
+// Box Types Manager — OPEN
+// ------------------------------------------------------------
+App.Modals.openBoxTypesManager = function () {
+  const modal = document.getElementById("boxTypesModal");
+  const overlay = document.getElementById("overlay");
+
+  if (!modal || !overlay) return;
+App.Modals.renderBoxTypesList();
+  modal.style.display = "block";
+  overlay.style.display = "block";
+
+  // No rendering yet — that comes in later steps
+};
+
+
+// ------------------------------------------------------------
+// Box Types Manager — CLOSE
+// ------------------------------------------------------------
+App.Modals.closeBoxTypesManager = function () {
+  const modal = document.getElementById("boxTypesModal");
+  const overlay = document.getElementById("overlay");
+
+  if (!modal || !overlay) return;
+
+  modal.style.display = "none";
+
+  // Maintain correct overlay behaviour
+  const anyOpen = [...document.querySelectorAll('.modal')]
+    .some(m => window.getComputedStyle(m).display !== "none");
+
+  overlay.style.display = anyOpen ? "block" : "none";
+};
+
+// ------------------------------------------------------------
+// Render Box Types list (with rename + delete)
+// ------------------------------------------------------------
+App.Modals.renderBoxTypesList = function () {
+  const container = document.getElementById("boxTypesList");
+  if (!container) return;
+
+  const list = Storage.getBoxTypes();
+
+  container.innerHTML = list
+    .map((type, index) => `
+      <div class="box-type-row">
+        <input 
+          type="text" 
+          class="box-type-input" 
+          data-index="${index}" 
+          value="${type}"
+          disabled
+        >
+
+        <button class="rename-box-type btn-primary" data-index="${index}">Rename</button>
+        <button class="save-box-type btn-save" data-index="${index}" style="display:none;">Save</button>
+        <button class="cancel-box-type btn-cancel" data-index="${index}" style="display:none;">Cancel</button>
+
+        <button class="delete-box-type btn-danger" data-index="${index}">Delete</button>
+      </div>
+    `)
+    .join("");
+
+  // DELETE
+  container.querySelectorAll(".delete-box-type").forEach(btn => {
+    btn.onclick = function () {
+      const idx = Number(this.dataset.index);
+      App.Modals.deleteBoxType(idx);
+    };
+  });
+
+  // RENAME (enter rename mode)
+  container.querySelectorAll(".rename-box-type").forEach(btn => {
+    btn.onclick = function () {
+      const idx = Number(this.dataset.index);
+      const row = this.closest(".box-type-row");
+      const input = row.querySelector(".box-type-input");
+      const saveBtn = row.querySelector(".save-box-type");
+      const cancelBtn = row.querySelector(".cancel-box-type");
+
+      input.disabled = false;
+      input.dataset.original = input.value;
+      input.focus();
+
+      this.style.display = "none";
+      saveBtn.style.display = "inline-block";
+      cancelBtn.style.display = "inline-block";
+    };
+  });
+
+  // SAVE rename
+  container.querySelectorAll(".save-box-type").forEach(btn => {
+    btn.onclick = function () {
+      const idx = Number(this.dataset.index);
+      const row = this.closest(".box-type-row");
+      const input = row.querySelector(".box-type-input");
+      const renameBtn = row.querySelector(".rename-box-type");
+      const cancelBtn = row.querySelector(".cancel-box-type");
+
+      const newValue = input.value.trim();
+      const oldValue = input.dataset.original;
+
+      if (newValue && newValue !== oldValue) {
+        App.Modals.renameBoxType(idx, newValue);
+      } else {
+        input.value = oldValue;
+      }
+
+      input.disabled = true;
+      renameBtn.style.display = "inline-block";
+      this.style.display = "none";
+      cancelBtn.style.display = "none";
+    };
+  });
+
+  // CANCEL rename
+  container.querySelectorAll(".cancel-box-type").forEach(btn => {
+    btn.onclick = function () {
+      const row = this.closest(".box-type-row");
+      const input = row.querySelector(".box-type-input");
+      const renameBtn = row.querySelector(".rename-box-type");
+      const saveBtn = row.querySelector(".save-box-type");
+
+      input.value = input.dataset.original;
+      input.disabled = true;
+
+      renameBtn.style.display = "inline-block";
+      saveBtn.style.display = "none";
+      this.style.display = "none";
+    };
+  });
+
+  // KEYBOARD support
+  container.querySelectorAll(".box-type-input").forEach(input => {
+    input.onkeydown = function (e) {
+      const row = this.closest(".box-type-row");
+      const saveBtn = row.querySelector(".save-box-type");
+      const cancelBtn = row.querySelector(".cancel-box-type");
+
+      if (e.key === "Enter") saveBtn.onclick();
+      if (e.key === "Escape") cancelBtn.onclick();
+    };
+  });
+};
+
+// ------------------------------------------------------------
+// Delete a box type
+// ------------------------------------------------------------
+App.Modals.deleteBoxType = function (index) {
+  const list = Storage.getBoxTypes();
+
+  // Remove the selected item
+  list.splice(index, 1);
+
+  Storage.saveBoxTypes(list);
+
+  // Re-render list
+  App.Modals.renderBoxTypesList();
+  App.Hives.populateBoxTypeSelect();
+};
+
+// ------------------------------------------------------------
+// Rename a box type
+// ------------------------------------------------------------
+App.Modals.renameBoxType = function (index, newValue) {
+  if (!newValue) return; // ignore empty names
+
+  const list = Storage.getBoxTypes();
+  list[index] = newValue;
+
+  Storage.saveBoxTypes(list);
+
+  // Re-render list
+  App.Modals.renderBoxTypesList();
+  App.Hives.populateBoxTypeSelect();
+};
+
+// ------------------------------------------------------------
+// Add a new box type
+// ------------------------------------------------------------
+App.Modals.addBoxType = function () {
+  const input = document.getElementById("newBoxTypeInput");
+  if (!input) return;
+
+  const value = input.value.trim();
+  if (!value) return; // ignore empty
+
+  const list = Storage.getBoxTypes();
+  list.push(value);
+
+  Storage.saveBoxTypes(list);
+
+  input.value = ""; // clear input
+  App.Modals.renderBoxTypesList(); // refresh list
+  App.Hives.populateBoxTypeSelect();
+};
+
+// Hive Types
+App.Modals.renderHiveTypesList = function () {
+  const container = document.getElementById("hiveTypesList");
+  if (!container) return;
+
+  const list = Storage.getHiveTypes();
+
+  container.innerHTML = list
+    .map((type, index) => `
+      <div class="hive-type-row">
+        <input 
+          type="text" 
+          class="hive-type-input" 
+          data-index="${index}" 
+          value="${type}"
+          disabled
+        >
+
+        <button class="rename-hive-type btn-primary" data-index="${index}">Rename</button>
+        <button class="save-hive-type btn-save" data-index="${index}" style="display:none;">Save</button>
+        <button class="cancel-hive-type btn-cancel" data-index="${index}" style="display:none;">Cancel</button>
+
+        <button class="delete-hive-type btn-danger" data-index="${index}">Delete</button>
+      </div>
+    `)
+    .join("");
+
+  // DELETE
+  container.querySelectorAll(".delete-hive-type").forEach(btn => {
+    btn.onclick = function () {
+      const idx = Number(this.dataset.index);
+      App.Modals.deleteHiveType(idx);
+    };
+  });
+
+  // RENAME (enter rename mode)
+  container.querySelectorAll(".rename-hive-type").forEach(btn => {
+    btn.onclick = function () {
+      const row = this.closest(".hive-type-row");
+      const input = row.querySelector(".hive-type-input");
+      const saveBtn = row.querySelector(".save-hive-type");
+      const cancelBtn = row.querySelector(".cancel-hive-type");
+
+      input.disabled = false;
+      input.dataset.original = input.value;
+      input.focus();
+
+      this.style.display = "none";
+      saveBtn.style.display = "inline-block";
+      cancelBtn.style.display = "inline-block";
+    };
+  });
+
+  // SAVE rename
+  container.querySelectorAll(".save-hive-type").forEach(btn => {
+    btn.onclick = function () {
+      const idx = Number(this.dataset.index);
+      const row = this.closest(".hive-type-row");
+      const input = row.querySelector(".hive-type-input");
+      const renameBtn = row.querySelector(".rename-hive-type");
+      const cancelBtn = row.querySelector(".cancel-hive-type");
+
+      const newValue = input.value.trim();
+      const oldValue = input.dataset.original;
+
+      if (newValue && newValue !== oldValue) {
+        App.Modals.renameHiveType(idx, newValue);
+      } else {
+        input.value = oldValue;
+      }
+
+      input.disabled = true;
+      renameBtn.style.display = "inline-block";
+      this.style.display = "none";
+      cancelBtn.style.display = "none";
+    };
+  });
+
+  // CANCEL rename
+  container.querySelectorAll(".cancel-hive-type").forEach(btn => {
+    btn.onclick = function () {
+      const row = this.closest(".hive-type-row");
+      const input = row.querySelector(".hive-type-input");
+      const renameBtn = row.querySelector(".rename-hive-type");
+      const saveBtn = row.querySelector(".save-hive-type");
+
+      input.value = input.dataset.original;
+      input.disabled = true;
+
+      renameBtn.style.display = "inline-block";
+      saveBtn.style.display = "none";
+      this.style.display = "none";
+    };
+  });
+
+  // KEYBOARD support
+  container.querySelectorAll(".hive-type-input").forEach(input => {
+    input.onkeydown = function (e) {
+      const row = this.closest(".hive-type-row");
+      const saveBtn = row.querySelector(".save-hive-type");
+      const cancelBtn = row.querySelector(".cancel-hive-type");
+
+      if (e.key === "Enter") saveBtn.onclick();
+      if (e.key === "Escape") cancelBtn.onclick();
+    };
+  });
+};
+
+App.Modals.renameHiveType = function (index, newName) {
+  const list = Storage.getHiveTypes();
+  list[index] = newName;
+
+  Storage.saveHiveTypes(list);
+
+  App.Modals.renderHiveTypesList();
+  App.Hives.populateTypeSelect(newName);
+};
+
+
+App.Modals.addHiveType = function () {
+  const input = document.getElementById("newHiveTypeInput");
+  if (!input) return;
+
+  const name = input.value.trim();
+  if (!name) return;
+
+  const list = Storage.getHiveTypes();
+  list.push(name);
+
+  Storage.saveHiveTypes(list);
+
+  input.value = "";
+  App.Modals.renderHiveTypesList();
+  App.Hives.populateTypeSelect(name);
+};
+
+App.Modals.deleteHiveType = function (index) {
+  const list = Storage.getHiveTypes();
+  list.splice(index, 1);
+
+  Storage.saveHiveTypes(list);
+
+  App.Modals.renderHiveTypesList();
+  App.Hives.populateTypeSelect();
+};
+
+
+App.Modals.openAccountModal = function () {
+  closeAllMenus();
+
+  const modal = document.getElementById("accountModal");
+  const overlay = document.getElementById("overlay");
+
+  // ------------------------------------------------------------
+  // HM2 LICENSING (duration-based, stacking)
+  // ------------------------------------------------------------
+
+  const hm2Code = localStorage.getItem("hivemap_license_code") || "";
+  const editionEl = document.getElementById("accountEditionStatus");
+  const expiryEl  = document.getElementById("accountExpiryStatus");
+  const explainEl = document.getElementById("accountEditionExplanation");
+  const inputEl   = document.getElementById("hm2Input");
+
+  inputEl.value = "";
+  inputEl.placeholder = hm2Code ? "Key saved (enter new to replace)" : "";
+
+  let edition = localStorage.getItem("hivemap_license_edition") || "NONE";
+  let expiryStr = localStorage.getItem("hivemap_license_expiry") || null;
+
+  let expiryDate = expiryStr ? new Date(expiryStr) : null;
+  let isExpired = false;
+  let isProLocal = false;
+
+  if (expiryDate instanceof Date && !isNaN(expiryDate)) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    isExpired = expiryDate < today;
+    isProLocal = edition === "PLUS" && !isExpired;
+  }
+
+  // Update Edition display
+  editionEl.innerHTML = `Edition: <strong>${edition}</strong>`;
+
+  // Update Expiry display
+  if (expiryDate && !isNaN(expiryDate)) {
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+
+    if (isExpired) {
+      expiryEl.innerHTML = `
+        Licence expired on <strong>${App.Utils.formatDateUK(expiryDate)}</strong><br>
+        (${Math.abs(diffDays)} days ago)
+      `;
+    } else {
+      expiryEl.innerHTML = `
+        Licence expires on <strong>${App.Utils.formatDateUK(expiryDate)}</strong><br>
+        (${diffDays} days remaining)
+      `;
+    }
+
+  } else {
+    expiryEl.innerHTML = "No active licence.";
+  }
+
+  // Explanation text
+  if (isExpired && edition === "PLUS") {
+    explainEl.innerHTML = `
+      <strong>Licence expired.</strong><br>
+      Enter a valid HM2 licence code to reactivate HiveMapPlus.
+    `;
+  } else if (isProLocal) {
+    explainEl.innerHTML = `
+      <strong>HiveMap Plus</strong> unlocks unlimited apiaries and hives.<br>
+      You also receive priority updates and access to all future Plus features.<br>
+      Your data remains fully local and private.
+    `;
+  } else if (edition === "CORE") {
+    explainEl.innerHTML = `
+      <strong>HiveMap Core</strong> is fully functional but limited to one apiary and one hive.<br>
+      Upgrade to <strong>HiveMap Plus</strong> to unlock unlimited apiaries and hives.<br>
+      You also receive priority updates and access to any future Plus features.<br>
+      Your data remains fully local and private.<br>
+      <p><a href="https://cornishhoney.co.uk/email_us.php"
+         target="_blank"
+         class="toolbar-btn"
+         style="text-decoration: none;">
+         Contact Us to Upgrade
+      </a></p>
+    `;
+  } else {
+    explainEl.innerHTML = `
+      <strong>No active licence.</strong><br>
+      Enter a valid HM2 licence code to activate HiveMapPlus.
+    `;
+  }
+
+  // VERSION SECTION
+  document.getElementById("accountVersion").innerHTML =
+    `Version: <strong>${App.Version}</strong>`;
+
+  // OPEN MODAL
+  overlay.style.zIndex = "900";
+  overlay.style.display = "block";
+  modal.style.display = "block";
+};
+
+App.Modals.openConfirmDeleteHives = function (count, onConfirm) {
+  confirmDeleteHivesCallback = onConfirm;
+
+  // Update message
+  confirmDeleteHiveMessage.textContent =
+    `Delete ${count} selected hive(s)? This cannot be undone.`;
+
+  // Show modal + overlay
+  confirmDeleteHiveModal.style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+};
+
+App.Modals.closeConfirmDeleteHives = function () {
+  confirmDeleteHiveModal.style.display = "none";
+  document.getElementById("overlay").style.display = "none";
+};
 
 // ------------------------------------------------------------
 // Initialise modal system
@@ -2667,6 +3242,30 @@ App.Modals.init = function () {
   // Overlay (shared by all modals)
   // ------------------------------------------------------------
   const overlay = document.getElementById("overlay");
+
+  confirmDeleteHiveModal      = document.getElementById("confirmDeleteHiveModal");
+  confirmDeleteHiveMessage    = document.getElementById("confirmDeleteHiveMessage");
+  confirmDeleteHiveYesBtn     = document.getElementById("confirmDeleteHiveYesBtn");
+  confirmDeleteHiveCancelBtn  = document.getElementById("confirmDeleteHiveCancelBtn");
+
+  // YES button
+  confirmDeleteHiveYesBtn.addEventListener("click", function () {
+    App.Modals.closeConfirmDeleteHives();
+
+    if (typeof confirmDeleteHivesCallback === "function") {
+      confirmDeleteHivesCallback();
+      confirmDeleteHivesCallback = null;
+    }
+  });
+
+  // CANCEL button
+  confirmDeleteHiveCancelBtn.addEventListener("click", function () {
+    App.Modals.closeConfirmDeleteHives();
+    confirmDeleteHivesCallback = null;
+  });
+
+
+App.Modals.renderHiveTypesList();
 
 document.getElementById("confirmDeleteApiaryCancelBtn")
   .addEventListener("click", function () {
@@ -2741,7 +3340,7 @@ document.getElementById("confirmArchiveHiveYesBtn")
 
     App.Canvas.saveLayout();
     App.Canvas.requestRender();
-
+    App.Toolbar.refreshCounts();
     // Close confirmation modal
     document.getElementById("confirmArchiveHiveModal").style.display = "none";
 
@@ -2874,7 +3473,6 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   document.getElementById("closeInspectionHistoryBtn2").addEventListener("click", App.Modals.closeInspectionHistory);
    if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionHistory);
 
-
   document.getElementById("saveTreatmentBtn").onclick = App.Modals.saveTreatment;
 document.getElementById("cancelTreatmentBtn").onclick = App.Modals.closeTreatmentModal;
 document.getElementById("treatmentModalCloseBtn").onclick = App.Modals.closeTreatmentModal;
@@ -2909,6 +3507,14 @@ document.getElementById("apiaryManagerNewBtn")
 document.getElementById("apiaryManagerPrintBtn")
   .addEventListener("click", App.Canvas.print);
 
-
+const closeBtn = document.getElementById("closeBoxTypesBtn");
+if (closeBtn) {
+  closeBtn.onclick = App.Modals.closeBoxTypesManager;
+}
+if (overlay) overlay.addEventListener("click", App.Modals.closeBoxTypesManager);
+const addBoxTypeBtn = document.getElementById("addBoxTypeBtn");
+if (addBoxTypeBtn) {
+  addBoxTypeBtn.onclick = App.Modals.addBoxType;
+}
 };
 

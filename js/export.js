@@ -45,19 +45,20 @@ App.Export.exportAllData = function () {
     return;
   }
 
-const exportObj = {
-  version: 2,
-  apiaries: {},
-  settings: {
-    hiveTypes: Storage.getHiveTypes(),
-    queenStatuses: Storage.getQueenStatuses(),
-    zoom: 1,
-    snap: true,
-    hiveCountSettings: Storage.getHiveCountSettings()   // ⭐ ADD THIS
-  },
-  media: { images: {} },
-  lastUsed: Storage.getCurrentApiary() || ""
-};
+  const exportObj = {
+    version: 2,
+    apiaries: {},
+    settings: {
+      hiveTypes: Storage.getHiveTypes(),
+      queenStatuses: Storage.getQueenStatuses(),
+      zoom: 1,
+      snap: true,
+      hiveCountSettings: Storage.getHiveCountSettings(),
+      boxTypes: Storage.getBoxTypes()
+    },
+    media: { images: {} },
+    lastUsed: Storage.getCurrentApiary() || ""
+  };
 
   allApiaries.forEach(apiary => {
     const layoutJSON = Storage.getHiveLayout(apiary);
@@ -131,6 +132,10 @@ App.Export.importLayout = function (event) {
         App.Status.renderLegend();
       }
 
+      if (loaded.hiveTypes) {
+        Storage.saveHiveTypes(loaded.hiveTypes);
+      }
+
       if (loaded.apiaryNote) {
         Storage.saveApiaryNote(importedName, loaded.apiaryNote);
       }
@@ -177,7 +182,7 @@ App.Export.importAllData = function (event) {
         return;
       }
 
-      // ⭐ Enforce free-version limits (unchanged)
+      // ⭐ Enforce core-version limits (unchanged)
       if (!isPro) {
         const names = Object.keys(loaded.apiaries);
         const firstName = names[0];
@@ -205,7 +210,13 @@ App.Export.importAllData = function (event) {
 
       // ⭐ Remove ONLY HiveMap keys — keep licence intact
       Object.keys(localStorage).forEach(key => {
-        if (key === "hivemap_license_code") return;
+if (
+  key === "hivemap_license_code" ||
+  key === "hivemap_license_edition" ||
+  key === "hivemap_license_expiry"
+) {
+  return;
+}
         localStorage.removeItem(key);
       });
 
@@ -221,16 +232,31 @@ App.Export.importAllData = function (event) {
       Storage.saveAllApiaries(apiaryNames);
       Storage.saveCurrentApiary(loaded.lastUsed || apiaryNames[0] || "Default");
 
-      // Restore settings
+      // ⭐ Restore settings (FIXED)
       if (loaded.settings) {
-        Storage.saveHiveTypes(loaded.settings.hiveTypes || []);
-        Storage.saveQueenStatuses(loaded.settings.queenStatuses || []);
 
+        // Hive Types
+        if (Array.isArray(loaded.settings.hiveTypes)) {
+          Storage.saveHiveTypes(loaded.settings.hiveTypes);
+        } else {
+          Storage.saveHiveTypes(["N/A"]);
+        }
+
+        // Queen Statuses
+        if (Array.isArray(loaded.settings.queenStatuses)) {
+          Storage.saveQueenStatuses(loaded.settings.queenStatuses);
+        }
+
+        // Hive Count Settings
         if (loaded.settings.hiveCountSettings) {
           Storage.saveHiveCountSettings(loaded.settings.hiveCountSettings);
         }
-      }
 
+        // Box Types
+        if (loaded.settings.boxTypes) {
+          Storage.saveBoxTypes(loaded.settings.boxTypes);
+        }
+      }
 
       App.UI.showToast(`Imported ${apiaryNames.length} apiaries successfully.`);
 

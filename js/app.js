@@ -81,37 +81,37 @@ function startLicenseCheck(hm2Code) {
     const statusEl = document.getElementById("licenseStatus");
     if (statusEl) statusEl.textContent = isPro ? "Plus" : "Unlicensed";
 
-    // ⭐ EXPIRY WARNING — EXACT SAME LOGIC AS ACCOUNT MODAL
-    const expiryStr = localStorage.getItem("hivemap_license_expiry");
+// ⭐ EXPIRY WARNING — TOOLBAR BADGE (replaces toast)
+const expiryStr = localStorage.getItem("hivemap_license_expiry");
 
-    if (expiryStr) {
-      const expiryDate = new Date(expiryStr);
+if (expiryStr) {
+  const expiryDate = new Date(expiryStr);
 
-      if (!isNaN(expiryDate)) {
-        const today = new Date();
-        today.setHours(0,0,0,0);
+  if (!isNaN(expiryDate)) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-        const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+    const diffDays = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
 
-        if (diffDays > 0 && diffDays <= 7) {
-          const msg = `Your HiveMap Plus subscription expires in ${diffDays} day${diffDays === 1 ? "" : "s"}.`;
-          const toast = document.getElementById("expiryToast");
-          const msgEl = document.getElementById("expiryToastMessage");
+    if (diffDays > 0 && diffDays <= 7) {
+      const badge = document.getElementById("expiryBadge");
+      if (badge) {
+        badge.classList.add("expiring");
 
-if (toast && msgEl) {
-  msgEl.innerHTML = `
-    ${msg}<br>
-    <a id="expiryToastLink" class="toast-link" style="color:#fff; text-decoration:underline; cursor:pointer;">
-      See your Account & License
-    </a>
-  `;
+        // Colour scale
+        if (diffDays <= 1) badge.style.background = "#f76969";     // red
+        else if (diffDays <= 3) badge.style.background = "#ff8800"; // orange
+        else badge.style.background = "#ffcc00";                    // yellow
 
-  toast.classList.add("show");
-}
-
-        }
+ //     badge.setAttribute(
+//        "data-tooltip",
+  //      `Licence expires in ${diffDays} day${diffDays === 1 ? "" : "s"}`
+  //    );
       }
     }
+  }
+}
+
   });
 }
 
@@ -188,13 +188,13 @@ App.init = function () {
   }
 
   document.getElementById("appVersion").textContent =
-    `HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
+    `HiveMap ${isPro ? "Plus" : "Core"} - ${App.Version}`;
 
-  document.title = `HiveMap${isPro ? "Plus" : "Free"} - ${App.Version}`;
+  document.title = `HiveMap ${isPro ? "Plus" : "Core"} - ${App.Version}`;
 
   const statusEl = document.getElementById("licenseStatus");
   if (statusEl) {
-    statusEl.textContent = isPro ? "Plus" : "Free";
+    statusEl.textContent = isPro ? "Plus" : "Core";
   }
 };
 

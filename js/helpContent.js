@@ -8,25 +8,21 @@ window.HELP_SECTIONS = [
     id: "help-hivemap",
     title: "About HiveMap",
     html: `
-      <h3 id="help-hivemap">About HiveMap</h3>
+      <h2 id="help-hivemap">About HiveMap</h2>
 
       <p>Maintaining good records is a must for good colony management and a valuable learning tool. Keeping records of veterinary treatments is also a legal requirement in many countries.</p>
 
       <p>Over many years as professional bee farmers we have trialled numerous systems and commercial products but never found something that worked for us. It can be a challenge to find a system that truly fits the practicalities of beekeeping.<br>
-      Paper record sheets kept with hives still have their uses. Spreadsheets work for data entry and display but have their limitations as a visual tool. So we created the first simple iteration of HiveMap to help us manage our own apiaries and hives ussing a simple, visual way to organise our hives and keep track of inspections and notes.</p>
-
-      <p>HiveMap is a browser-based tool for organising and managing apiaries, beehives and records. It is designed to be simple and intuitive to use, with a focus on visual organisation and easy access to hive information.</p>
+      Paper record sheets kept with hives still have their uses. Spreadsheets work for data entry and display but have their limitations as a visual tool. So we created HiveMap to help us manage our own apiaries and hives to give a simple, visual way to see important data at-a-glance.</p>
 
       <p>Everything you create is stored locally on your device so your data stays private and loads instantly but everything can also be exported as a single backup file to import and use on other devices.</p>
 
-      <p><strong>HiveMap Free</strong> edition is limited to 1 apiary and 1 hive but is fully functional.<br>
+      <p><strong>HiveMap Core</strong> edition is limited to 1 apiary and 1 hive but is fully functional.<br>
       <strong>HiveMap Plus</strong> edition supports unlimited apiaries and hives.</p>
-
-      <p>Both editions require a licence code to activate. When your licence expires, you will need to renew or enter a new valid code to continue using HiveMap.</p>
 
       <p>Development is ongoing, with updates and new features that make it a work in progress.</p>
 
-      <p>HiveMapFree and HiveMapPlus are &copy; products of 
+      <p>HiveMap Core and HiveMap Plus are &copy; products of 
       <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a>.
       <br>
       For support, feedback, or to suggest new features, please 
@@ -41,12 +37,15 @@ window.HELP_SECTIONS = [
     id: "help-overview",
     title: "Overview",
     html: `
-      <h4 id="help-overview">Overview</h4>
+      <h2 id="help-overview">Overview</h2>
+
       <p>HiveMap is divided into two main sections, the Toolbar and Field View.</p>
       <p>The Toolbar is at the top of the screen and contains buttons and menus for managing apiaries, hives, and other features.<br>
-      Clicking buttons or selecting menu items here will open panels on the screen to enter, edit or view data.</p>
+      Pressing buttons or menu items here will open panels on the screen to enter, edit or view data as well as giving access to other tools and features.</p>
 
       <p>The Field View is the main visual area. Think of it as an aerial view of your apiary where you can position and organise your hives visually as they are in the real apiary. It also gives you an immediate overview of hive details and colony status.</p>
+      
+      <p>How panels are displayed will depend on the size of the screen on your device and whether it is viewed as portrait or landscape. Some panels will be displaying a lot of data, sometimes with multiple sections or tables, so they are designed to be scrollable but some are best viewed in landscape mode or on larger devices.</p>
       
       <hr>
     `
@@ -56,104 +55,187 @@ window.HELP_SECTIONS = [
     id: "help-quick",
     title: "Quick Start",
     html: `
-      <h3 id="help-quick">Quick Start</h3>
+      <h2 id="help-quick">Quick Start</h2>
 
       <p>You will have received an e-mail from us with a link to HiveMap and/or a license code.<br>
-       HiveMap will open in your browser and you'll be prompted to enter your license code. Once entered, you can start using HiveMap.<br>
-       You can check the status of your license in the <b>Tools</b> menu - <b>License</b>.</p>
-       <ul>
-       <li>Create an apiary: click <b>Apiary</b> button - a panel will open to set up the apiary - click <b>New Apiary</b> button.<br>
-       Enter <b>Apiary Name</b> and optional <b>Grid Location</b> and <b>Address</b>.<br>
-       Multiple dated <b>Notes</b> can be added <b>[+]</b> at any time and they will be stored here.<br>
-       The Apiary Name and other data can be edited at any time using the <b>Apiary</b> button.</li>
+      HiveMap will open in your browser and you'll be prompted to enter your license code. Once entered and saved, you can start using HiveMap.<br>
+      When your licence expires, you will need to renew with a new valid code to continue using HiveMap.<br>
+      Renewal can be done at any time and the new license period will be added to any period you have remaining.<br>
+      You can check the status of your license at any time in the toolbar <b>Tools</b> menu - select <b>License</b>.
+      <br>
+      A reminder will show next to the HiveMap logo in the toolbar when you have less than 7 days until expiry.</p>
 
-      <li>Add a hive: first use <b>Select Apiary</b> to choose the apiary where the hive will be added - click <b>Hives</b> menu - click <b>New Hive</b> - a panel will open to set up the hive.<br>
-      Choose a <b>Tile Size</b> or enter a Custom size. This determines the size of the hive as shown in the Field View.<br>
-      Enter a <b>Hive Name/Number</b>. Keep it short and meaningful, it will be shown on the hive in Field View.<br>
-      Choose an <b>Entrance Direction</b>. This is used to help you orient the hive in the Field View and can be changed later if needed. It will be shown simply on the hive in the Field View as <b><</b> or <b>></b>.<br>
-      Click <b>Save</b> and the hive will be immediately shown in the Field View.<br>
-      Hover your cursor over a hive to see a pop-up panel with basic hive details.<br>
-      Position a hive in the Field View in 2 ways. Click the hive and a 'handle' will appear. Click and hold the mouse button this to rotate the hive around its center to match its real position. Click and hold the mouse button to drag the hive to match its real position.</li>
+      <h3>Create an apiary</h3>
 
-      <li>
-      </li>
+      Press the <b>Apiary</b> button in the toolbar - a panel will open to set up the apiary.<br>
+      <p>For your first apiary, it will open in 'create' mode showing <b>Create Apiary</b> - otherwise press the <b>Create Apiary</b> button to open 'create' mode.</p>
 
-      <li>Double click the hive and a panel will open to enter or edit the hive details.<br>
-      This can also be accessed by clicking the Apiary: or Total: counts in the toolbar that shows a list of all hives.<br>
-      Then click View in the list to open the same Edit Hive panel.</li>
+      <p>Enter <b>Apiary Name</b> and optional <b>Grid Location</b> and <b>Address</b>.</p>
 
-    
+      <p>Multiple dated <b>Notes</b> can be added <b>[+]</b> at any time and they will be stored here.</p>
 
-      Set the Next Inspection Date.
+      <p>This data can be edited at any time using the <b>Apiary</b> button.</p>
 
-      Watch the inspection alert icon for reminders.
+      <h3>Create a hive</h3>
 
-      Use Tools → Export Data occasionally to back up your records.
+      <p>First use <b>Select Apiary</b> in the toolbar to choose the apiary where the hive will be added.<br>
+      Then press the <b>Hives</b> menu in the toolbar and select <b>Create Hive</b> - a panel will open to set up the hive.</p>
+
+      <p>Choose a <b>Tile Size</b> or enter a Custom size. This determines the size of the hive as shown in the Field View.</p>
+
+      <p>Enter a <b>Hive ID</b>. Keep it short and meaningful, it will be shown on the hive in Field View.<br>
+      A new ID number will be auto suggested and a list of existing hive IDs will be shown to help avoid duplicates.</p>
+
+      <p>Choose an <b>Entrance Direction</b>. This is used to help you orient the hive in the Field View and can be changed later if needed.<br>
+      It will be shown simply on the hive in the Field View as <b><</b> or <b>></b>.<br>
+      Press <b>Save</b> and the hive will be immediately shown in the Field View.</p>
+
+      <p>Hover over or press a hive will instantlyreveal a pop-up with basic hive details.</p>
+
+      <p>Position a hive in the Field View in 2 ways. Press the hive and a 'handle' will appear. Press and hold the handle and drag it to rotate the hive around its centre to match its real position. Press and hold the hive and drag it to match its real position.</p>
+
+      <h3>Edit hive details and add a colony inspection.</h3>
+
+      <p>Press twice quickly on the hive in the Field View and a panel will open to enter, edit and view more in-depth hive details.<br>
+      This can also be accessed by pressing the <b>Apiary Hives:</b> or <b>Total Hives:</b> counts in the toolbar that will show a list of all hives.<br>
+      Then press <b>View</b> in the list to open the same <b>Hive Details</b> panel.<br>
+      This will show 'hive level' data and actions explained in the next section.</p>    
 
       <hr>
     `
 },
 
   {
-    id: "help-start",
-    title: "Getting Started",
+    id: "help-hivedetails",
+    title: "Hive Details Panel",
     html: `
-      <h3 id="help-start">Getting Started - the Toolbar</h3>
+      <h2 id="help-hivedetails">Hive Details Panel</h2>
 
-      <p>Use <strong>Select Apiary</strong> in the toolbar, or create a new apiary using the <strong>Apiary</strong> menu.</p>
-      <p>Click <strong>Apiary Notes</strong> to see and add notes for the selected apiary.</p>
+      <h3>In the top section of the Hive Details panel.</h3>
 
-      <p><strong>Apiary Count</strong> shows the number of hives for the selected apiary separately for hives where status is not equal to Query and for hives where status equals Query.</p>
-      <p><strong>Total Count</strong> shows the total number of hives across all apiaries.</p>
+      <p>The <b>Hive ID</b> can be edited, press <b>Save</b> to change it.</p>
 
-      <p>If any hives have a <strong>Next Inspection Date</strong> set,
-        <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M1 21h22L12 2 1 21z" fill="#fff" stroke="#dd0000" stroke-width="1" />
-          <path d="M12 8v6" stroke="#000" stroke-width="2" stroke-linecap="round" />
-          <circle cx="12" cy="17" r="1.5" fill="#000" />
-        </svg>
-        appears with the number of hives with due inspections.<br>
-        Click this to show a list of hives with due inspections grouped by apiary and ordered by date.
+      <p>The <b>Apiary</b> shows the apiary where the hive is sited. This is read-only.</p>
+
+      <p>There is an option to enter a short <b>Memo</b>. This will also show on the hive pop-up in the Field View and is a useful place to add a short note you want to see at a glance without needing to open the hive details panel. It can be edited at any time.</p>
+
+      <h3>In the main section of the Hive Details panel.</h3>
+
+      <p><b>Move to apiary</b> allows you to move the hive to a different apiary if needed.<br>
+      Select the destination apiary in the dropdown menu and press <b>Move</b>. The screen will reload to show the hive in the new apiary.</p>
+
+      <p><b>Hive Type</b> for the hive can be selected from the dropdown menu.<br>
+      Set the items in the menu by pressing the <b>Settings</b> menu in the toolbar and selecting <b>Hive Types</b>.<br>
+      Add whatever you require, National, W.B.C. etc. This will also show on the hive pop-up in the Field View.</p>
+
+      <p><b>Hive Boxes</b> can be added from the dropdown menu. Select a box type in the menu and press <b>[+]</b>.<br>
+      These will be listed above the input field as they are added to give a precide snapshot of the boxes that are being used.<br>
+      They can easily be deleted by pressing the <b>[x]</b> button next to each box.<br>
+      The items in the menu can be set by pressing the <b>Settings</b> menu in the toolbar and selecting <b>Box Types</b>.<br>
+      Add whatever you require, Standard Deep, Standard Shallow etc. This is useful to exactly show the configuration of the hive and how many boxes it has at any time.<br>
+      This will also show on the hive pop-up in the Field View.</p>
+
+      <p><b>Treatment Records</b> can be added by pressing <b>Record Treatment</b>.<br>
+      This opens a new <b>Record Treatment</b> panel that allows entry of all the details of a treatment that are necessary to comply with the Veterinary Medicines Regulations 2013 as set by the Veterinary Medicines Directorate (VMD) and which need to be kept for 5 years.<br>
+      The date and product name of all treatments will be listed above the input field as they are added.<br>
+      Press <b>Edit></b> to open a new panel to view/edit all the details of a treatment record or press <b>[x]</b> to delete it.<p>
+
+      <p>All Treatment Records can also be viewed in a report.<br>
+      Press the <b>Hives</b> menu in the toolbar and select<b>Treatments Report</b> to open a <b>Veterinary Medicines Report</b> panel. Optionally filter by apiary and date period and click <b>Generate Report</b> to show a list of all treatments for all hives grouped by apiary and ordered by date. Click <b>Print</b> to print a regulations compliant report for your bee disease inspector when required.</p>
+
+      <p><b>Tile Size</b> and <b>Entrance</b> can also be edited, these were originally set when the hive was created.</p>
+
+      <p>If inspections have been recorded for the hive, the <b>Inspections</b> section will show the date of when the <b>Next Inspection Due</b> is set, and a dated list of all inspections for the hive with brief details of each inspection.<br>
+      Press <b>Details</b> next to each inspection to open a new panel to view/edit all the details of an inspection record or press <b>[x]</b> to delete it.</p>
+
+
+      <hr>
+    `
+  },
+  {
+    id: "help-inspections",
+    title: "Colony Inspections",
+    html: `
+      <h2 id="help-inspections">Colony Inspections</h2>
+      <h3>Add Inspection button in the top button bar of the Hive Details panel.</h3>
+
+      <p>This opens a new <b>Add Inspection</b> panel with input fields for all the details of an inspection that you can customise in the settings.<br>
+      Press <b>Settings</b> menu in the toolbar and select <b>Inspection Fields</b> to add/remove, edit, reorder and set Groups and Fields within those Groups.<br>
+      This is a powerful system to make your inspection records just right for your needs, the way you work and how you want to keep records of your inspections.</p>
+
+      <p>In the <b>Add Inspection</b> panel the date and time of the inspection will be auto set to the current date/time but can be edited if needed.</p>
+      
+      <p>Set the <b>Status</b> of the colony by selecting an item in the dropdown list. This will also change the colour of the hive shown in the Field View so it can be seen at a glance.<br>
+      The legend of Statuses and their colours can be seen below the Field View.<br>
+      This is a versatile system and can be used for whatever you want by setting Statuses in the toolbar <b>Setting</b> and selecting <b>Statuses</b>.<br>
+      The default settings can be changed or deleted and additional statuses added. Press the colour picker to select any colour to assign to the status.
       </p>
 
-      <p>Use the <strong>Apiary</strong> menu to:<br>
-        - Create a <strong>New Apiary</strong>.<br>
-        - <strong>Rename Apiary</strong> that is selected.<br>
-        - <strong>Delete Apiary</strong> that is selected.<br>
-        - <strong>Print Apiary</strong> that is selected which opens a print window to print the apiary layout and cards for each hive.
-      </p>
+      <p>The <b>Next Inspection Due</b> field is important to set if you want to keep track of when inspections are next due.<br>
+      This date will show in the on the hive pop-up in the Field View.<br>
+      It will also show in the lists that appear when <b>Apiary Hives</b> and <b>Total Hives</b> buttons are pressed.<br>
+      If any hives have a next inspection due date set, a warning icon
+      <svg class="warning-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M1 21h22L12 2 1 21z" fill="#fff" stroke="#dd0000" stroke-width="1" />
+      <path d="M12 8v6" stroke="#000" stroke-width="2" stroke-linecap="round" />
+      <circle cx="12" cy="17" r="1.5" fill="#000" />
+      </svg> 
+      will appear in the toolbar with a red badge showing the number of hives that have inspections due.<br>
+      Press this icon to show a list of all hives with inspections due.<br>
+      The <b>Next Due</b> dates will be colour coded for <b>Due Today</b>, <b>Overdue</b>, and <b>Due Future</b>.<br>
+      The table list can be filtered by pressing the appropriate buttons in the button bar.<br>
+      This is an essential tool to help inspection planning.</p>
 
-      <p>Use the <strong>Hives</strong> menu to:<br>
-        - Create a <strong>New Hive</strong>.<br>
-        - <strong>Delete Hive</strong> that is selected.
-      </p>
+      <hr>
+    `
+  },
+  {
+    id: "help-archive",
+    title: "Archiving",
+    html: `
+      <h2 id="help-archive">Archiving</h2>
+      <h3>Archive Hive button in the top button bar of the Hive Details panel.</h3>
 
-      <p>Use the <strong>Tools</strong> menu to:<br>
-        - <strong>Export Data</strong> (save all your apiaries and hives to a JSON file).<br>
-        - <strong>Import All Data</strong> (load from a previously exported JSON file).<br>
-        - <strong>Edit Status Colours</strong> to create or edit hive statuses and their colours.<br>
-        - Open this <strong>Help</strong> panel.
-      </p>
+      <p>Press the <b>Archive Hive</b> button.</p>
+      <p>This will open a confirmation panel, press <b>Delete</b> to confirm.</p>
+
+      <p>Archiving a hive allows a hive to be removed from the Field View and all hive counts but still retain all its data and history.<br>
+      This particularly useful for when a hive/colony has, for examples, been a loss, failed, died, given away or sold.<br>
+      Enter/save that reason for archiving in the <b>Memo</b> of the <b>Hive Details</b> panel so it is easily seen in archived hive records.<br>
+      Be sure to save any edits such as these before archiving. No edits can be made to an archived hive and archiving cannot be undone, they are permanent records but archived hives can be deleted.<br>
+      Archived hives can be viewed in the toolbar <b>Hives</b>, select <b>Archived Hives</b> to see a table list of all arhived hives.<br>
+      They can also be viewed in other table lists that show a black <b>Archived</b> button.</p>
 
       <hr>
     `
   },
 
   {
-    id: "help-editing",
-    title: "Editing Hives",
+    id: "help-hivecounts",
+    title: "Hive Counts",
     html: `
-      <h4 id="help-editing">Editing Hives</h4>
-      <p>Double-click a hive to open its inspection panel. Add boxes, notes, and inspection history.</p>
-    `
-  },
+      <h2 id="help-notes">Hive Counts</h2>
 
-  {
-    id: "help-notes",
-    title: "Notes",
-    html: `
-      <h4 id="help-notes">Notes</h4>
-      <p>Use the “Apiary Notes” button in the toolbar to record notes for the whole apiary.</p>
+      <p>there are two buttons in the toolbar: <b>Apiary Hives</b> and <b>Total Hives</b>.</p>
+
+      <p><b>Apiary Hives</b> shows the total number of hives in the selected apiary.<br>
+      <b>Total Hives</b> shows the total number of hives in all apiaries.</p>
+
+      <p>These will open a table list of hives showing the Hive ID, Status, Date of Last Inspection, Next Inspection Due Date, Hive Type and Memo for every hive.<br>
+      Press the <b>Archived</b> button to show archive hives.<br>
+      Press the <b>All Hives</b> button to go back.<br>
+      Press the <b>View</b> button shown in a hive row to open the <b>Hive Details</b> panel.</p>
+
+      <p>The <b>Total Hives</b> table list will show the hive grouped by apiary.</p>
+
+      <p>The default behaviour of the <b>Apiary Hives</b> and <b>Total Hives</b> is to display like <b>Apiary Hives: 7</b><br>
+      A useful feature for at-a-glance information is changing this behaviour in <b>Settings</b> and selecting <b>Hive Counts</b>.<br>
+      This will open a <b>Hive Counts</b> panel where you will see <b>Hive Count Separation</b> is set to <b>None</b>.<br>
+      Select </b>By Status</b> and select a <b>Status</b> from the list.<br>
+      For example, select <b>Queenless</b> from the list and save.<br>
+      If one of your hives has its status set as Queenless the display in the buttons will change to <b>Apiary Hives: 7 (1 Queenless)</b>.</p>
+
+      <hr>
     `
   },
 

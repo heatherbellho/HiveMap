@@ -60,9 +60,9 @@ App.Apiaries.switch = function (name) {
 App.Apiaries.create = function () {
   const all = Storage.getAllApiaries();
 
-  // ⭐ Limit: max apiaries in free version
+  // ⭐ Limit: max apiaries in core version
   if (all.length >= getLimits().maxApiaries) {
-    App.UI.showToast("The Free version of HiveMap supports only one apiary.");
+    App.UI.showToast("The Core version of HiveMap supports only one apiary.");
     return;
   }
 

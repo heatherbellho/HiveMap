@@ -60,50 +60,84 @@ App.Canvas.init = function () {
     selection: true,
     preserveObjectStacking: true
   });
-canvas.upperCanvasEl.style.touchAction = "manipulation";
-canvas.lowerCanvasEl.style.touchAction = "manipulation";
+
+  canvas.upperCanvasEl.style.touchAction = "manipulation";
+  canvas.lowerCanvasEl.style.touchAction = "manipulation";
+
+  // Track dragging state
+  canvas.isDraggingHive = false;
+
+  // When dragging starts
+  canvas.on("object:moving", () => {
+    canvas.isDraggingHive = true;
+    tooltip.style.display = "none"; // hide immediately
+  });
+
+  // When dragging ends
+  canvas.on("object:modified", () => {
+    canvas.isDraggingHive = false;
+  });
 
   // Touch double‑tap to open modal
-if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
-  let lastTap = 0;
+  if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
+    let lastTap = 0;
 
-  canvas.on("mouse:down", e => {
-    if (!e.target || !e.target.hiveData) return;
+    canvas.on("mouse:down", e => {
+      if (!e.target || !e.target.hiveData) return;
 
-    const now = Date.now();
-    if (now - lastTap < 300) {
-      App.Modals.openHiveModal(e.target);
-      lastTap = 0;
-    } else {
-      lastTap = now;
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        App.Modals.openHiveModal(e.target);
+        lastTap = 0;
+      } else {
+        lastTap = now;
+      }
+    });
+  }
+
+  // ------------------------------------------------------------
+  // Tooltip (FIXED: no tooltip on handles OR dragging)
+  // ------------------------------------------------------------
+  canvas.on("mouse:move", e => {
+
+    // 1. If dragging → no tooltip
+    if (canvas.isDraggingHive) {
+      tooltip.style.display = "none";
+      return;
     }
+
+    // 2. If interacting with a control handle → no tooltip
+    if (e.target && e.target.__corner) {
+      tooltip.style.display = "none";
+      return;
+    }
+
+    // 3. Normal tooltip behaviour
+    App.Canvas.handleTooltip(e);
   });
-}
 
+  canvas.on("mouse:out", () => {
+    tooltip.style.display = "none";
+  });
 
-  // Tooltip
-  canvas.on("mouse:move", App.Canvas.handleTooltip);
-  canvas.on("mouse:out", () => tooltip.style.display = "none");
-
+  // ------------------------------------------------------------
   // Save layout on changes
-canvas.on("object:modified", function (e) {
+  // ------------------------------------------------------------
+  canvas.on("object:modified", function (e) {
+    if (editingDisabled()) {
+      App.UI.showToast("Editing is disabled because your subscription has expired.");
+      return;
+    }
+    App.Canvas.saveLayout();
+  });
 
-  if (editingDisabled()) {
-    App.UI.showToast("Editing is disabled because your subscription has expired.");
-    return;
-  }
-
-  App.Canvas.saveLayout();
-});
-canvas.on("object:added", function (e) {
-
-  if (editingDisabled()) {
-    App.UI.showToast("Editing is disabled because your subscription has expired.");
-    return;
-  }
-
-  App.Canvas.saveLayout();
-});
+  canvas.on("object:added", function (e) {
+    if (editingDisabled()) {
+      App.UI.showToast("Editing is disabled because your subscription has expired.");
+      return;
+    }
+    App.Canvas.saveLayout();
+  });
 
   // Load initial layout
   App.Canvas.loadLayout();
@@ -113,6 +147,7 @@ canvas.on("object:added", function (e) {
 
   // One unified resize + fit
   resizeAndFitCanvas();
+
   App.Canvas.fixMissingApiaryIds();
 };
 
@@ -227,12 +262,12 @@ function resizeAndFitCanvas() {
 // ------------------------------------------------------------
 App.Canvas.createHive = function (name, width, height, entrance = "", queenStatus = "") {
 
-  // Ensure canvas is fitted BEFORE placing the hive
   if (typeof resizeAndFitCanvas === "function") {
     resizeAndFitCanvas();
   }
 
-  const pt = canvas.getPointer({ clientX: 500, clientY: 80 });
+  // ⭐ Place new hive at canvas centre
+const pt = canvas.getVpCenter();
 
   const rect = new fabric.Rect({
     width,
@@ -244,7 +279,6 @@ App.Canvas.createHive = function (name, width, height, entrance = "", queenStatu
     originY: "center"
   });
 
-  // ⭐ USE FORMATTED LABEL HERE
   const label = new fabric.Text(
     formatEntranceLabel(name, entrance),
     {
@@ -271,10 +305,7 @@ App.Canvas.createHive = function (name, width, height, entrance = "", queenStatu
       name,
       entrance,
       hiveType: "Hive",
-
-      // ⭐ NEW: ensure new hives always have queenStatus
       queenStatus: queenStatus,
-
       inspections: [],
       boxes: [],
       treatments: [],
@@ -299,9 +330,8 @@ App.Canvas.createHive = function (name, width, height, entrance = "", queenStatu
   App.Canvas.saveLayout();
   App.Status.renderLegend();
   if (App.Toolbar && App.Toolbar.refreshCounts) {
-  App.Toolbar.refreshCounts();
-}
-
+    App.Toolbar.refreshCounts();
+  }
 };
 
 
@@ -473,21 +503,24 @@ App.Canvas.deleteSelected = function () {
     App.UI.showToast("Editing is disabled because your subscription has expired.");
     return;
   }
+
   const active = canvas.getActiveObjects();
   if (!active.length) {
     App.UI.showToast("No hive selected.");
     return;
   }
 
-  if (!confirm(`Delete ${active.length} selected hive(s)? This cannot be undone.`)) return;
+  App.Modals.openConfirmDeleteHives(active.length, function () {
 
-  active.forEach(obj => canvas.remove(obj));
+    active.forEach(obj => canvas.remove(obj));
 
-  canvas.discardActiveObject();
-  App.Canvas.requestRender();
-  App.Canvas.saveLayout();
+    canvas.discardActiveObject();
+    App.Canvas.requestRender();
+    App.Canvas.saveLayout();
+    App.Toolbar.refreshCounts();
+    App.UI.showToast("Hive(s) deleted.");
+  });
 };
-
 
 // ------------------------------------------------------------
 // Underline all hive labels
