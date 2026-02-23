@@ -1468,7 +1468,7 @@ canvas {
   opacity: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 99 !important;
+  z-index: 999 !important;
   pointer-events: none;
 }
 
@@ -2037,6 +2037,10 @@ padding: 12px 0px;
   display: flex; align-items: center; justify-content: center;
   margin-right: 12px;
 }
+.hidden {
+    display: none !important;
+}
+
 /*
 #expiryBadge::after {
   content: attr(data-tooltip);

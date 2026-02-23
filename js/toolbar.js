@@ -211,12 +211,17 @@ App.Modals.closeAccountModal = function () {
 
   if (!hasLicence) {
     App.UI.showToast("Please enter your licence code to continue.");
+
+    // ⭐ Prevent overlay from closing when licence is missing
+    document.getElementById("overlay").style.display = "block";
+
     return;
   }
 
   document.getElementById("accountModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 };
+
 
 // ------------------------------------------------------------
 // CLOSE BUTTON

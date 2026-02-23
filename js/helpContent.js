@@ -65,6 +65,8 @@ window.HELP_SECTIONS = [
       <br>
       A reminder will show next to the HiveMap logo in the toolbar when you have less than 7 days until expiry.</p>
 
+      <p>When you first open HiveMap, your browser will show an option to install on your device so you can use HiveMap offline without the requirement for an internet connection.</p>
+
       <h3>Create an apiary</h3>
 
       Press the <b>Apiary</b> button in the toolbar - a panel will open to set up the apiary.<br>

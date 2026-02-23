@@ -33,9 +33,9 @@ async function validateHM2Code(code) {
     return { valid: false, error: "Invalid code structure." };
   }
 
-  const edition = parts[1];   // now CORE or PLUS
+  const edition = parts[1];
   const durationRaw = parts[2];
-  const signature = parts[3];
+  const sigWithNonce = parts[3];
 
   if (!/^\d+$/.test(durationRaw)) {
     return { valid: false, error: "Invalid duration." };
@@ -46,17 +46,38 @@ async function validateHM2Code(code) {
     return { valid: false, error: "Duration must be positive." };
   }
 
-  const message = `${edition}-${durationDays}`;
-  const fullSig = await hm2HmacSHA256(message, HM2_PUBLIC_SECRET);
-  const shortSig = fullSig.slice(0, 10);
+  // NEW FORMAT: signature (10 chars) + nonce (>=1 char)
+  let shortSig, nonce;
 
-  if (shortSig !== signature) {
+  if (sigWithNonce.length > 10) {
+    // New format with nonce
+    shortSig = sigWithNonce.slice(0, 10);
+    nonce = sigWithNonce.slice(10);
+  } else {
+    // Old format (no nonce)
+    shortSig = sigWithNonce;
+    nonce = ""; // old codes have no nonce
+  }
+
+  let message;
+  if (nonce) {
+    // New format
+    message = `${edition}-${durationDays}-${nonce}`;
+  } else {
+    // Old format (backwards compatible)
+    message = `${edition}-${durationDays}`;
+  }
+
+  const fullSig = await hm2HmacSHA256(message, HM2_PUBLIC_SECRET);
+  const expectedShort = fullSig.slice(0, 10);
+
+  if (expectedShort !== shortSig) {
     return { valid: false, error: "Invalid signature." };
   }
 
   return {
     valid: true,
-    edition,          // CORE or PLUS
+    edition,
     duration: durationDays,
     raw: code
   };

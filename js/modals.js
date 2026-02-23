@@ -3178,7 +3178,7 @@ App.Modals.openAccountModal = function () {
   if (isExpired && edition === "PLUS") {
     explainEl.innerHTML = `
       <strong>Licence expired.</strong><br>
-      Enter a valid HM2 licence code to reactivate HiveMapPlus.
+      Enter a valid HM2 licence code to reactivate HiveMap.
     `;
   } else if (isProLocal) {
     explainEl.innerHTML = `
@@ -3202,7 +3202,7 @@ App.Modals.openAccountModal = function () {
   } else {
     explainEl.innerHTML = `
       <strong>No active licence.</strong><br>
-      Enter a valid HM2 licence code to activate HiveMapPlus.
+      Enter a valid HM2 licence code to activate HiveMap.
     `;
   }
 
