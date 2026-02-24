@@ -196,6 +196,8 @@ App.init = function () {
   if (statusEl) {
     statusEl.textContent = isPro ? "Plus" : "Core";
   }
+
+  document.getElementById("year").textContent = new Date().getFullYear();
 };
 
 
