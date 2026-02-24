@@ -391,37 +391,38 @@ App.Modals.closeHiveModal = function () {
 
 App.Modals.confirmEditHive = function (hive) {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
 
   const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
   const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
 
   const rect = hive._objects[0];
+  const label = hive._objects[1];
+
+  // Resize rect but keep it centered
   rect.set({
     width: newWidth,
-    height: newHeight
+    height: newHeight,
+    originX: 'center',
+    originY: 'center'
   });
 
-  // Recenter label
-  const label = hive._objects[1];
+  // Keep label centered
   label.set({
     left: 0,
-    top: 0
+    top: 0,
+    originX: 'center',
+    originY: 'center'
   });
 
-  // Recalculate group bounds
-  hive._calcBounds();
-  hive._updateObjectsCoords();
+  // Recalculate group bounds safely
+  hive._calcBounds(); // optional but safe
   hive.setCoords();
 
-  // Save layout
   App.Canvas.saveLayout();
-
-  // Optional but recommended
   resizeAndFitCanvas();
-
   canvas.requestRenderAll();
 
   App.Modals.closeEditHiveModal();
@@ -432,100 +433,78 @@ App.Modals.confirmEditHive = function (hive) {
 // ------------------------------------------------------------
 App.Modals.saveHiveData = function () {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
 
   if (!selectedHive) return;
 
   const hiveData = selectedHive.hiveData;
 
-  // -----------------------------
-  // 1. UPDATE SIZE
-  // -----------------------------
-// -----------------------------
-// 1. UPDATE SIZE (without moving hive)
-// -----------------------------
-const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
-const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
+  const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
+  const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
 
-// Save current absolute position BEFORE resizing
-const oldLeft = selectedHive.left;
-const oldTop = selectedHive.top;
+  const oldLeft = selectedHive.left;
+  const oldTop = selectedHive.top;
 
-const rect = selectedHive._objects[0];
-rect.set({
-  width: newWidth,
-  height: newHeight
-});
+  const rect = selectedHive._objects[0];
+  const label = selectedHive._objects[1];
 
-// Recenter label
-const label = selectedHive._objects[1];
-label.set({
-  left: 0,
-  top: 0
-});
+  // Resize rect but keep it centered
+  rect.set({
+    width: newWidth,
+    height: newHeight,
+    originX: 'center',
+    originY: 'center'
+  });
 
-// Recalculate bounds WITHOUT shifting the group
-selectedHive._calcBounds();
-selectedHive._updateObjectsCoords();
-selectedHive.setCoords();
+  // Keep label centered
+  label.set({
+    left: 0,
+    top: 0,
+    originX: 'center',
+    originY: 'center'
+  });
 
-// Restore original position
-selectedHive.left = oldLeft;
-selectedHive.top = oldTop;
-selectedHive.setCoords();
+  // Recalculate bounds safely
+  selectedHive._calcBounds(); // optional but safe
+  selectedHive.setCoords();
 
+  // Restore original position
+  selectedHive.left = oldLeft;
+  selectedHive.top = oldTop;
+  selectedHive.setCoords();
 
-
-  // -----------------------------
-  // 2. UPDATE HIVE DATA
-  // -----------------------------
-  selectedHive.hiveData.memo = document.getElementById("hiveMemo").value.trim();
+  // Update hive data
+  hiveData.memo = document.getElementById("hiveMemo").value.trim();
   const name = document.getElementById("hiveName").value.trim() || "Unnamed";
-  const hiveType = document.getElementById("hiveType").value;
-//  const date = document.getElementById("lastInspection").value;
- // const queenStatus = document.getElementById("queenStatus").value;
-//  const notes = document.getElementById("notes").value;
- // const nextInspection = document.getElementById("nextInspection").value;
-
   hiveData.name = name;
-  hiveData.hiveType = hiveType;
+  hiveData.hiveType = document.getElementById("hiveType").value;
   hiveData.entrance = document.getElementById("editHiveEntrance").value;
-label.set("text", formatEntranceLabel(hiveData.name, hiveData.entrance));
 
-//  hiveData.nextInspectionDate = nextInspection;
+  label.set("text", formatEntranceLabel(name, hiveData.entrance));
 
-  hiveData.inspections = hiveData.inspections || [];
-  const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
-
- // if (date !== latest.date || queenStatus !== latest.queenStatus || notes !== latest.notes) {
- //   hiveData.inspections.push({ date, queenStatus, notes });
- // }
-
-  // Update label + colour
   const currentInspection = hiveData.inspections[hiveData.inspections.length - 1] || {};
   hiveData.queenStatus = currentInspection.queenStatus || "";
 
-selectedHive._objects[1].set("text", formatEntranceLabel(name, hiveData.entrance));
-
   const color = App.Status.getColor(currentInspection.queenStatus || "");
-  selectedHive._objects[0].set("fill", color);
+  rect.set("fill", color);
 
-// Ensure coordinates are always saved correctly
-hiveData.x = selectedHive.left;
-hiveData.y = selectedHive.top;
+  // Recalculate coords after text/fill changes
+  selectedHive.setCoords();
 
-  // -----------------------------
-  // 3. SAVE + RENDER
-  // -----------------------------
+  hiveData.x = selectedHive.left;
+  hiveData.y = selectedHive.top;
+
   App.Canvas.saveLayout();
   App.updateDueInspectionsBadge();
   resizeAndFitCanvas();
   canvas.requestRenderAll();
-if (App.Toolbar && App.Toolbar.refreshCounts) {
-  App.Toolbar.refreshCounts();
-}
+
+  if (App.Toolbar && App.Toolbar.refreshCounts) {
+    App.Toolbar.refreshCounts();
+  }
+
   App.Modals.closeHiveModal();
 };
 
