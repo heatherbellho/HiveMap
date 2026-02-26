@@ -2494,9 +2494,10 @@ App.Modals.openApiaryManager = function (mode = "edit") {
   const hasApiary = !!currentApiary;
 
   // ⭐ If no apiary exists, force CREATE mode
-  if (!hasApiary) {
+if (!hasApiary) {
     mode = "create";
-  }
+    App.Modals.apiaryManagerMode = "create";   // ⭐ REQUIRED
+}
 
   if (mode === "create") {
     titleEl.textContent = "Create Apiary";
@@ -2512,7 +2513,7 @@ App.Modals.openApiaryManager = function (mode = "edit") {
   } else {
     // ⭐ EDIT MODE
     const apiaryName = currentApiary;
-
+    App.Modals.apiaryManagerMode = "edit";   // ⭐ REQUIRED
     titleEl.textContent = "Apiary Details: " + apiaryName;
     deleteBtn.style.display = "inline-block";
 
@@ -2642,7 +2643,7 @@ App.Modals.saveApiaryManager = function () {
 
   // CORE EDITION LIMIT: only 1 apiary allowed
 if (mode === "create") {
-  const all = Storage.getAllApiaries();
+//  const all = Storage.getAllApiaries();
   if (all.length >= getLimits().maxApiaries) {
     App.UI.showToast("The Core version of HiveMap supports only one apiary.");
     return;
@@ -2686,15 +2687,13 @@ if (mode === "create") {
 
   Storage.saveApiaryNotes(apiaryName, JSON.stringify(notes));
 
-  // -------------------------
-  // ADD OR UPDATE APIARY
-  // -------------------------
-  if (!all.includes(apiaryName)) {
-    all.push(apiaryName);
-    Storage.saveAllApiaries(all);
+// ADD OR UPDATE APIARY
+if (!isRename && !all.includes(apiaryName)) {
+  all.push(apiaryName);
+  Storage.saveAllApiaries(all);
 
-    Storage.saveHiveLayout(apiaryName, JSON.stringify({ objects: [] }));
-  }
+  Storage.saveHiveLayout(apiaryName, JSON.stringify({ objects: [] }));
+}
 
   // -------------------------
   // SAVE GRID + ADDRESS

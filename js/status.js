@@ -50,31 +50,59 @@ App.Status.renderLegend = function () {
 
   container.innerHTML = "";
 
-  const left = document.createElement("div");
-  left.style.display = "flex";
-  left.style.flexDirection = "column";
-  left.style.gap = "6px";
-  left.style.marginBottom = "8px";
+  // Ensure container behaves predictably
+  container.style.display = "flex";
+  container.style.flexDirection = "row";
+  container.style.flexWrap = "wrap";
 
+  // Title (always full width)
   const title = document.createElement("strong");
   title.textContent = "Status Legend:";
-  left.appendChild(title);
+  title.style.display = "block";
+  title.style.textAlign ="center";
+  title.style.marginBottom = "8px";
 
-  queenStatuses.forEach(q => {
-    const div = document.createElement("div");
-    div.style.display = "flex";
-    div.style.gap = "6px";
+  // ⭐ THIS is the key fix:
+  title.style.flexBasis = "100%";   // forces title to its own full-width row
 
-    div.innerHTML = `
-      <span style="width:20px;height:14px;border:1px solid #888;background:${q.color};display:inline-block;"></span>
-      ${q.name}
-    `;
-    left.appendChild(div);
-  });
+  container.appendChild(title);
 
-  container.appendChild(left);
+  // Wrapper for responsive columns
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.flexWrap = "wrap";
+  wrapper.style.gap = "24px";
+  wrapper.style.width = "100%";     // ensures wrapper starts on a new row
 
+  const chunkSize = 4;
+  for (let i = 0; i < queenStatuses.length; i += chunkSize) {
+    const chunk = queenStatuses.slice(i, i + chunkSize);
+
+    const col = document.createElement("div");
+    col.style.display = "flex";
+    col.style.flexDirection = "column";
+    col.style.gap = "6px";
+    col.style.minWidth = "160px";
+    col.style.flex = "1 1 auto";
+
+    chunk.forEach(q => {
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.gap = "6px";
+      row.innerHTML = `
+        <span style="width:20px;height:14px;border:1px solid #888;background:${q.color};display:inline-block;"></span>
+        ${q.name}
+      `;
+      col.appendChild(row);
+    });
+
+    wrapper.appendChild(col);
+  }
+
+  container.appendChild(wrapper);
 };
+
+
 
 // ------------------------------------------------------------
 // Open the status settings modal

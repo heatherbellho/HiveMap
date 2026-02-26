@@ -712,7 +712,7 @@ body {
   background: #e5b25d;
   color: #763d0e;
   border: 1px solid #763d0e;
-  padding: 1px 10px;
+  padding: 3px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
@@ -740,7 +740,7 @@ body {
   background: #fff9eb;
   color: #763d0e;
   border: 1px solid #763d0e;
-  padding: 6px 10px;
+  padding: 8px 10px;
   border-radius: 6px;
   font-size: 0.9rem;
   cursor: pointer;
@@ -2040,26 +2040,11 @@ padding: 12px 0px;
 .hidden {
     display: none !important;
 }
-
-/*
-#expiryBadge::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: 22px;
-  left: 100%;
-  background: #fff;
-  color: #000;
-  padding: 4px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-  opacity: 0;
-   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 99;
+#hm2Input {
+  width: 95%;
+  padding: 6px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
 }
-
-#expiryBadge:hover::after {
-  opacity: 1;
-}
-*/
