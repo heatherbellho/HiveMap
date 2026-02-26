@@ -245,7 +245,7 @@ window.HELP_SECTIONS = [
     id: "help-status",
     title: "Status Colours",
     html: `
-      <h4 id="help-status">Status Colours</h4>
+      <h2 id="help-status">Status Colours</h2>
       <p>Edit hive status colours from Tools → Edit Status Colours.</p>
     `
   },
@@ -254,7 +254,7 @@ window.HELP_SECTIONS = [
     id: "help-saving",
     title: "Saving Your Data",
     html: `
-      <h4 id="help-saving">Saving Your Data</h4>
+      <h2 id="help-saving">Saving Your Data</h2>
       <p>Use Tools → Export Data to save everything before closing. Import restores your full setup.</p>
     `
   }
