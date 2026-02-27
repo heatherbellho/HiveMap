@@ -151,18 +151,17 @@ App.Status.openSettings = function () {
   });
 
   // Delete handlers (FIXED: now targets .small-delete)
-  list.querySelectorAll(".small-delete").forEach(btn => {
-    btn.addEventListener("click", e => {
-      const i = parseInt(e.target.dataset.index, 10);
-      if (confirm(`Delete status "${queenStatuses[i].name}"?`)) {
-        queenStatuses.splice(i, 1);
-        Storage.saveQueenStatuses(queenStatuses);
-        App.Status.openSettings();
-        App.Status.renderLegend();
-        App.Status.populateStatusSelect();
-      }
-    });
+list.querySelectorAll(".small-delete").forEach(btn => {
+  btn.addEventListener("click", e => {
+    const i = parseInt(e.target.dataset.index, 10);
+
+    // Store index for modal confirm
+    App.Status.pendingDeleteIndex = i;
+
+    // Open modal
+    App.Modals.openConfirmDeleteStatus();
   });
+});
 
   modal.style.display = "block";
   document.getElementById("overlay").style.display = "block";
@@ -180,23 +179,40 @@ App.Status.closeSettings = function () {
 // Add a new status
 // ------------------------------------------------------------
 App.Status.addStatus = function () {
-  // Hide the + button while adding
-  document.getElementById("addStatusBtn").style.display = "none";
-
-  const modal = document.getElementById("statusModal");
   const list = document.getElementById("statusList");
+  if (!list) return;
 
-  if (!modal || !list) return;
+  // Append a new editable row
+  const row = document.createElement("div");
+  row.className = "status-row";
 
-  list.innerHTML = `
-    <div class="status-row">
-      <input type="text" id="newStatusName" placeholder="Status name">
-      <input type="color" id="newStatusColor" value="#cccccc">
-    </div>
+  row.innerHTML = `
+    <input type="text" id="newStatusName" placeholder="Status name">
+    <input type="color" id="newStatusColor" value="#cccccc">
+    <button id="saveNewStatusBtn" type="button" class="btn-save">Save</button>
   `;
 
-  modal.style.display = "block";
-  document.getElementById("overlay").style.display = "block";
+  list.appendChild(row);
+
+  // Hide the + button
+  document.getElementById("addStatusBtn").style.display = "none";
+
+  // Attach save handler
+  document.getElementById("saveNewStatusBtn").onclick = function () {
+    const name = document.getElementById("newStatusName").value.trim();
+    const color = document.getElementById("newStatusColor").value;
+
+    if (!name) return;
+
+    queenStatuses.push({ name, color });
+    Storage.saveQueenStatuses(queenStatuses);
+
+    // Re-render the list
+    App.Status.openSettings();
+
+    // Show the + button again
+    document.getElementById("addStatusBtn").style.display = "block";
+  };
 };
 
 

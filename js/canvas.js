@@ -184,8 +184,9 @@ window.addEventListener("orientationchange", scheduleResize);
 // Fit all hive objects into the visible canvas area
 // ------------------------------------------------------------
 function fitCanvasToScreen() {
-  const objects = canvas.getObjects();
+  const objects = canvas.getObjects().filter(o => o.objectType !== "compass");
   if (!objects.length) return;
+
 
   const bounds = objects.reduce(
     (acc, o) => {
@@ -334,6 +335,31 @@ const pt = canvas.getVpCenter();
   }
 };
 
+App.Canvas.addCompass = function () {
+  fabric.Image.fromURL("icons/compass.png", function (img) {
+
+    // Place at canvas center
+    const pt = canvas.getVpCenter();
+
+    img.set({
+      left: pt.x,
+      top: pt.y,
+      originX: "center",
+      originY: "center",
+      scaleX: 0.3,
+      scaleY: 0.3,
+      hasControls: true,
+      hasBorders: true,
+      selectable: true,
+      objectType: "compass"
+    });
+
+    canvas.add(img);
+    canvas.setActiveObject(img);
+    canvas.requestRenderAll();
+    App.UI.showToast("Compass added to apiary.");
+  });
+};
 
 App.Canvas.getAllHives = function () {
   if (!canvas) return [];
@@ -408,7 +434,7 @@ App.Canvas.saveLayout = function () {
   const current = Storage.getCurrentApiary();
   if (!current) return;
 
-  const json = canvas.toJSON(["hiveData"]);
+const json = canvas.toJSON(["hiveData", "objectType"]);
   Storage.saveHiveLayout(current, JSON.stringify(json));
 };
 

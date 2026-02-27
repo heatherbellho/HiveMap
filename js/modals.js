@@ -2180,7 +2180,7 @@ App.Modals.openInspectionInput = function (hiveObj) {
 
   // Title
   document.getElementById("inspectionInputTitle").textContent =
-    `New Inspection — ${hiveObj.hiveData.name}`;
+    `New Inspection Hive ID: ${hiveObj.hiveData.name}`;
 
   // Default date = today
   const today = new Date().toISOString().split("T")[0];
@@ -2418,6 +2418,7 @@ const closeFn = App.Modals.closeInspectionHistory;
 
   // Show modal
   document.getElementById("overlay").style.display = "block";
+  overlay.style.zIndex = 1150;
   document.getElementById("inspectionHistoryModal").style.display = "block";
 };
 
@@ -2428,6 +2429,7 @@ App.Modals.closeInspectionHistory = function () {
     .some(m => window.getComputedStyle(m).display !== "none");
 
   document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
+  overlay.style.zIndex = 900;
 };
 
 
@@ -3211,6 +3213,19 @@ App.Modals.closeConfirmDeleteHives = function () {
   document.getElementById("overlay").style.display = "none";
 };
 
+App.Modals.openConfirmDeleteStatus = function () {
+  overlay.style.zIndex = "1050";
+  document.getElementById("overlay").style.display = "block";
+  document.getElementById("confirmDeleteStatusModal").style.display = "block";
+};
+
+App.Modals.closeConfirmDeleteStatus = function () {
+  //document.getElementById("overlay").style.display = "none";
+  overlay.style.zIndex = "900";
+  document.getElementById("confirmDeleteStatusModal").style.display = "none";
+};
+
+
 // ------------------------------------------------------------
 // Initialise modal system
 // ------------------------------------------------------------
@@ -3220,6 +3235,32 @@ App.Modals.init = function () {
   // Overlay (shared by all modals)
   // ------------------------------------------------------------
   const overlay = document.getElementById("overlay");
+
+document.getElementById("addCompassBtn").onclick = App.Canvas.addCompass;
+
+document.getElementById("confirmDeleteStatusBtn").onclick = function () {
+  const i = App.Status.pendingDeleteIndex;
+  if (i == null) return;
+
+  // ⭐ Use the global array, not a new local one
+  queenStatuses.splice(i, 1);
+  Storage.saveQueenStatuses(queenStatuses);
+
+  App.Status.pendingDeleteIndex = null;
+
+  // Re-render settings modal from updated global array
+  App.Status.openSettings();
+  App.Status.renderLegend();
+  App.Status.populateStatusSelect();
+
+  App.Modals.closeConfirmDeleteStatus();
+};
+
+
+document.getElementById("cancelDeleteStatusBtn").onclick = function () {
+  App.Status.pendingDeleteIndex = null;
+  App.Modals.closeConfirmDeleteStatus();
+};
 
   confirmDeleteHiveModal      = document.getElementById("confirmDeleteHiveModal");
   confirmDeleteHiveMessage    = document.getElementById("confirmDeleteHiveMessage");
