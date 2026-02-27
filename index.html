@@ -14,32 +14,32 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 
   <!-- Storage must load before everything else -->
-  <script src="js/storage.js?v=231"></script>
+  <script src="js/storage.js?v=232"></script>
 
   <!-- Help content must load before app.js -->
-  <script src="js/helpContent.js?v=231"></script>
+  <script src="js/helpContent.js?v=232"></script>
 
   <!-- Core modules -->
-  <script src="js/utils.js?v=231"></script>
-  <script src="js/apiaries.js?v=231"></script>
-  <script src="js/hives.js?v=231"></script>
-  <script src="js/subscription.js?v=231"></script>
-  <script src="js/modals.js?v=231"></script>
-  <script src="js/status.js?v=231"></script>
-  <script src="js/export.js?v=231"></script>
-  <script src="js/version.js?v=231"></script>
-  <script src="js/helpContent.js?v=231"></script>
+  <script src="js/utils.js?v=232"></script>
+  <script src="js/apiaries.js?v=232"></script>
+  <script src="js/hives.js?v=232"></script>
+  <script src="js/subscription.js?v=232"></script>
+  <script src="js/modals.js?v=232"></script>
+  <script src="js/status.js?v=232"></script>
+  <script src="js/export.js?v=232"></script>
+  <script src="js/version.js?v=232"></script>
+  <script src="js/helpContent.js?v=232"></script>
 
   <!-- Canvas subsystem -->
-  <script src="js/canvas.js?v=231"></script>
+  <script src="js/canvas.js?v=232"></script>
 
   <!-- Reports subsystem --> 
-  <script src="js/reports.js?v=231"></script>
+  <script src="js/reports.js?v=232"></script>
 
   <!-- App orchestrator (must be last) -->
-  <script src="js/app.js?v=231"></script>
+  <script src="js/app.js?v=232"></script>
 
-  <link rel="stylesheet" href="css/app.css?v=231">
+  <link rel="stylesheet" href="css/app.css?v=232">
 </head>
 
 <body>
@@ -143,7 +143,6 @@
 <div id="legacy-ui" style="display:none">
 
   <div id="hiveStatsContent"></div>
-  <div id="apiaryNotesList"></div>
 
   <textarea id="apiaryNoteInput"></textarea>
   <input type="date" id="apiaryNoteDateInput">
@@ -166,6 +165,7 @@
   <div id="apiaryManagerModal" class="modal modal-small" role="dialog" aria-modal="true" style="display:none;">
   <header class="modal-header">
     <h2 id="apiaryManagerTitle">Apiary Manager</h2>
+    <button id="addCompassBtn" class="btn-info" type="button" style="display: none;">Add Compass</button>
     <button id="apiaryManagerNewBtn" class="btn-primary">Create Apiary</button>
     <button id="apiaryManagerCloseBtn" class="modal-close">&times;</button>
   </header>
@@ -285,6 +285,18 @@
   </footer>
 </div>
 
+<div id="confirmDeleteStatusModal" class="modal">
+  <div class="modal-content">
+    <h2>Delete Status</h2>
+    <p>Are you sure you want to delete this queen status?</p>
+
+    <div class="modal-buttons">
+<button id="confirmDeleteStatusBtn" class="btn-danger" type="button">Delete</button>
+<button id="cancelDeleteStatusBtn" class="btn-cancel" type="button">Cancel</button>
+
+    </div>
+  </div>
+</div>
 
 <!-- Hive edit modal -->
 <div id="modal" class="modal modal-hive-edit"
@@ -1076,7 +1088,7 @@
   </script>
 <input type="file" id="importAllFile" accept="application/json" style="display:none">
 <button id="importAllBtn" style="display:none"></button>
-<script src="js/toolbar.js?v=231"></script>
+<script src="js/toolbar.js?v=232"></script>
 </div>
 <div id="footer">
       <div style="text-align: center;">&copy; <span id="year"></span> <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></div>

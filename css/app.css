@@ -182,7 +182,7 @@ button.save:hover {
 }
 
 #statusList {
-  max-height: 180px;
+  max-height: 100%;
   overflow-y: auto;
   margin-bottom: 15px;
   border: 1px solid #ddd;
@@ -214,23 +214,6 @@ button.save:hover {
   margin-right: 8px;
   cursor: pointer;
   border-radius: 4px;
-}
-
-.status-row button {
-  background: #e74c3c;
-  border: none;
-  color: white;
-  font-weight: bold;
-  font-size: 1.1rem;
-  cursor: pointer;
-  border-radius: 4px;
-  padding: 1px 10px;
-  line-height: 1;
-  transition: background 0.3s ease;
-}
-
-.status-row button:hover {
-  background: #c0392b;
 }
 
 #statusModal > div.buttons {
@@ -1071,7 +1054,7 @@ body {
 }
 */
 .modal-hive-edit {
-  max-width: 900px !important;
+  max-width: 95vw !important;
   width: 95vw !important;
   max-height: 80vh !important;
   overflow-y: auto;
@@ -1175,8 +1158,8 @@ body {
 #inspectionFieldConfigModal,
 #inspectionInputModal
  {
-  width: 90% !important;
-  max-width: 900px !important;
+  width: 95vw !important;
+  max-width: 95vw !important;
 }
 /* Force the grid to actually behave like a grid */
 #inspectionDetailsFields {
@@ -1468,7 +1451,7 @@ canvas {
   opacity: 0;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   transition: opacity 0.4s ease, transform 0.4s ease;
-  z-index: 999 !important;
+  z-index: 1999 !important;
   pointer-events: none;
 }
 
@@ -1501,6 +1484,7 @@ canvas {
 /* Each group block */
 .inspection-details-modal .modal-section {
   margin-bottom: 16px;
+  padding-top: 12px
 }
 
 /* Group title */
@@ -1554,6 +1538,8 @@ canvas {
   min-height: 70px;
   resize: vertical;
   box-sizing: border-box;
+  border: 1px solid #ccc;
+    border-radius: 6px;
 }
 
 /* Labels inside the header */
@@ -1572,6 +1558,8 @@ canvas {
   width: 100%;
   padding: 6px;
   box-sizing: border-box;
+      border: 1px solid #ccc;
+    border-radius: 6px;
 }
     .logo {
       width: 80px;
@@ -2047,4 +2035,7 @@ padding: 12px 0px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 0.95rem;
+}
+#confirmDeleteStatusModal {
+  z-index: 1100 !important;
 }

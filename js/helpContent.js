@@ -74,6 +74,8 @@ window.HELP_SECTIONS = [
 
       <p>Enter <b>Apiary Name</b> and optional <b>Grid Location</b> and <b>Address</b>.</p>
 
+      <!--<p>Press the <b>Add Compass</b> button will add a compass rose to the apiary Field View. This can be resized and rotated as required. HiveMap will regard the compass as a 'hive' so to delete it, select it and go to <b>Hives</b> in the toolbar and press <b>Delete Hive</b></p>-->
+
       <p>Multiple dated <b>Notes</b> can be added <b>[+]</b> at any time and they will be stored here.</p>
 
       <p>This data can be edited at any time using the <b>Apiary</b> button.</p>
@@ -205,7 +207,7 @@ window.HELP_SECTIONS = [
       This particularly useful for when a hive/colony has, for examples, been a loss, failed, died, given away or sold.<br>
       Enter/save that reason for archiving in the <b>Memo</b> of the <b>Hive Details</b> panel so it is easily seen in archived hive records.<br>
       Be sure to save any edits such as these before archiving. No edits can be made to an archived hive and archiving cannot be undone, they are permanent records but archived hives can be deleted.<br>
-      Archived hives can be viewed in the toolbar <b>Hives</b>, select <b>Archived Hives</b> to see a table list of all arhived hives.<br>
+      Archived hives can be viewed in the toolbar <b>Hives</b>, select <b>Archived Hives</b> to see a table list of all archived hives.<br>
       They can also be viewed in other table lists that show a black <b>Archived</b> button.</p>
 
       <hr>
@@ -246,7 +248,17 @@ window.HELP_SECTIONS = [
     title: "Status Colours",
     html: `
       <h2 id="help-status">Status Colours</h2>
-      <p>Edit hive status colours from Tools → Edit Status Colours.</p>
+
+      <p>Edit hive status colours in the toolbar, select <b>Settings</b> and select <b>Statuses</b>.</p>
+
+      <p>Existing status names and their assigned colours can be renamed/edited or deleted directly in the panel.</p>
+
+      <p>Press <b>Add Status</b> to add as many statuses as required, press <b>Save</b>.</p>
+
+      <p>Choosing status names and assigned colours wisely will provide an easy way of instantly seeing what hives need attention and why.</p>
+
+      <hr>
+
     `
   },
 
@@ -255,7 +267,11 @@ window.HELP_SECTIONS = [
     title: "Saving Your Data",
     html: `
       <h2 id="help-saving">Saving Your Data</h2>
-      <p>Use Tools → Export Data to save everything before closing. Import restores your full setup.</p>
+      <p>Use the floating red <b>Exit</b> button to back up and save everything as one data file before closing.<br>
+      This can also be done by going to <b>Tools</b> in the toolbar and select <b>Export Data</b>.<br>
+      The file can be saved anywhere either on your local device or external drive. This can then be imported on any other device where HiveMap is used by going to <b>Tools</b> in the toolbar and select <b>Import Data</b> to restore your full setup.</p>
+
+      <hr>
     `
   }
 
