@@ -126,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Close buttons
   document.getElementById("vetReportCloseBtn").onclick =
-  document.getElementById("vetReportCloseBtnFooter").onclick =
   document.getElementById("overlay").onclick =
     function () {
       document.getElementById("vetReportModal").style.display = "none";

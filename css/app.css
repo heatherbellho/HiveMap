@@ -111,7 +111,19 @@ button.save:hover {
   border-radius: 6px;
   font-size: 0.95rem;
 }
-
+#honeyGraphModal select,
+#manageHiveTypesModal input,
+#boxTypesModal input {
+  padding: 6px;
+  margin-top: 4px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+#manageHiveTypesModal,
+#boxTypesModal {
+  min-width: 500px !important;
+}
 /* Inline rows */
 .inline-row {
   display: flex;
@@ -120,13 +132,28 @@ button.save:hover {
 }
 
 .small-add {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   background: #4caf50;
   color: #fff;
   border: none;
   border-radius: 4px;
-  font-size: 20px;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.small-view {
+  width: 30px;
+  height: 30px;
+  background: #1b8ebc;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 24px;
   cursor: pointer;
   line-height: 1;
   display: flex;
@@ -1520,6 +1547,7 @@ canvas {
   gap: 12px !important;
   width: 100% !important;
   box-sizing: border-box;
+  border: 1px solid #000;
 }
 /* Layout for the New Inspection header section */
 #inspectionInputModal .modal-subheader,
@@ -2038,4 +2066,32 @@ padding: 12px 0px;
 }
 #confirmDeleteStatusModal {
   z-index: 1100 !important;
+}
+#honeyGraphModal {
+  z-index: 1200 !important;
+  min-width: 600px !important;
+}
+#honeyGraphModal .modal-content {
+    max-width: 600px;
+    padding: 20px;
+}
+
+#honeyGraphModal h2 {
+    margin-bottom: 15px;
+}
+
+#honeyGraphCanvas {
+    width: 100% !important;
+    margin-bottom: 20px;
+}
+
+#honeyGraphModal .modal-actions {
+    text-align: right;
+}
+
+.icon {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+  vertical-align: -2px;
 }

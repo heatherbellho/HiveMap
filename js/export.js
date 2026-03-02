@@ -20,7 +20,9 @@ App.Export.exportLayout = function () {
     hiveTypes: Storage.getHiveTypes(),
     apiaryNote: Storage.getApiaryNote(apiaryName) || "",
     allApiaries: Storage.getAllApiaries(),
-    currentApiary: apiaryName
+    currentApiary: apiaryName,
+    weightUnit: App.Modals.inspectionSchema.weightUnit || "kg",
+
   };
 
   const blob = new Blob([JSON.stringify(exportData, null, 2)], {
@@ -54,7 +56,8 @@ App.Export.exportAllData = function () {
       zoom: 1,
       snap: true,
       hiveCountSettings: Storage.getHiveCountSettings(),
-      boxTypes: Storage.getBoxTypes()
+      boxTypes: Storage.getBoxTypes(),
+      weightUnit: App.Modals.inspectionSchema.weightUnit || "kg"
     },
     media: { images: {} },
     lastUsed: Storage.getCurrentApiary() || ""
@@ -139,6 +142,16 @@ App.Export.importLayout = function (event) {
       if (loaded.apiaryNote) {
         Storage.saveApiaryNote(importedName, loaded.apiaryNote);
       }
+
+// ⭐ NEW — restore weight unit if present
+if (loaded.weightUnit) {
+  App.Modals.inspectionSchema.weightUnit = loaded.weightUnit;
+  App.Modals.inspectionSchemaWorking.weightUnit = loaded.weightUnit;
+
+  // ⭐ CRITICAL — persist so reload uses imported value
+  Storage.saveInspectionSchema(App.Modals.inspectionSchema);
+}
+
 
       if (loaded.hiveLayout) {
         Storage.saveHiveLayout(importedName, JSON.stringify(loaded.hiveLayout));
@@ -256,6 +269,20 @@ if (
         if (loaded.settings.boxTypes) {
           Storage.saveBoxTypes(loaded.settings.boxTypes);
         }
+
+// Restore weight unit (NEW)
+if (loaded.settings.weightUnit) {
+  App.Modals.inspectionSchema.weightUnit = loaded.settings.weightUnit;
+  App.Modals.inspectionSchemaWorking.weightUnit = loaded.settings.weightUnit;
+} else {
+  App.Modals.inspectionSchema.weightUnit = "kg";
+  App.Modals.inspectionSchemaWorking.weightUnit = "kg";
+}
+
+// ⭐ CRITICAL — persist so reload uses imported value
+Storage.saveInspectionSchema(App.Modals.inspectionSchema);
+
+
       }
 
       App.UI.showToast(`Imported ${apiaryNames.length} apiaries successfully.`);

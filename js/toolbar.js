@@ -163,6 +163,11 @@ document.getElementById("toolsAccount").addEventListener("click", () => {
   App.Modals.openAccountModal();
 });
 
+//document.getElementById("toolsAnalyticsHoney").onclick = function () {
+ //   App.Modals.openHoneyGraphModal();
+//};
+
+
 // ------------------------------------------------------------
 // SAVE HM2 LICENCE CODE
 // ------------------------------------------------------------
@@ -366,10 +371,7 @@ document.getElementById("settingsCloseBtn").onclick = () => {
   document.getElementById("settingsModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 };
-document.getElementById("settingsCancelBtn").onclick = () => {
-  document.getElementById("settingsModal").style.display = "none";
-  document.getElementById("overlay").style.display = "none";
-};
+
 // Close Settings modal if overlay is clicked
 document.getElementById("overlay").addEventListener("click", function () {
   document.getElementById("settingsModal").style.display = "none";

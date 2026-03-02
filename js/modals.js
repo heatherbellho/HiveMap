@@ -15,6 +15,7 @@ App.Modals.inspectionSchemaWorking = null;
    (Used when user has not customised their field layout)
 ------------------------------------------------------------ */
 App.Modals.defaultInspectionSchema = {
+  weightUnit: "kg",
   groups: [
     {
       id: "management",
@@ -25,7 +26,8 @@ App.Modals.defaultInspectionSchema = {
         { id: "honeyFrames", label: "Honey Frames", type: "text", sortOrder: 2, placeholder: "e.g. 2/11 D + 12/22 S" },
         { id: "pollenFrames", label: "Pollen Frames", type: "text", sortOrder: 3, placeholder: "e.g. 2/11 D" },
         { id: "feedingType", label: "Feeding", type: "text", sortOrder: 4, placeholder: "e.g. +4pts 50/50" },
-        { id: "supersAddedRemoved", label: "Boxes Added/Removed", type: "text", sortOrder: 5, placeholder: "e.g. +1 S" }
+        { id: "supersAddedRemoved", label: "Boxes Added/Removed", type: "text", sortOrder: 5, placeholder: "e.g. +1 S" },
+        { id: "honeyTaken", label: "Honey Taken", type: "number", sortOrder: 5, placeholder: "e.g. 10" }
       ]
     },
     {
@@ -46,7 +48,6 @@ App.Modals.defaultInspectionSchema = {
       name: "Health",
       sortOrder: 3,
       fields: [
-        { id: "treatmentApplied", label: "Treatment Applied", type: "text", sortOrder: 1, placeholder: "e.g. Thymovar in" },
         { id: "diseaseSigns", label: "Disease Signs", type: "textarea", sortOrder: 2, placeholder: "e.g. very little Chalkbrood" },
         { id: "miteCount", label: "Mite Count", type: "number", sortOrder: 3, placeholder: "e.g. not done" },
         { id: "beeTemperament", label: "Bee Temperament", type: "text", sortOrder: 4, placeholder: "e.g. calm" },
@@ -58,7 +59,9 @@ App.Modals.defaultInspectionSchema = {
       name: "Environmental",
       sortOrder: 4,
       fields: [
-        { id: "temperature", label: "Temperature °C", type: "number", sortOrder: 1, placeholder: "e.g. 18" },
+        { id: "temperature", label: "Temperature °C/F", type: "number", sortOrder: 1, placeholder: "e.g. 18" },
+        { id: "wind", label: "Wind mph/kmph", type: "number", sortOrder: 1, placeholder: "e.g. 12" },
+        { id: "windDirection", label: "Wind Direction", type: "text", sortOrder: 1, placeholder: "e.g. SW" },
         { id: "weather", label: "Weather", type: "text", sortOrder: 2, placeholder: "e.g. calm, dry" },
         { id: "forage", label: "Forage", type: "text", sortOrder: 3, placeholder: "e.g. willow out and pollen seen" }
       ]
@@ -84,6 +87,7 @@ if (data.status === "archived") {
   titleEl.textContent = "Hive Details";
 }
 const deleteBtn = document.getElementById("deleteArchivedHiveBtn");
+const graphBtn = document.getElementById("analyticsBtn");
 
 // Always reset first
 deleteBtn.style.display = "none";
@@ -91,6 +95,7 @@ deleteBtn.style.display = "none";
 // Only show delete for archived hives
 if (data.status === "archived") {
   deleteBtn.style.display = "block";
+  graphBtn.style.display = "none";
 }
 
   // Ensure arrays exist
@@ -152,19 +157,15 @@ if (data.status === "archived") {
   const addTreatmentBtn = document.getElementById("addTreatmentBtn");
   const moveHiveBtn = document.getElementById("moveHiveBtn");
   const saveHiveBtn = document.getElementById("saveHiveBtn");
-  const cancelHiveBtn = document.getElementById("cancelHiveBtn");
   const addBoxBtn = document.getElementById("addBoxBtn");
   const saveHiveBtnFooter = document.getElementById("saveHiveBtnFooter");
-  const cancelHiveBtnFooter = document.getElementById("cancelHiveBtnFooter");
 
   if (addInspectionBtn) addInspectionBtn.style.display = "none";
   if (addTreatmentBtn) addTreatmentBtn.style.display = "none";
   if (moveHiveBtn) moveHiveBtn.style.display = "none";
   if (saveHiveBtn) saveHiveBtn.style.display = "none";
-  if (cancelHiveBtn) cancelHiveBtn.style.display = "none";
   if (addBoxBtn) addBoxBtn.style.display = "none";
   if (saveHiveBtnFooter) saveHiveBtnFooter.style.display = "none";
-  if (cancelHiveBtnFooter) cancelHiveBtnFooter.style.display = "none";
 
   // ⭐ Show delete button for archived hives
     const deleteBtn = document.getElementById("deleteArchivedHive");
@@ -269,12 +270,7 @@ deleteBtn.onclick = function () {
   if (moveHiveBtn) moveHiveBtn.style.display = "inline-block";
   if (saveHiveBtn) saveHiveBtn.style.display = "inline-block";
 
-  // Restore Cancel buttons for active hives
-const cancelHiveBtn = document.getElementById("cancelHiveBtn");
-const cancelHiveBtnFooter = document.getElementById("cancelHiveBtnFooter");
 
-if (cancelHiveBtn) cancelHiveBtn.style.display = "inline-block";
-if (cancelHiveBtnFooter) cancelHiveBtnFooter.style.display = "inline-block";
 
   // Archive action
   if (archiveBtn) {
@@ -590,19 +586,21 @@ App.Modals.renderTreatmentList = function () {
   }
 
   // ⭐ NEW: reverse so newest is first
-  const ordered = treatments.slice().reverse();
+const ordered = treatments
+  .slice()
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
 
 list.innerHTML = ordered.map((t, index) => `
-  <div class="treatment-item" style="display:flex; justify-content:space-between; align-items:center;">
+  <div class="treatment-item" style="display:flex; justify-content:space-between; align-items:start; gap:6px; width:100%;">
     
     <div>
       <strong>${t.date ? App.Utils.formatDateUK(t.date) : "No date"}</strong>
       — ${t.product || "Unknown"}
     </div>
 
-    <div class="treatment-actions">
-      <button class="btn-info" data-index="${treatments.length - 1 - index}">Edit</button>
-      <button class="btn-danger" data-index="${treatments.length - 1 - index}">Delete</button>
+    <div class="treatment-actions" style="display:flex; gap:6px; margin-left:auto;">
+      <button class="small-view" data-index="${treatments.length - 1 - index}"><svg class="icon"><use href="#icon-search"></use></svg></button>
+      <button class="small-delete" data-index="${treatments.length - 1 - index}">×</button>
     </div>
 
   </div>
@@ -610,11 +608,11 @@ list.innerHTML = ordered.map((t, index) => `
 
 
   // Wire edit/delete buttons
-  list.querySelectorAll(".btn-info").forEach(btn => {
+  list.querySelectorAll(".small-view").forEach(btn => {
     btn.onclick = () => App.Modals.openTreatmentModal(btn.dataset.index);
   });
 
-  list.querySelectorAll(".btn-danger").forEach(btn => {
+  list.querySelectorAll(".small-delete").forEach(btn => {
     btn.onclick = () => {
       if (editingDisabled()) {
         App.UI.showToast("Editing is disabled because your subscription has expired.");
@@ -674,7 +672,7 @@ App.Modals.renderInspectionHistory = function () {
     </div>
 
     <div style="display:flex; gap:6px; margin-left:auto;">
-      <button class="inspectionDetailsBtn btn-info" data-index="${originalIndex}">Details</button>
+      <button class="inspectionDetailsBtn small-view" data-index="${originalIndex}"><svg class="icon"><use href="#icon-search"></use></svg></button>
       <button type="button"
               class="deleteInspectionBtn small-delete"
               data-index="${originalIndex}">
@@ -692,7 +690,7 @@ App.Modals.renderInspectionHistory = function () {
   // Details handlers
   document.querySelectorAll(".inspectionDetailsBtn").forEach(btn => {
     btn.addEventListener("click", (e) => {
-      const index = e.target.dataset.index;
+      const index = e.currentTarget.dataset.index;
       App.Modals.openInspectionDetails(index);
     });
   });
@@ -906,8 +904,8 @@ App.Modals.renderInspectionList = function (title, includeFn) {
   document.getElementById("hiveListTitle").textContent = title;
 
   // Hide old filter bar if still present
-  const filterBar = document.getElementById("dueInspectionFilters");
-  if (filterBar) filterBar.style.display = "none";
+  //const filterBar = document.getElementById("dueInspectionFilters");
+  //if (filterBar) filterBar.style.display = "none";
 
   tbody.innerHTML = "";
 
@@ -1034,6 +1032,13 @@ App.Modals.renderInspectionList = function (title, includeFn) {
     row.style.display = ""; // expanded by default
 
     row.innerHTML = `
+          <td class="col-action">
+        <button class="small-view edit-hive-btn"
+                data-ref="${hiveObj.__uid}"
+                data-apiary="${apiaryName}">
+          <svg class="icon"><use href="#icon-search"></use></svg>
+        </button>
+      </td>
       <td>${name}</td>
       <td>
         <span class="status-badge" style="background:${badgeColor}">
@@ -1044,13 +1049,7 @@ App.Modals.renderInspectionList = function (title, includeFn) {
       <td class="col-date ${dueClass}">${nextDue}</td>
       <td>${hiveType}</td>
       <td>${memo}</td>
-      <td class="col-action">
-        <button class="btn-primary edit-hive-btn"
-                data-ref="${hiveObj.__uid}"
-                data-apiary="${apiaryName}">
-          View
-        </button>
-      </td>
+
     `;
 
     tbody.appendChild(row);
@@ -1153,6 +1152,8 @@ App.Modals.openDueInspectionsModal = function () {
 };
 
 App.Modals.openArchivedHivesModal = function () {
+  document.getElementById("archiveBtns").style.display = "none";
+  document.getElementById("dueInspectionBtns").style.display = "none";
   App.Modals.renderInspectionList("Archived Hives", (data, today) =>
     data.status === "archived"
   );
@@ -1229,19 +1230,17 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
 
   App.Modals.currentInspectionIndex = inspectionIndex;
 
-  // ------------------------------------------------------------
-  // Populate core editable fields (DATE + TIME)
-  // ------------------------------------------------------------
+  // Unit preference
+  const unit =
+    App.Modals.inspectionSchema.weightUnit === "lbs" ? "lbs" : "kg";
 
-  // Date (YYYY-MM-DD)
+  // Core fields
   document.getElementById("inspectionDetailsDateInput").value =
     inspection.date || "";
 
-  // Time (HH:MM)
   document.getElementById("inspectionDetailsTimeInput").value =
     inspection.time || "";
 
-  // Recorded-at (read-only display)
   const recordedDisplay = document.getElementById("inspectionDetailsRecordedAt");
   if (recordedDisplay) {
     recordedDisplay.textContent = inspection.recordedAt
@@ -1249,7 +1248,6 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
       : "Unknown";
   }
 
-  // Queen status dropdown
   const queenSelect = document.getElementById("inspectionDetailsQueenStatusInput");
   queenSelect.innerHTML = "";
 
@@ -1269,9 +1267,7 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
   document.getElementById("inspectionDetailsNotesInput").value =
     inspection.notes || "";
 
-  // ------------------------------------------------------------
-  // Render extended inspection fields
-  // ------------------------------------------------------------
+  // Extended fields
   const fieldsContainer = document.getElementById("inspectionDetailsFields");
   fieldsContainer.innerHTML = "";
 
@@ -1301,7 +1297,14 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
       wrapper.className = "inspection-field";
 
       const label = document.createElement("label");
-      label.textContent = field.label;
+
+      // Dynamic label for honeyTaken
+      if (field.id === "honeyTaken") {
+        label.textContent = `Honey Taken (${unit})`;
+      } else {
+        label.textContent = field.label;
+      }
+
       label.setAttribute("for", "detail_" + field.id);
 
       let input;
@@ -1334,13 +1337,20 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
     fieldsContainer.appendChild(groupWrapper);
   });
 
-  // Load extended fields
+  // Load extended fields (with conversion)
   App.Modals.inspectionSchema.groups.forEach(group => {
     group.fields.forEach(field => {
       const input = document.getElementById("detail_" + field.id);
       if (!input) return;
 
-      const value = inspection[field.id];
+      let value = inspection[field.id];
+
+      if (field.id === "honeyTaken") {
+        const kg = Number(value || 0);
+        value = unit === "lbs"
+          ? (kg * 2.20462).toFixed(1)
+          : kg;
+      }
 
       if (field.type === "checkbox") {
         input.checked = !!value;
@@ -1368,14 +1378,18 @@ App.Modals.saveInspectionDetails = function () {
   const inspection = hiveData.inspections[App.Modals.currentInspectionIndex];
   if (!inspection) return;
 
-  // ⭐ Save date + time separately
+  // Unit preference (schema is the ONLY source of truth)
+  const unit =
+    App.Modals.inspectionSchema.weightUnit === "lbs" ? "lbs" : "kg";
+
+  // Save date + time
   inspection.date =
     document.getElementById("inspectionDetailsDateInput").value || "";
 
   inspection.time =
     document.getElementById("inspectionDetailsTimeInput").value || "";
 
-  // ⭐ recordedAt stays unchanged (set only when created)
+  // recordedAt stays unchanged
 
   inspection.queenStatus =
     document.getElementById("inspectionDetailsQueenStatusInput").value || "";
@@ -1386,11 +1400,25 @@ App.Modals.saveInspectionDetails = function () {
   inspection.notes =
     document.getElementById("inspectionDetailsNotesInput").value.trim();
 
-  // Extended fields
+  // Extended fields (with honeyTaken conversion)
   App.Modals.inspectionDetailFields.forEach(field => {
     const input = document.getElementById("detail_" + field.key);
     if (!input) return;
 
+    // ⭐ THIS IS THE BLOCK I REFERRED TO EARLIER ⭐
+    if (field.key === "honeyTaken") {
+      const raw = Number(input.value);
+
+      // ALWAYS store kg internally
+      inspection.honeyTaken =
+        unit === "lbs"
+          ? raw / 2.20462   // lbs → kg
+          : raw;            // already kg
+
+      return;
+    }
+
+    // Normal fields
     if (field.type === "checkbox") {
       inspection[field.key] = input.checked;
     } else {
@@ -1762,7 +1790,7 @@ App.Modals.renderInspectionFieldConfig = function () {
   const container = document.getElementById("inspectionFieldConfigBody");
   if (!container) return;
 
-const schema = App.Modals.inspectionSchemaWorking;
+  const schema = App.Modals.inspectionSchemaWorking;
   if (!schema || !schema.groups) {
     container.innerHTML = "<p>Error: Schema not loaded.</p>";
     return;
@@ -1774,6 +1802,32 @@ const schema = App.Modals.inspectionSchemaWorking;
   // Create wrapper
   const wrapper = document.createElement("div");
   wrapper.className = "inspection-config-wrapper";
+
+  // --- GLOBAL INSPECTION SETTINGS (kg/lbs) ---
+  const globalSettings = document.createElement("div");
+  globalSettings.className = "inspection-global-settings";
+  globalSettings.style.marginBottom = "16px";
+  globalSettings.style.padding = "12px";
+  globalSettings.style.border = "1px solid #ddd";
+  globalSettings.style.borderRadius = "6px";
+
+  globalSettings.innerHTML = `
+    <h3 style="margin-top:0;">Inspection Settings</h3>
+    <label for="weightUnitSelect" style="margin-right:6px;">Honey weight unit</label>
+    <select id="weightUnitSelect" style="width: 180px; padding: 6px; border: 1px solid #ccc; border-radius: 6px;">
+      <option value="kg">Kilograms (kg)</option>
+      <option value="lbs">Pounds (lbs)</option>
+    </select>
+  `;
+
+  wrapper.appendChild(globalSettings);
+
+  // Load existing preference from schema (default kg)
+  const unit = schema.weightUnit === "lbs" ? "lbs" : "kg";
+  const weightSelectEl = globalSettings.querySelector("#weightUnitSelect");
+  if (weightSelectEl) {
+    weightSelectEl.value = unit;
+  }
 
   // Add groups section
   const groupsSection = document.createElement("div");
@@ -1799,10 +1853,18 @@ App.Modals.saveInspectionFieldConfig = function () {
     App.UI.showToast("Editing is disabled because your subscription has expired.");
     return;
   }
+
   // Commit working copy to live schema
   App.Modals.inspectionSchema = App.Modals.inspectionSchemaWorking;
 
-  // Persist to storage
+  // Save weight unit preference INTO THE SCHEMA
+  const weightSelectEl = document.getElementById("weightUnitSelect");
+  if (weightSelectEl) {
+    App.Modals.inspectionSchema.weightUnit =
+      weightSelectEl.value === "lbs" ? "lbs" : "kg";
+  }
+
+  // Persist schema (this is the ONLY storage mechanism you have here)
   Storage.saveInspectionSchema(App.Modals.inspectionSchema);
 
   // Close modal
@@ -1811,7 +1873,7 @@ App.Modals.saveInspectionFieldConfig = function () {
 
 App.Modals.openHiveListModal = function () {
   App.Modals.resetHiveListHeader();
-  document.getElementById("archiveBtns").style.display = "block";
+  document.getElementById("archiveBtns").style.display = "none";
   document.getElementById("dueInspectionBtns").style.display = "none";
 
   // Show modal + overlay
@@ -1892,6 +1954,11 @@ App.Modals.openHiveListModal = function () {
 
     const row = document.createElement("tr");
     row.innerHTML = `
+          <td class="col-action">
+        <button class="small-view edit-hive-btn" data-ref="${hiveObj.__uid}">
+          <svg class="icon"><use href="#icon-search"></use></svg>
+        </button>
+      </td>
       <td>${name}</td>
       <td>
         <span class="status-badge" style="background:${badgeColor}">
@@ -1902,11 +1969,7 @@ App.Modals.openHiveListModal = function () {
       <td class="col-date">${nextDue}</td>
       <td>${hiveType}</td>
       <td>${memo}</td>
-      <td class="col-action">
-        <button class="btn-primary edit-hive-btn" data-ref="${hiveObj.__uid}">
-          View
-        </button>
-      </td>
+
     `;
 
     tbody.appendChild(row);
@@ -1942,7 +2005,7 @@ App.Modals.openOverallHiveListModal = function () {
   App.Modals.resetHiveListHeader();
   document.getElementById("dueInspectionBtns").style.display = "none";
   document.getElementById("archiveBtns").style.display = "none";
-  document.getElementById("overallArchiveBtns").style.display = "block";
+  document.getElementById("overallArchiveBtns").style.display = "none";
 
   const modal = document.getElementById("hiveListModal");
   const overlay = document.getElementById("overlay");
@@ -2067,6 +2130,13 @@ App.Modals.openOverallHiveListModal = function () {
     row.style.display = "";
 
     row.innerHTML = `
+          <td class="col-action">
+        <button class="small-view edit-hive-btn" 
+                data-ref="${hiveObj.__uid}"
+                data-apiary="${apiaryName}">
+          <svg class="icon"><use href="#icon-search"></use></svg>
+        </button>
+      </td>
       <td>${name}</td>
       <td>
         <span class="status-badge" style="background:${badgeColor}">
@@ -2077,13 +2147,7 @@ App.Modals.openOverallHiveListModal = function () {
       <td class="col-date">${nextDue}</td>
       <td>${hiveType}</td>
       <td>${memo}</td>
-      <td class="col-action">
-        <button class="btn-primary edit-hive-btn" 
-                data-ref="${hiveObj.__uid}"
-                data-apiary="${apiaryName}">
-          View
-        </button>
-      </td>
+
     `;
 
     tbody.appendChild(row);
@@ -2179,8 +2243,10 @@ App.Modals.openInspectionInput = function (hiveObj) {
   App.Modals.currentHiveForInspection = hiveObj;
 
   // Title
+  const currentApiary = Storage.getCurrentApiary();
+
   document.getElementById("inspectionInputTitle").textContent =
-    `New Inspection Hive ID: ${hiveObj.hiveData.name}`;
+    `New Inspection - Apiary: ${currentApiary}, Hive ID: ${hiveObj.hiveData.name}`;
 
   // Default date = today
   const today = new Date().toISOString().split("T")[0];
@@ -2212,6 +2278,9 @@ App.Modals.openInspectionInput = function (hiveObj) {
     queenSelect.value = latest.queenStatus;
   }
 
+  // --- UNIT PREFERENCE FROM SCHEMA ---
+  const unit = App.Modals.inspectionSchema.weightUnit === "lbs" ? "lbs" : "kg";
+
   // Build schema-driven fields
   const container = document.getElementById("inspectionInputFields");
   container.innerHTML = "";
@@ -2240,7 +2309,14 @@ App.Modals.openInspectionInput = function (hiveObj) {
       wrapper.className = "inspection-field";
 
       const label = document.createElement("label");
-      label.textContent = field.label;
+
+      // Dynamic label for honeyTaken
+      if (field.id === "honeyTaken") {
+        label.textContent = unit === "lbs" ? "Honey Taken (lbs)" : "Honey Taken (kg)";
+      } else {
+        label.textContent = field.label;
+      }
+
       label.setAttribute("for", "input_" + field.id);
 
       let input;
@@ -2259,6 +2335,9 @@ App.Modals.openInspectionInput = function (hiveObj) {
       input.dataset.key = field.id;
       input.placeholder = field.placeholder || "";
 
+      // --- NEW INSPECTION: ALL FIELDS START EMPTY ---
+      input.value = "";
+
       wrapper.appendChild(label);
       wrapper.appendChild(input);
       grid.appendChild(wrapper);
@@ -2275,9 +2354,9 @@ App.Modals.openInspectionInput = function (hiveObj) {
 
 App.Modals.saveInspectionInput = function () {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
 
   const hiveObj = App.Modals.currentHiveForInspection;
   if (!hiveObj) return;
@@ -2295,13 +2374,17 @@ App.Modals.saveInspectionInput = function () {
   const notes = document.getElementById("inspectionInputNotes").value.trim();
 
   const newInspection = {
-    date,          // YYYY-MM-DD
-    time,          // HH:MM
-    recordedAt,    // ISO timestamp of data entry
+    date,
+    time,
+    recordedAt,
     queenStatus,
     notes,
     nextInspection,
   };
+
+  // --- UNIT PREFERENCE FROM SCHEMA ---
+  const unit =
+    App.Modals.inspectionSchema.weightUnit === "lbs" ? "lbs" : "kg";
 
   // Schema-driven fields
   App.Modals.inspectionSchema.groups.forEach(group => {
@@ -2309,6 +2392,20 @@ App.Modals.saveInspectionInput = function () {
       const input = document.getElementById("input_" + field.id);
       if (!input) return;
 
+      // --- SPECIAL CASE: honeyTaken ---
+      if (field.id === "honeyTaken") {
+        const raw = Number(input.value);
+
+        // ALWAYS store kg internally
+        newInspection.honeyTaken =
+          unit === "lbs"
+            ? raw / 2.20462   // lbs → kg
+            : raw;            // already kg
+
+        return;
+      }
+
+      // Normal fields
       if (field.type === "checkbox") {
         newInspection[field.id] = input.checked;
       } else {
@@ -2349,17 +2446,17 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
   const inspections = (data.inspections || [])
     .slice()
     .sort((a, b) => {
-      // Sort by date + time combined
       const aDT = new Date(`${a.date}T${a.time || "00:00"}`);
       const bDT = new Date(`${b.date}T${b.time || "00:00"}`);
       return bDT - aDT;
     });
 
-  // Title
   document.getElementById("inspectionHistoryTitle").textContent =
     `Inspection History — ${data.name || "Hive"} (${Storage.getCurrentApiary() || "Unknown Apiary"})`;
 
   const schema = App.Modals.inspectionSchema;
+
+  const unit = schema.weightUnit === "lbs" ? "lbs" : "kg";
 
   const thead = document.querySelector("#inspectionHistoryTable thead");
   const tbody = document.querySelector("#inspectionHistoryTable tbody");
@@ -2375,7 +2472,14 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
       group.fields
         .sort((a, b) => a.sortOrder - b.sortOrder)
         .forEach(field => {
-          header += `<th>${field.label}</th>`;
+
+          // Dynamic label for honeyTaken
+          if (field.id === "honeyTaken") {
+            header += `<th>Honey Taken (${unit})</th>`;
+          } else {
+            header += `<th>${field.label}</th>`;
+          }
+
         });
     });
 
@@ -2398,7 +2502,18 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
         group.fields
           .sort((a, b) => a.sortOrder - b.sortOrder)
           .forEach(field => {
-            row += `<td>${i[field.id] ?? ""}</td>`;
+
+            let val = i[field.id] ?? "";
+
+            // Convert kg → lbs for honeyTaken
+            if (field.id === "honeyTaken") {
+              const kg = Number(val || 0);
+              val = unit === "lbs"
+                ? (kg * 2.20462).toFixed(1)
+                : kg;
+            }
+
+            row += `<td>${val}</td>`;
           });
       });
 
@@ -2409,14 +2524,11 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
 
   // Wire close buttons
   const close1 = document.getElementById("closeInspectionHistoryBtn");
-  const close2 = document.getElementById("closeInspectionHistoryBtn2");
 
-const closeFn = App.Modals.closeInspectionHistory;
+  const closeFn = App.Modals.closeInspectionHistory;
 
   if (close1) close1.onclick = closeFn;
-  if (close2) close2.onclick = closeFn;
 
-  // Show modal
   document.getElementById("overlay").style.display = "block";
   overlay.style.zIndex = 1150;
   document.getElementById("inspectionHistoryModal").style.display = "block";
@@ -2795,7 +2907,8 @@ App.Modals.renderBoxTypesList = function () {
 
   container.innerHTML = list
     .map((type, index) => `
-      <div class="box-type-row">
+      <div class="box-type-row" style="display:flex; justify-content:space-between; align-items:center; gap:6px; width:100%;">
+      <div>
         <input 
           type="text" 
           class="box-type-input" 
@@ -2803,12 +2916,14 @@ App.Modals.renderBoxTypesList = function () {
           value="${type}"
           disabled
         >
-
+        </div>
+        <div style="display:flex; gap:6px; margin-left:auto;">
         <button class="rename-box-type btn-primary" data-index="${index}">Rename</button>
         <button class="save-box-type btn-save" data-index="${index}" style="display:none;">Save</button>
         <button class="cancel-box-type btn-cancel" data-index="${index}" style="display:none;">Cancel</button>
 
-        <button class="delete-box-type btn-danger" data-index="${index}">Delete</button>
+        <button class="delete-box-type small-delete" data-index="${index}">×</button>
+      </div>
       </div>
     `)
     .join("");
@@ -2956,20 +3071,25 @@ App.Modals.renderHiveTypesList = function () {
 
   container.innerHTML = list
     .map((type, index) => `
-      <div class="hive-type-row">
+      <div class="hive-type-row" style="display:flex; justify-content:space-between; align-items:center; gap:6px; width:100%;">
+      <div>
         <input 
           type="text" 
           class="hive-type-input" 
+          name="hive type"
+          aria-label="hive type"
           data-index="${index}" 
           value="${type}"
           disabled
         >
-
+      </div>
+      <div style="display:flex; gap:6px; margin-left:auto;">
         <button class="rename-hive-type btn-primary" data-index="${index}">Rename</button>
         <button class="save-hive-type btn-save" data-index="${index}" style="display:none;">Save</button>
         <button class="cancel-hive-type btn-cancel" data-index="${index}" style="display:none;">Cancel</button>
 
-        <button class="delete-hive-type btn-danger" data-index="${index}">Delete</button>
+        <button class="delete-hive-type small-delete" data-index="${index}">×</button>
+        </div>
       </div>
     `)
     .join("");
@@ -3190,6 +3310,9 @@ App.Modals.openAccountModal = function () {
   document.getElementById("accountVersion").innerHTML =
     `Version: <strong>${App.Version}</strong>`;
 
+  document.getElementById("accountVersionRelease").innerHTML =
+    `Released: <strong>${App.Release}</strong>`;
+
   // OPEN MODAL
   overlay.style.zIndex = "900";
   overlay.style.display = "block";
@@ -3225,6 +3348,60 @@ App.Modals.closeConfirmDeleteStatus = function () {
   document.getElementById("confirmDeleteStatusModal").style.display = "none";
 };
 
+App.Modals.openHoneyGraphModal = function () {
+    const overlay = document.getElementById("overlay");
+    const modal = document.getElementById("honeyGraphModal");
+    modal.style.display = "block";
+    overlay.style.zIndex = "1125";
+    overlay.style.display = "block";
+    
+    // Default scope when opening
+    const scopeSelect = document.getElementById("honeyGraphScope");
+    scopeSelect.value = "hive";
+
+    // Re-render when user changes scope
+    scopeSelect.onchange = function () {
+        App.Analytics.updateHoneyGraph();
+    };
+
+    // 🔥 YEAR SELECTOR — UI ONLY (no behaviour yet)
+const yearSelect = document.getElementById("honeyGraphYear");
+
+// Build list of years from inspection data
+const years = App.Analytics.getAllInspectionYears();
+
+// Fallback if no inspections exist yet
+if (!years.length) {
+    const currentYear = new Date().getFullYear();
+    years.push(currentYear.toString());
+}
+
+yearSelect.innerHTML = years
+    .map(y => `<option value="${y}">${y}</option>`)
+    .join("");
+
+// Default to the latest year
+yearSelect.value = years[years.length - 1];
+
+yearSelect.onchange = function () {
+    App.Analytics.updateHoneyGraph();
+};
+
+    // Close button
+    document.getElementById("closeHoneyGraph").onclick = function () {
+        modal.style.display = "none";
+       // overlay.style.display = "none";
+        overlay.style.zIndex ="900";
+    };
+
+    // Render ONLY after layout is fully applied
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            App.Analytics.updateHoneyGraph();
+        });
+    });
+};
+
 
 // ------------------------------------------------------------
 // Initialise modal system
@@ -3235,6 +3412,10 @@ App.Modals.init = function () {
   // Overlay (shared by all modals)
   // ------------------------------------------------------------
   const overlay = document.getElementById("overlay");
+
+  document.getElementById("analyticsBtn").onclick = function () {
+    App.Modals.openHoneyGraphModal();
+};
 
 document.getElementById("addCompassBtn").onclick = App.Canvas.addCompass;
 
@@ -3276,7 +3457,7 @@ document.getElementById("cancelDeleteStatusBtn").onclick = function () {
       confirmDeleteHivesCallback = null;
     }
   });
-
+if (overlay) overlay.addEventListener("click", App.Modals.closeConfirmDeleteHives);
   // CANCEL button
   confirmDeleteHiveCancelBtn.addEventListener("click", function () {
     App.Modals.closeConfirmDeleteHives();
@@ -3376,8 +3557,6 @@ document.getElementById("confirmArchiveHiveYesBtn")
   // Hive edit modal
   // ------------------------------------------------------------
   document.getElementById("modalCloseBtn").addEventListener("click", App.Modals.closeHiveModal);
-  document.getElementById("cancelHiveBtn").addEventListener("click", App.Modals.closeHiveModal);
-  document.getElementById("cancelHiveBtnFooter").addEventListener("click", App.Modals.closeHiveModal);
   document.getElementById("saveHiveBtn").addEventListener("click", App.Modals.saveHiveData);
   document.getElementById("saveHiveBtnFooter").addEventListener("click", App.Modals.saveHiveData);
 
@@ -3391,14 +3570,13 @@ document.getElementById("confirmArchiveHiveYesBtn")
   if (overlay) overlay.addEventListener("click", App.Modals.closeHiveModal);
 document.getElementById("saveInspectionInputBtn").addEventListener("click", App.Modals.saveInspectionInput);
   document.getElementById("closeInspectionInputBtn").addEventListener("click", App.Modals.closeInspectionInput);
-  document.getElementById("cancelInspectionInputBtn").addEventListener("click", App.Modals.closeInspectionInput);
 
   // ------------------------------------------------------------
   // Hive size modal
   // ------------------------------------------------------------
   document.getElementById("addHiveBtn").addEventListener("click", App.Modals.openHiveSizeModal);
   document.getElementById("hiveSizeCloseBtn").addEventListener("click", App.Modals.closeHiveSizeModal);
-  document.getElementById("cancelCreateHiveBtn").addEventListener("click", App.Modals.closeHiveSizeModal);
+  //document.getElementById("cancelCreateHiveBtn").addEventListener("click", App.Modals.closeHiveSizeModal);
   if (overlay) overlay.addEventListener("click", App.Modals.closeHiveSizeModal);
   document.getElementById("confirmCreateHiveBtn").addEventListener("click", App.Modals.confirmCreateHive);
   document.getElementById("hiveSizeSelect").addEventListener("change", App.Modals.toggleCustomSizeFields);
@@ -3419,7 +3597,6 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
   // Inspection details modal (read-only)
   // ------------------------------------------------------------
   document.getElementById("closeInspectionDetailsBtn").addEventListener("click", App.Modals.closeInspectionDetails);
-  document.getElementById("cancelInspectionDetailsBtn").addEventListener("click", App.Modals.closeInspectionDetails);
   document.getElementById("saveInspectionDetailsBtn").addEventListener("click", App.Modals.saveInspectionDetails);
   if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionDetails);
 
@@ -3427,7 +3604,6 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
   // Inspection field config modal
   // ------------------------------------------------------------
   document.getElementById("inspectionFieldConfigCloseBtn").addEventListener("click", App.Modals.closeInspectionFieldConfig);
-  document.getElementById("inspectionFieldConfigCloseBtnFooter").addEventListener("click", App.Modals.closeInspectionFieldConfig);
   document.getElementById("inspectionFieldConfigSaveBtnFooter").addEventListener("click", App.Modals.saveInspectionFieldConfig);
   if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionFieldConfig);
 
@@ -3435,7 +3611,7 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
   // Hive list modal
   // ------------------------------------------------------------
   document.getElementById("hiveListModalCloseBtn1").addEventListener("click", App.Modals.closeHiveListModal);
-  document.getElementById("hiveListCloseBtnFooter").addEventListener("click", App.Modals.closeHiveListModal);
+  //document.getElementById("hiveListCloseBtnFooter").addEventListener("click", App.Modals.closeHiveListModal);
   if (overlay) overlay.addEventListener("click", App.Modals.closeHiveListModal);
 
   // ------------------------------------------------------------
@@ -3489,11 +3665,9 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   });
 });
   document.getElementById("closeInspectionHistoryBtn").addEventListener("click", App.Modals.closeInspectionHistory);
-  document.getElementById("closeInspectionHistoryBtn2").addEventListener("click", App.Modals.closeInspectionHistory);
    if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionHistory);
 
   document.getElementById("saveTreatmentBtn").onclick = App.Modals.saveTreatment;
-document.getElementById("cancelTreatmentBtn").onclick = App.Modals.closeTreatmentModal;
 document.getElementById("treatmentModalCloseBtn").onclick = App.Modals.closeTreatmentModal;
    if (overlay) overlay.addEventListener("click", App.Modals.closeTreatmentModal);
 
@@ -3503,13 +3677,13 @@ document.getElementById("treatmentModalCloseBtn").onclick = App.Modals.closeTrea
 // ------------------------------------------------------------
 const apiaryManagerBtn = document.getElementById("apiaryManagerBtn");
 const apiaryManagerCloseBtn = document.getElementById("apiaryManagerCloseBtn");
-const apiaryManagerCloseFooterBtn = document.getElementById("apiaryManagerCloseFooterBtn");
+//const apiaryManagerCloseFooterBtn = document.getElementById("apiaryManagerCloseFooterBtn");
 const apiaryManagerSaveBtn = document.getElementById("apiaryManagerSaveBtn");
 const apiaryManagerDeleteBtn = document.getElementById("apiaryManagerDeleteBtn");
 
 if (apiaryManagerBtn) apiaryManagerBtn.addEventListener("click", App.Modals.openApiaryManager);
 if (apiaryManagerCloseBtn) apiaryManagerCloseBtn.addEventListener("click", App.Modals.closeApiaryManager);
-if (apiaryManagerCloseFooterBtn) apiaryManagerCloseFooterBtn.addEventListener("click", App.Modals.closeApiaryManager);
+//if (apiaryManagerCloseFooterBtn) apiaryManagerCloseFooterBtn.addEventListener("click", App.Modals.closeApiaryManager);
 if (apiaryManagerSaveBtn) apiaryManagerSaveBtn.addEventListener("click", App.Modals.saveApiaryManager);
 if (apiaryManagerDeleteBtn) apiaryManagerDeleteBtn.addEventListener("click", App.Modals.deleteApiaryManager);
    if (overlay) overlay.addEventListener("click", App.Modals.closeApiaryManager);

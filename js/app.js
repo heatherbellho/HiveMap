@@ -157,7 +157,14 @@ App.init = function () {
   App.Hives.init();
   App.Status.init();
   App.Modals.init();
-  App.Modals.inspectionSchema = Storage.getInspectionSchema() || App.Modals.defaultInspectionSchema;
+// ⭐ FIX: load schema without losing imported values
+const saved = Storage.getInspectionSchema();
+App.Modals.inspectionSchema = saved
+  ? { ...App.Modals.defaultInspectionSchema, ...saved }
+  : App.Modals.defaultInspectionSchema;
+
+// ⭐ FIX: create working copy from the merged schema
+App.Modals.inspectionSchemaWorking = JSON.parse(JSON.stringify(App.Modals.inspectionSchema));
   App.Export.init();
   App.Canvas.init();
 
