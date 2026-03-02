@@ -17,36 +17,46 @@ function formatEntranceLabel(name, entrance) {
 }
 
 // ------------------------------------------------------------
-// ⭐ GLOBAL PATCH: Fix invalid baseline at the canvas context level
+// ⭐ GLOBAL PATCH: Fix invalid baseline ONLY for HiveMap canvas
 // ------------------------------------------------------------
 const originalGetContext = HTMLCanvasElement.prototype.getContext;
 
 HTMLCanvasElement.prototype.getContext = function(type, options) {
-  const ctx = originalGetContext.call(this, type, options);
 
-  if (ctx && ctx.textBaseline !== undefined) {
-    const originalSetter = Object.getOwnPropertyDescriptor(
-      Object.getPrototypeOf(ctx),
-      'textBaseline'
-    );
+  // Only patch the HiveMap drawing canvas
+  // (Change "hiveCanvas" to your actual canvas ID if different)
+  if (this.id === "hiveCanvas") {
 
-    if (originalSetter && originalSetter.set) {
-      Object.defineProperty(ctx, 'textBaseline', {
-        set(value) {
-          if (value === 'alphabetical') {
-            value = 'alphabetic';
+    const ctx = originalGetContext.call(this, type, options);
+
+    if (ctx && ctx.textBaseline !== undefined) {
+      const originalDescriptor = Object.getOwnPropertyDescriptor(
+        Object.getPrototypeOf(ctx),
+        "textBaseline"
+      );
+
+      if (originalDescriptor && originalDescriptor.set) {
+        Object.defineProperty(ctx, "textBaseline", {
+          set(value) {
+            if (value === "alphabetical") {
+              value = "alphabetic";
+            }
+            originalDescriptor.set.call(this, value);
+          },
+          get() {
+            return originalDescriptor.get.call(this);
           }
-          originalSetter.set.call(this, value);
-        },
-        get() {
-          return originalSetter.get.call(this);
-        }
-      });
+        });
+      }
     }
+
+    return ctx;
   }
 
-  return ctx;
+  // For ALL other canvases (including Chart.js), do nothing
+  return originalGetContext.call(this, type, options);
 };
+
 
 // ------------------------------------------------------------
 // Initialise Fabric canvas

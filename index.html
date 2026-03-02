@@ -12,34 +12,35 @@
 
   <!-- Fabric.js must load before any module that uses it -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Storage must load before everything else -->
-  <script src="js/storage.js?v=232"></script>
+  <script src="js/storage.js?v=233"></script>
 
   <!-- Help content must load before app.js -->
-  <script src="js/helpContent.js?v=232"></script>
+  <script src="js/helpContent.js?v=233"></script>
 
   <!-- Core modules -->
-  <script src="js/utils.js?v=232"></script>
-  <script src="js/apiaries.js?v=232"></script>
-  <script src="js/hives.js?v=232"></script>
-  <script src="js/subscription.js?v=232"></script>
-  <script src="js/modals.js?v=232"></script>
-  <script src="js/status.js?v=232"></script>
-  <script src="js/export.js?v=232"></script>
-  <script src="js/version.js?v=232"></script>
-  <script src="js/helpContent.js?v=232"></script>
+  <script src="js/utils.js?v=233"></script>
+  <script src="js/apiaries.js?v=233"></script>
+  <script src="js/hives.js?v=233"></script>
+  <script src="js/subscription.js?v=233"></script>
+  <script src="js/analytics.js?v=233"></script>
+  <script src="js/modals.js?v=233"></script>
+  <script src="js/status.js?v=233"></script>
+  <script src="js/export.js?v=233"></script>
+  <script src="js/version.js?v=233"></script>
+  <script src="js/helpContent.js?v=233"></script>
 
   <!-- Canvas subsystem -->
-  <script src="js/canvas.js?v=232"></script>
+  <script src="js/canvas.js?v=233"></script>
 
   <!-- Reports subsystem --> 
-  <script src="js/reports.js?v=232"></script>
+  <script src="js/reports.js?v=233"></script>
 
   <!-- App orchestrator (must be last) -->
-  <script src="js/app.js?v=232"></script>
+  <script src="js/app.js?v=233"></script>
 
-  <link rel="stylesheet" href="css/app.css?v=232">
+  <link rel="stylesheet" href="css/app.css?v=233">
 </head>
 
 <body>
@@ -120,6 +121,7 @@
       <div id="toolsMenu" class="dropdown-menu">
         <div class="dropdown-item" id="toolsExport">Export Data</div>
         <div class="dropdown-item" id="toolsImport">Import Data</div>
+        <!--<div class="dropdown-item" id="toolsAnalyticsHoney">Graphs</div>-->
         <div class="dropdown-item" id="toolsAccount" style="border-top: 1px solid #ccc;">License</div>
         <div class="dropdown-item" id="toolsHelp">Help</div>
       </div>
@@ -174,23 +176,23 @@
 
   <div class="apiary-left">
     <div class="apiary-field modal-section">
-      <label><strong>Apiary Name</strong></label>
+      <label for="apiaryNameInput"><strong>Apiary Name</strong></label>
       <input type="text" id="apiaryNameInput">
     </div>
 
     <div class="apiary-field modal-section">
-      <label><strong>Grid Location</strong></label>
+      <label for="apiaryGridInput"><strong>Grid Location</strong></label>
       <input type="text" id="apiaryGridInput">
     </div>
 
     <div class="apiary-field modal-section">
-      <label><strong>Address</strong></label>
+      <label for="apiaryAddressInput"><strong>Address</strong></label>
       <textarea id="apiaryAddressInput" rows="2"></textarea>
     </div>
   </div>
 
 <div class="apiary-field modal-section">
-  <label><strong>Notes</strong></label>
+  <label for="newNoteDate"><strong>Notes</strong></label>
 
   <div id="apiaryNotesList" class="notes-list"></div>
 
@@ -206,9 +208,6 @@
   <div class="footer-left">
         <button id="apiaryManagerSaveBtn" class="btn-save">Save</button>
     <button id="apiaryManagerDeleteBtn" class="btn-danger">Delete</button>
-
-        <button id="apiaryManagerCloseFooterBtn" class="btn-cancel">Close</button>
-
   </div>
 
   <div class="footer-right">
@@ -307,13 +306,12 @@
       <button id="deleteArchivedHiveBtn" class="btn-danger">Delete Hive</button>
     </div>
     <div style="margin-right: 12px;">
-      <button id="addInspectionBtn" class="btn-info"> Add Inspection </button>
-
+      <button id="addInspectionBtn" class="btn-primary"> Add Inspection </button>
+<button id="analyticsBtn" class="btn-info"> Graphs </button>
           <button id="archiveHiveBtn" class="btn-danger" style="display:none;">Archive Hive</button>
     <button id="restoreHiveBtn" class="btn-primary" style="display:none;">Restore Hive</button>
       <button id="saveHiveBtn" class="btn-save">Save</button>
-      <button id="cancelHiveBtn" class="btn-cancel" style="margin-right: 12px;">Cancel</button>
-      <button id="modalCloseBtn" class="modal-close">&times;</button>
+      <button id="modalCloseBtn" class="modal-close" style="margin-left: 6px;">&times;</button>
     </div>
   </header>
 
@@ -420,8 +418,6 @@
 
   <footer class="modal-footer">
     <button id="saveHiveBtnFooter" class="btn-save">Save</button>
-    <button id="cancelHiveBtnFooter" class="btn-cancel">Cancel</button>
-
   </footer>
 </div>
 
@@ -437,42 +433,42 @@
   <div class="treat-grid">
 
     <div class="treat-field modal-section">
-      <label><strong>Product Name</strong></label>
+      <label for="treatProduct"><strong>Product Name</strong></label>
       <input type="text" id="treatProduct" placeholder="e.g., Apivar, Apiguard">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Active Ingredient</strong></label>
+      <label for="treatIngredient"><strong>Active Ingredient</strong></label>
       <input type="text" id="treatIngredient" placeholder="e.g., Amitraz, Thymol">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Batch Number</strong></label>
+      <label for="treatBatch"><strong>Batch Number</strong></label>
       <input type="text" id="treatBatch" placeholder="Batch code">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Expiry Date</strong></label>
+      <label for="treatExpiry"><strong>Expiry Date</strong></label>
       <input type="date" id="treatExpiry">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Date Administered</strong></label>
+      <label for="treatDate"><strong>Date Administered</strong></label>
       <input type="date" id="treatDate">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Quantity Used</strong></label>
+      <label for="treatQuantity"><strong>Quantity Used</strong></label>
       <input type="text" id="treatQuantity" placeholder="e.g., 2 strips, 5 ml">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Withdrawal Period</strong></label>
+      <label for="treatWithdrawal"><strong>Withdrawal Period</strong></label>
       <input type="text" id="treatWithdrawal" placeholder="e.g., 0 days">
     </div>
 
     <div class="treat-field modal-section">
-      <label><strong>Supplier</strong></label>
+      <label for="treatSupplier"><strong>Supplier</strong></label>
       <input type="text" id="treatSupplier" placeholder="e.g., Heather Bell Honey Bees Ltd">
     </div>
 
@@ -482,7 +478,6 @@
 
   <footer class="modal-footer">
     <button id="saveTreatmentBtn" class="btn-save">Save</button>
-    <button id="cancelTreatmentBtn" class="btn-cancel">Cancel</button>
   </footer>
 </div>
 
@@ -500,12 +495,12 @@
     <!-- FILTER BAR -->
     <div class="vet-filters">
       <div class="vet-filter modal-section">
-        <label><strong>Select Apiary</strong></label>
+        <label for="vetReportApiarySelect"><strong>Select Apiary</strong></label>
         <select id="vetReportApiarySelect"></select>
       </div>
 
       <div class="vet-filter modal-section">
-        <label><strong>Date Range (optional)</strong></label>
+        <label for="vetReportStart"><strong>Date Range (optional)</strong></label>
         <div class="vet-dates">
           <input type="date" id="vetReportStart">
           <span>to</span>
@@ -526,8 +521,7 @@
 </main>
 
   <footer class="modal-footer">
-    <button id="vetReportPrintBtn" class="btn-save" style="display:none;">Print</button>
-    <button id="vetReportCloseBtnFooter" class="btn-cancel">Close</button>
+    <button id="vetReportPrintBtn" class="btn-info" style="display:none;">Print</button>
   </footer>
 </div>
 
@@ -575,7 +569,6 @@
     </div>
 
     <div class="modal-footer">
-      <button id="cancelInspectionDetailsBtn" class="btn-cancel">Cancel</button>
       <button id="saveInspectionDetailsBtn" class="btn-save">Save</button>
     </div>
   </div>
@@ -597,7 +590,7 @@
         <div id="statusList"></div>
 
         <div style="margin-top:10px; text-align:right;">
-          <button id="addStatusBtn" class="btn-save" type="button">Add Status</button>
+          <button id="addStatusBtn" class="btn-primary" type="button">Add Status</button>
         </div>
       </div>
     </div>
@@ -605,7 +598,6 @@
 
   <footer class="modal-footer">
     <button id="saveStatusSettingsBtn" class="btn-save" type="button">Save</button>
-    <button id="closeStatusSettingsBtn2" class="btn-cancel" type="button">Cancel</button>
   </footer>
 </div>
 
@@ -655,7 +647,6 @@
 
   <footer class="modal-footer">
     <button id="confirmCreateHiveBtn" class="btn-save">Save</button>
-    <button id="cancelCreateHiveBtn" class="btn-cancel">Cancel</button>
   </footer>
 </div>
 
@@ -667,7 +658,7 @@
   </header>
 
   <div class="inline-row" style="margin-top:10px; margin-left:16px;">
-    <label>
+    <label for="filterNext7">
       <input type="checkbox" id="filterNext7"> Show only next 7 days
     </label>
   </div>
@@ -696,7 +687,6 @@
   </main>
 
   <div class="modal-footer">
-    <button id="inspectionFieldConfigCloseBtnFooter" class="btn-cancel">Close</button>
     <button id="inspectionFieldConfigSaveBtnFooter" class="btn-save">Save</button>
   </div>
 
@@ -730,52 +720,64 @@
     <header class="modal-header">
     <h2 id="hiveListTitle"></h2>
 
-    <div id="archiveBtns" style="display: none;">
-    <button id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</button>
-    <button id="hiveListAllFilterBtn" class="filter-btn" data-filter="hiveListShowAll" style="margin-left: 18px;">All Hives</button>
-    </div>
 
-    <div id="overallArchiveBtns" style="display: none;">
-    <button id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="margin-left: 18px;">Archived</button>
-    <button id="overallListAllFilterBtn" class="filter-btn" data-filter="overallListShowAll" style="margin-left: 18px;">All Hives</button>
-    </div>
-
-    <div id="dueInspectionBtns" style="display: none;">
-      
-      <button class="btn-show-all filter-btn" data-filter="all" style="margin-left: 18px; font-weight:600;">Show All</button>
-      <button class="btn-due-today filter-btn" data-filter="today" style="margin-left: 18px;">Due Today</button>
-      <button class="btn-overdue filter-btn" data-filter="overdue" style="margin-left: 18px;">Overdue</button>
-      <button class="btn-future filter-btn" data-filter="future" style="margin-left: 18px;">Due Future</button>
-    </div>
 
     <button id="hiveListModalCloseBtn1" class="modal-close">&times;</button>
   </header>
-      <div id="dueInspectionFilters" style="display:none; margin-bottom:10px;">
-  <label style="cursor:pointer;">
-    <input type="checkbox" id="filterNext7">
-    Show overdue, today, and next 7 days
-  </label>
+      <div>
+    <div id="archiveBtns" style="display: none; text-align: center; margin-top: 12px;">
+    <button id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+      Archived</button>
+    <button id="hiveListAllFilterBtn" class="filter-btn" data-filter="hiveListShowAll" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+      All Hives</button>
+    </div>
+
+    <div id="overallArchiveBtns" style="display: none; text-align: center; margin-top: 12px;">
+    <button id="archivedFilterBtn" class="filter-btn" data-filter="archived" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+      Archived</button>
+    <button id="overallListAllFilterBtn" class="filter-btn" data-filter="overallListShowAll" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+      All Hives</button>
+    </div>
+
+    <div id="dueInspectionBtns" style="display: none; text-align: center; margin-top: 12px;">
+      
+      <button class="btn-show-all filter-btn" data-filter="all" style="display: inline-flex; gap: 6px; margin-left: 18px; font-weight: bold;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+        Show All</button>
+              <button class="btn-overdue filter-btn" data-filter="overdue" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+        Overdue</button>
+      <button class="btn-due-today filter-btn" data-filter="today" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+        Due Today</button>
+
+      <button class="btn-future filter-btn" data-filter="future" style="display: inline-flex; gap: 6px; margin-left: 18px;">
+      <svg class="icon"><use href="#icon-search"></use></svg>
+        Due Soon</button>
+    </div>
 </div>
   <main class="modal-body">
     <table class="hive-list-table">
 <thead>
   <tr>
+    <th class="col-action"></th>
     <th class="col-hive">Hive</th>
     <th class="col-status">Status</th>
     <th class="col-date">Last</th>
     <th class="col-date">Next Due</th>
     <th class="col-type">Type</th>
     <th class="col-memo">Memo</th>
-    <th class="col-action"></th>
+    
   </tr>
 </thead>
 
       <tbody id="hiveListBody"></tbody>
     </table>
   </main>
-  <div class="modal-footer">
-    <button id="hiveListCloseBtnFooter" class="btn-cancel">Close</button>
-  </div>
 </div>
 
 <div id="inspectionInputModal" class="modal" style="display:none;">
@@ -817,7 +819,6 @@
     </div>
 
     <div class="modal-footer">
-      <button id="cancelInspectionInputBtn" class="btn-cancel">Cancel</button>
       <button id="saveInspectionInputBtn" class="btn-save">Save</button>
     </div>
 
@@ -854,20 +855,40 @@
       </table>
 
     </div>
-
-    <div class="modal-footer">
-      <button id="closeInspectionHistoryBtn2" class="btn-cancel">Close</button>
-    </div>
-
   </div>
 </div>
+
+<div id="honeyGraphModal" class="modal">
+  <div class="modal-content">
+        <header class="modal-header">
+    <h2 id="honeyGraphTitle">Honey graph</h2>
+    <button id="closeHoneyGraph" class="modal-close">&times;</button>
+        </header>
+<div class="graph" style="text-align: center; border-bottom: 1px solid #ccc; padding: 6px;">
+        <label for="honeyGraphScope" style="margin-right: 6px;"><strong>Scope:</strong></label>
+        <select id="honeyGraphScope" style="margin-right: 18px;">
+          <option value="hive">This hive</option>
+          <option value="apiary" selected>This apiary</option>
+          <option value="all">All apiaries</option>
+        </select>
+        <label for="honeyGraphYear" style="margin-right: 6px;"><strong>Year:</strong></label>
+        <select id="honeyGraphYear"></select>
+</div>
+<div id="honeyGraphScroll">
+  <canvas id="honeyGraphCanvas"></canvas>
+</div>
+
+    <div id="honeyGraphTotal"></div>
+  </div>
+</div>
+
 
 <!-- Account & License Modal -->
 
 <div id="accountModal" class="modal" style="display:none;">
   <div class="modal-content">
     <header class="modal-header">
-      <h2>Account & License</h2>
+      <h2>License, Edition & Version</h2>
       <button id="accountModalClose" class="modal-close">&times;</button>
     </header>
 
@@ -893,7 +914,8 @@
          target="_blank"
          class="toolbar-btn"
          style="text-decoration: none;">
-         HiveMap
+         HiveMap 
+         <svg class="icon"><use href="#icon-ext-link"></use></svg>
       </a>
         <!-- Old button removed -->
       </section>
@@ -901,11 +923,13 @@
       <hr>
 
       <section>
-        <h3 style="margin-top: 0;">Edition Details</h3>
+        <h3 style="margin-top: 0;">Edition & Version</h3>
         <p id="accountEditionStatus"></p>
-        <p id="accountVersion"></p>
-        <p id="accountUpdateNotice" style="color:#c00; font-weight:bold;"></p>
         <p id="accountEditionExplanation"></p>
+        <p id="accountUpdateNotice" style="color:#c00; font-weight:bold;"></p>
+        <p id="accountVersion"></p>
+        <p id="accountVersionRelease"></p>
+        
       </section>
 
     </main>
@@ -982,7 +1006,6 @@
 
     <footer class="modal-footer">
       <button id="settingsSaveBtn" class="btn-save">Save</button>
-      <button id="settingsCancelBtn" class="btn-cancel">Cancel</button>
     </footer>
   </div>
 </div>
@@ -996,17 +1019,14 @@
     <button id="closeBoxTypesBtn" class="modal-close">&times;</button>
   </header>
   <div class="modal-content">
-    <div class="modal-section">
     <!-- List container (will be populated in later steps) -->
     <div id="boxTypesList"></div>
 
     <!-- Add new box type -->
     <div class="modal-actions">
       <input id="newBoxTypeInput" type="text" placeholder="New box type">
-      <button id="addBoxTypeBtn" class="btn-save">Add</button>
+      <button id="addBoxTypeBtn" class="btn-primary">Add</button>
     </div>
-</div>
-
   </div>
 </div>
 
@@ -1019,16 +1039,11 @@
     <button id="closeHiveTypesModalBtn" class="modal-close">&times;</button>
   </header>
   <div class="modal-content">
-
-<div class="modal-section">
     <div id="hiveTypesList"></div>
-
     <div class="add-row">
-      <input id="newHiveTypeInput" type="text" placeholder="New hive type">
-      <button id="addHiveTypeBtnModal" class="btn-save">Add</button>
+      <input id="newHiveTypeInput" type="text" aria-label="hive type" placeholder="New hive type">
+      <button id="addHiveTypeBtnModal" class="btn-primary">Add</button>
     </div>
-</div>
-
   </div>
 </div>
 
@@ -1088,10 +1103,23 @@
   </script>
 <input type="file" id="importAllFile" accept="application/json" style="display:none">
 <button id="importAllBtn" style="display:none"></button>
-<script src="js/toolbar.js?v=232"></script>
+<script src="js/toolbar.js?v=233"></script>
 </div>
 <div id="footer">
       <div style="text-align: center;">&copy; <span id="year"></span> <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></div>
     </div>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+  <symbol id="icon-search" viewBox="0 0 512 512">
+    <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+  </symbol>
+</svg>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+  <symbol id="icon-ext-link" viewBox="0 0 512 512">
+    <path d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l82.7 0-201.4 201.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3 448 192c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160c0-17.7-14.3-32-32-32L320 0zM80 96C35.8 96 0 131.8 0 176L0 432c0 44.2 35.8 80 80 80l256 0c44.2 0 80-35.8 80-80l0-80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 80c0 8.8-7.2 16-16 16L80 448c-8.8 0-16-7.2-16-16l0-256c0-8.8 7.2-16 16-16l80 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L80 96z"/>
+  </symbol>
+</svg>
+
 </body>
 </html>

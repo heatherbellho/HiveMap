@@ -108,6 +108,9 @@ App.Status.renderLegend = function () {
 // Open the status settings modal
 // ------------------------------------------------------------
 App.Status.openSettings = function () {
+  const btn = document.getElementById("addStatusBtn");
+if (btn) btn.style.display = "block";
+
   const modal = document.getElementById("statusModal");
   const list = document.getElementById("statusList");
 
@@ -249,7 +252,6 @@ App.Status.init = function () {
   document.getElementById("addStatusBtn").addEventListener("click", App.Status.addStatus);
   document.getElementById("saveStatusSettingsBtn").addEventListener("click", App.Status.saveSettings);
   document.getElementById("closeStatusSettingsBtn").addEventListener("click", App.Status.closeSettings);
-  document.getElementById("closeStatusSettingsBtn2").addEventListener("click", App.Status.closeSettings);
      if (overlay) overlay.addEventListener("click", App.Status.closeSettings);
 
 
