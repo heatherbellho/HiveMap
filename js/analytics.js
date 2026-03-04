@@ -78,8 +78,8 @@ App.Analytics.renderHoneyGraph = function (canvasEl, inspections) {
         App.Analytics._chart.destroy();
     }
 
-    canvasEl.width = canvasEl.clientWidth;
-    canvasEl.height = canvasEl.clientHeight;
+    //canvasEl.width = canvasEl.clientWidth;
+    //canvasEl.height = canvasEl.clientHeight;
 
     // Create new chart
     App.Analytics._chart = new Chart(canvasEl, {

@@ -113,7 +113,9 @@ button.save:hover {
 }
 #honeyGraphModal select,
 #manageHiveTypesModal input,
-#boxTypesModal input {
+#boxTypesModal input,
+#renameFieldModal input,
+#changeFieldTypeModal input {
   padding: 6px;
   margin-top: 4px;
   border: 1px solid #ccc;
@@ -1495,7 +1497,10 @@ canvas {
 #renewModal,
 #confirmDeleteApiaryModal,
 #confirmArchiveHiveModal,
-#confirmDeleteArchivedHiveModal{
+#confirmDeleteArchivedHiveModal,
+#confirmMoveModal,
+#renameFieldModal,
+#changeFieldTypeModal {
   z-index: 1300 !important;
 }
 
@@ -1647,25 +1652,28 @@ canvas {
   flex: 1;             /* input grows inside block */
   min-width: 200px;    /* prevents collapsing */
 }
-.inspection-history-table {
+.inspection-history-group-table {
   border-collapse: collapse;
   width: max-content;
-  min-width: 100%;
+  min-width: 50%;
 }
 
-.inspection-history-table th,
-.inspection-history-table td {
+.inspection-history-group-table
+ th,
+.inspection-history-group-table
+td {
   padding: 8px 12px;
   border: 1px solid #ddd;
-  white-space: nowrap;
+
   font-size: 0.9rem;
 }
-#inspectionHistoryModal .modal-body {
-  overflow-x: auto !important;
-  overflow-y: auto !important; /* keep vertical scroll */
-}
+
 #inspectionHistoryModal {
   max-width: 95vw !important;
+overflow-y: hidden !important;
+}
+#inspectionHistoryGroups {
+  overflow-x: auto;
 }
 .help-layout {
   display: flex;
@@ -1722,7 +1730,6 @@ canvas {
   margin: 12px 0 12px;
 }
 #accountModal {
-  max-width: 800px !important;
   width: 90vw !important;
 }
 #treatmentModal { 
@@ -1863,7 +1870,8 @@ padding: 12px 0px;
 }
 
 .footer-left button,
-.footer-right button {
+.footer-right button,
+.footer-center button {
   margin-right: 8px;
 }
 
@@ -1879,7 +1887,8 @@ padding: 12px 0px;
   }
 
   .footer-left,
-  .footer-right {
+  .footer-right,
+  .footer-center {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -2095,3 +2104,5 @@ padding: 12px 0px;
   fill: currentColor;
   vertical-align: -2px;
 }
+#inspectionDetailsNotesInput { white-space: pre-wrap !important; }
+.inspection-history-group-table td { white-space: pre-wrap; }
