@@ -1,11 +1,12 @@
 /* ------------------------------------------------------------
-   HiveMap Instant-Update Service Worker (Option A)
+   HiveMap Instant-Update Service Worker
    - Always loads fresh JS (no stale code)
    - Updates immediately on deploy
    - Keeps offline support for static assets
 ------------------------------------------------------------ */
 
-const CACHE_NAME = 'hivemap-static-v1';
+const CACHE_VERSION = 'v235';  // bump this every release
+const CACHE_NAME = `hivemap-static-${CACHE_VERSION}`;
 
 // Only cache static, non-JS assets
 const STATIC_ASSETS = [
