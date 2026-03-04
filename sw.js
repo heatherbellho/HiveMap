@@ -5,7 +5,7 @@
    - Keeps offline support for static assets
 ------------------------------------------------------------ */
 
-const CACHE_VERSION = 'v235';  // bump this every release
+const CACHE_VERSION = 'v234';  // bump this every release
 const CACHE_NAME = `hivemap-static-${CACHE_VERSION}`;
 
 // Only cache static, non-JS assets
@@ -67,3 +67,4 @@ self.addEventListener('fetch', event => {
       .catch(() => caches.match(event.request))
   );
 });
+
