@@ -345,30 +345,118 @@ const pt = canvas.getVpCenter();
   }
 };
 
-App.Canvas.addCompass = function () {
-  fabric.Image.fromURL("icons/compass.png", function (img) {
+App.Canvas.getApiaryCompass = function () {
+  if (!canvas) return null;
+  return canvas.getObjects().find(o => o.compassData && o.compassData.type === "apiaryCompass") || null;
+};
 
-    // Place at canvas center
-    const pt = canvas.getVpCenter();
+App.Canvas.getApiaryCompass = function () {
+  if (!canvas) return null;
+  return canvas.getObjects().find(o => o.compassData && o.compassData.type === "apiaryCompass") || null;
+};
 
-    img.set({
-      left: pt.x,
-      top: pt.y,
-      originX: "center",
-      originY: "center",
-      scaleX: 0.3,
-      scaleY: 0.3,
-      hasControls: true,
-      hasBorders: true,
-      selectable: true,
-      objectType: "compass"
-    });
+App.Canvas.deleteApiaryCompass = function () {
+  if (!canvas) return;
 
-    canvas.add(img);
-    canvas.setActiveObject(img);
-    canvas.requestRenderAll();
-    App.UI.showToast("Compass added to apiary.");
+  if (editingDisabled()) {
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  const compass = App.Canvas.getApiaryCompass();
+  if (!compass) {
+    App.UI.showToast("No compass found for this apiary.");
+    return;
+  }
+
+  canvas.remove(compass);
+  canvas.discardActiveObject();
+  App.Canvas.requestRender();
+  App.Canvas.saveLayout();
+  App.UI.showToast("Compass deleted.");
+};
+
+App.Canvas.addApiaryCompass = function () {
+  if (!canvas) return;
+
+  const existing = App.Canvas.getApiaryCompass();
+  if (existing) {
+    canvas.setActiveObject(existing);
+    App.Canvas.requestRender();
+    App.UI.showToast("Compass already exists for this apiary.");
+    return;
+  }
+
+  const pt = canvas.getVpCenter();
+
+  const ring = new fabric.Circle({
+    radius: 24,
+    fill: "#ffffff",
+    stroke: "#1d3f1e",
+    strokeWidth: 2,
+    originX: "center",
+    originY: "center"
   });
+
+  const northPointer = new fabric.Triangle({
+    width: 14,
+    height: 20,
+    fill: "#c62828",
+    stroke: "#7f1717",
+    strokeWidth: 1,
+    originX: "center",
+    originY: "center",
+    top: -15,
+    angle: 0
+  });
+
+  const southPointer = new fabric.Triangle({
+    width: 14,
+    height: 20,
+    fill: "#f2f2f2",
+    stroke: "#888",
+    strokeWidth: 1,
+    originX: "center",
+    originY: "center",
+    top: 15,
+    angle: 180
+  });
+
+  const northLabel = new fabric.Text("N", {
+    fontSize: 15,
+    fontFamily: "Arial, sans-serif",
+    fontWeight: "bold",
+    fill: "#1d3f1e",
+    originX: "center",
+    originY: "center",
+    top: -33
+  });
+
+  const compass = new fabric.Group([ring, northPointer, southPointer, northLabel], {
+    left: pt.x,
+    top: pt.y,
+    hasControls: true,
+    lockScalingX: true,
+    lockScalingY: true,
+    lockUniScaling: true,
+    lockSkewingX: true,
+    lockSkewingY: true,
+    compassData: {
+      type: "apiaryCompass"
+    }
+  });
+
+  compass.setControlsVisibility({
+    mt:false, mb:false, ml:false, mr:false,
+    tl:false, tr:false, bl:false, br:false,
+    mtr:true
+  });
+
+  canvas.add(compass);
+  canvas.setActiveObject(compass);
+  App.Canvas.requestRender();
+  App.Canvas.saveLayout();
+  App.UI.showToast("Compass added. Drag or rotate it to set orientation.");
 };
 
 App.Canvas.getAllHives = function () {
@@ -444,7 +532,7 @@ App.Canvas.saveLayout = function () {
   const current = Storage.getCurrentApiary();
   if (!current) return;
 
-const json = canvas.toJSON(["hiveData", "objectType"]);
+const json = canvas.toJSON(["hiveData", "compassData"]);
   Storage.saveHiveLayout(current, JSON.stringify(json));
 };
 
@@ -493,6 +581,18 @@ canvas.getObjects().forEach(obj => {
 
     obj.on("mousedblclick", () => App.Modals.openHiveModal(obj));
 
+    obj.setControlsVisibility({
+      mt:false, mb:false, ml:false, mr:false,
+      tl:false, tr:false, bl:false, br:false,
+      mtr:true
+    });
+
+    obj.lockScalingX = true;
+    obj.lockScalingY = true;
+    obj.lockUniScaling = true;
+  }
+
+  if (obj.compassData && obj.compassData.type === "apiaryCompass") {
     obj.setControlsVisibility({
       mt:false, mb:false, ml:false, mr:false,
       tl:false, tr:false, bl:false, br:false,
@@ -609,8 +709,9 @@ App.Canvas.print = function () {
 
   const win = window.open("", "_blank");
 
-  const objects = canvas.getObjects().filter(o => o.hiveData);
-  objects.sort((a, b) => (a.hiveData.name || "").localeCompare(b.hiveData.name || ""));
+  const objects = canvas
+    .getObjects()
+    .filter(o => o.hiveData && o.hiveData.status !== "archived");  objects.sort((a, b) => (a.hiveData.name || "").localeCompare(b.hiveData.name || ""));
 
   let cardsHTML = "";
   objects.forEach(o => {

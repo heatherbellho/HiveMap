@@ -1265,7 +1265,7 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
     hive.hiveData.nextInspectionDate || "";
 
   document.getElementById("inspectionDetailsNotesInput").value =
-    inspection.notes || "";
+    (inspection.notes || "").replace(/\n/g, "\n");
 
   // Extended fields
   const fieldsContainer = document.getElementById("inspectionDetailsFields");
@@ -1340,6 +1340,8 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
   // Load extended fields (with conversion)
   App.Modals.inspectionSchema.groups.forEach(group => {
     group.fields.forEach(field => {
+      if (field.id === "notes") return; // prevent overwrite
+
       const input = document.getElementById("detail_" + field.id);
       if (!input) return;
 
@@ -1534,23 +1536,23 @@ if (!name || !name.trim()) name = "New Field";
   App.Modals.renderInspectionGroups();
 };
 
-
-
-App.Modals.renameInspectionGroup = function (index) {
+App.Modals.renameInspectionGroup = function (groupIndex) {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  App.Modals._pendingFieldEdit = { groupIndex, fieldIndex: null };
+
   const schema = App.Modals.inspectionSchemaWorking;
-  const group = schema.groups[index];
+  const group = schema.groups[groupIndex];
 
-  const newName = prompt("Rename group:", group.name);
-  if (!newName) return;
+  document.getElementById("renameFieldInput").value =
+  group.label || group.name || "";
 
-  group.name = newName.trim();
-  App.Modals.renderInspectionGroups();
+  document.getElementById("overlay").style.zIndex = "1150";
+  document.getElementById("renameFieldModal").style.display = "block";
 };
-
 
 App.Modals.renderInspectionGroups = function () {
   const section = document.getElementById("inspectionConfigGroups");
@@ -1698,37 +1700,39 @@ App.Modals.renderInspectionGroups = function () {
 
 App.Modals.renameInspectionField = function (groupIndex, fieldIndex) {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  App.Modals._pendingFieldEdit = { groupIndex, fieldIndex };
+
   const schema = App.Modals.inspectionSchemaWorking;
   const field = schema.groups[groupIndex].fields[fieldIndex];
 
-  const newName = prompt("Rename field:", field.name);
-  if (!newName) return;
+  document.getElementById("renameFieldInput").value = field.label || field.name;
 
-  field.label = newName.trim();
-  App.Modals.renderInspectionGroups();
+  document.getElementById("overlay").style.zIndex = "1150";
+  document.getElementById("renameFieldModal").style.display = "block";
 };
+
 
 App.Modals.changeInspectionFieldType = function (groupIndex, fieldIndex) {
   if (editingDisabled()) {
-  App.UI.showToast("Editing is disabled because your subscription has expired.");
-  return;
-}
+    App.UI.showToast("Editing is disabled because your subscription has expired.");
+    return;
+  }
+
+  App.Modals._pendingFieldEdit = { groupIndex, fieldIndex };
+
   const schema = App.Modals.inspectionSchemaWorking;
   const field = schema.groups[groupIndex].fields[fieldIndex];
 
-  const newType = prompt(
-    "Enter new field type (text, number, checkbox, select):",
-    field.type
-  );
+  document.getElementById("changeFieldTypeSelect").value = field.type;
 
-  if (!newType) return;
-
-  field.type = newType.trim();
-  App.Modals.renderInspectionGroups();
+  document.getElementById("overlay").style.zIndex = "1150";
+  document.getElementById("changeFieldTypeModal").style.display = "block";
 };
+
 
 App.Modals.moveInspectionField = function (groupIndex, fieldIndex, direction) {
   if (editingDisabled()) {
@@ -2455,82 +2459,123 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
     `Inspection History — ${data.name || "Hive"} (${Storage.getCurrentApiary() || "Unknown Apiary"})`;
 
   const schema = App.Modals.inspectionSchema;
-
   const unit = schema.weightUnit === "lbs" ? "lbs" : "kg";
 
-  const thead = document.querySelector("#inspectionHistoryTable thead");
-  const tbody = document.querySelector("#inspectionHistoryTable tbody");
+  const container = document.getElementById("inspectionHistoryGroups");
+  container.innerHTML = ""; // clear previous
 
-  // Build header
-  let header = "<tr><th>Date</th><th>Time</th>";
-  header += "<th>Status</th>";
-  header += "<th>Notes</th>";
+  const sortedGroups = schema.groups
+    .slice()
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
-  schema.groups
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .forEach(group => {
-      group.fields
-        .sort((a, b) => a.sortOrder - b.sortOrder)
-        .forEach(field => {
+  sortedGroups.forEach((group, groupIndex) => {
 
-          // Dynamic label for honeyTaken
-          if (field.id === "honeyTaken") {
-            header += `<th>Honey Taken (${unit})</th>`;
-          } else {
-            header += `<th>${field.label}</th>`;
-          }
+    const groupFields = group.fields
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder);
 
-        });
+    //
+    // HEADER
+    //
+    let headerHtml = "<tr>";
+
+    if (groupIndex === 0) {
+      // First table: Date, Time, Status, Notes
+      headerHtml += `
+        <th>Date</th>
+        <th>Time</th>
+        <th>Status</th>
+        <th>Notes</th>
+      `;
+    } else {
+      // Subsequent tables: Date only
+      headerHtml += `<th>Date</th>`;
+    }
+
+    // Group fields
+    groupFields.forEach(field => {
+      if (field.id === "honeyTaken") {
+        headerHtml += `<th>Honey Taken (${unit})</th>`;
+      } else {
+        headerHtml += `<th>${field.label}</th>`;
+      }
     });
 
-  header += "</tr>";
-  thead.innerHTML = header;
+    headerHtml += "</tr>";
 
-  // Build rows
-  tbody.innerHTML = inspections.map(i => {
+    //
+    // ROWS
+    //
+    const rowsHtml = inspections.map(i => {
 
-    const dateStr = i.date ? App.Utils.formatDateUK(i.date) : "";
-    const timeStr = i.time || "";
+      const dateStr = i.date ? App.Utils.formatDateUK(i.date) : "";
+      const timeStr = i.time || "";
+      const notesStr = (i.notes || "").replace(/\n/g, "<br>");
 
-    let row = `<tr><td>${dateStr}</td><td>${timeStr}</td>`;
-    row += `<td>${i.queenStatus || ""}</td>`;
-    row += `<td>${i.notes || ""}</td>`;
+      let row = "<tr>";
 
-    schema.groups
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .forEach(group => {
-        group.fields
-          .sort((a, b) => a.sortOrder - b.sortOrder)
-          .forEach(field => {
+      if (groupIndex === 0) {
+        // First table: Date, Time, Status, Notes
+        row += `
+          <td>${dateStr}</td>
+          <td>${timeStr}</td>
+          <td>${i.queenStatus || ""}</td>
+          <td>${notesStr}</td>
+        `;
+      } else {
+        // Subsequent tables: Date only
+        row += `<td>${dateStr}</td>`;
+      }
 
-            let val = i[field.id] ?? "";
+      // Group fields
+      groupFields.forEach(field => {
+        let val = i[field.id] ?? "";
 
-            // Convert kg → lbs for honeyTaken
-            if (field.id === "honeyTaken") {
-              const kg = Number(val || 0);
-              val = unit === "lbs"
-                ? (kg * 2.20462).toFixed(1)
-                : kg;
-            }
+        if (field.id === "honeyTaken") {
+          const kg = Number(val);
+          if (!Number.isFinite(kg) || kg === 0) {
+            val = "";
+          } else {
+            val = unit === "lbs"
+              ? (kg * 2.20462).toFixed(1)
+              : kg;
+          }
+        }
 
-            row += `<td>${val}</td>`;
-          });
+        row += `<td>${val}</td>`;
       });
 
-    row += "</tr>";
-    return row;
+      row += "</tr>";
+      return row;
 
-  }).join("");
+    }).join("");
 
-  // Wire close buttons
+    //
+    // TABLE BLOCK
+    //
+    const sectionHtml = `
+      <section class="inspection-history-group">
+        <h3 class="inspection-history-group-title">${group.name}</h3>
+        <div class="inspection-history-group-table-wrap">
+          <table class="inspection-history-group-table">
+            <thead>${headerHtml}</thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </section>
+    `;
+
+    container.insertAdjacentHTML("beforeend", sectionHtml);
+  });
+
+  // Wire close
   const close1 = document.getElementById("closeInspectionHistoryBtn");
+  if (close1) close1.onclick = App.Modals.closeInspectionHistory;
 
-  const closeFn = App.Modals.closeInspectionHistory;
-
-  if (close1) close1.onclick = closeFn;
-
-  document.getElementById("overlay").style.display = "block";
+  const overlay = document.getElementById("overlay");
+  overlay.style.display = "block";
   overlay.style.zIndex = 1150;
+
   document.getElementById("inspectionHistoryModal").style.display = "block";
 };
 
@@ -3313,6 +3358,9 @@ App.Modals.openAccountModal = function () {
   document.getElementById("accountVersionRelease").innerHTML =
     `Released: <strong>${App.Release}</strong>`;
 
+  document.getElementById("accountVersionChange").innerHTML =
+  `Changes:<br> ${App.Change}`;
+
   // OPEN MODAL
   overlay.style.zIndex = "900";
   overlay.style.display = "block";
@@ -3413,8 +3461,98 @@ App.Modals.init = function () {
   // ------------------------------------------------------------
   const overlay = document.getElementById("overlay");
 
+  document.getElementById("overlay").onclick = function () {
+
+  // Close Rename Field modal if open
+  const rename = document.getElementById("renameFieldModal");
+  if (rename && rename.style.display === "block") {
+    App.Modals.closeRenameField();
+    return;
+  }
+
+  // Close Change Field Type modal if open
+  const changeType = document.getElementById("changeFieldTypeModal");
+  if (changeType && changeType.style.display === "block") {
+    App.Modals.closeChangeFieldType();
+    return;
+  }
+
+  // ...your existing modal close logic continues here...
+};
+
+
+  App.Modals._pendingFieldEdit = { groupIndex: null, fieldIndex: null };
+
+document.getElementById("renameFieldSave").onclick = function () {
+  const { groupIndex, fieldIndex } = App.Modals._pendingFieldEdit;
+  const schema = App.Modals.inspectionSchemaWorking;
+  const newName = document.getElementById("renameFieldInput").value.trim();
+
+  if (!newName) {
+    App.Modals.closeRenameField();
+    return;
+  }
+
+  if (fieldIndex === null) {
+    // Renaming a group
+    schema.groups[groupIndex].label = newName;
+  } else {
+    // Renaming a field
+    schema.groups[groupIndex].fields[fieldIndex].label = newName;
+  }
+
+  App.Modals.closeRenameField();
+  document.getElementById("overlay").style.zIndex = "900";
+  App.Modals.renderInspectionGroups();
+};
+
+
+document.getElementById("closeRenameField").onclick =
+function () {
+  App.Modals.closeRenameField();
+  document.getElementById("overlay").style.zIndex = "900";
+};
+
+App.Modals.closeRenameField = function () {
+  document.getElementById("renameFieldModal").style.display = "none";
+  App.Modals._pendingFieldEdit = { groupIndex: null, fieldIndex: null };
+  App.Modals.updateOverlayState();
+};
+
+App.Modals.closeChangeFieldType = function () {
+  document.getElementById("changeFieldTypeModal").style.display = "none";
+  App.Modals._pendingFieldEdit = { groupIndex: null, fieldIndex: null };
+  App.Modals.updateOverlayState();
+};
+
+
+document.getElementById("changeFieldTypeSave").onclick = function () {
+  const { groupIndex, fieldIndex } = App.Modals._pendingFieldEdit;
+  const schema = App.Modals.inspectionSchemaWorking;
+  const field = schema.groups[groupIndex].fields[fieldIndex];
+
+  const newType = document.getElementById("changeFieldTypeSelect").value;
+  field.type = newType;
+
+  App.Modals.closeChangeFieldType();
+  App.Modals.renderInspectionGroups();
+};
+
+document.getElementById("closeChangeFieldType").onclick =
+function () {
+  document.getElementById("overlay").style.zIndex = "900";
+  App.Modals.closeChangeFieldType();
+};
+
   document.getElementById("analyticsBtn").onclick = function () {
     App.Modals.openHoneyGraphModal();
+};
+App.Modals.updateOverlayState = function () {
+  const anyOpen = [...document.querySelectorAll('.modal')]
+    .some(m => m.style.display === "block");
+
+  const overlay = document.getElementById("overlay");
+  overlay.style.display = anyOpen ? "block" : "none";
 };
 
 document.getElementById("addCompassBtn").onclick = App.Canvas.addCompass;
@@ -3636,12 +3774,66 @@ document.getElementById("saveInspectionInputBtn").addEventListener("click", App.
     App.Modals.exitApp();
   });
 
-  document.getElementById("moveHiveBtn").addEventListener("click", () => {
-  if (!selectedHive) return;
+App.Modals.openConfirmMove = function () {
+  const modal = document.getElementById("confirmMoveModal");
+  const overlay = document.getElementById("overlay");
 
-  const newApiaryId = document.getElementById("destinationApiarySelect").value;
-  App.Hives.moveHive(selectedHive, newApiaryId);
-});
+  // If confirm modal doesn't exist, fall back to original behaviour
+  if (!modal) {
+    if (!selectedHive) return;
+    const newApiaryId = document.getElementById("destinationApiarySelect").value;
+    App.Hives.moveHive(selectedHive, newApiaryId);
+    return;
+  }
+  overlay.style.display = "block";
+  overlay.style.zIndex = "1150";
+  modal.style.display = "block";
+};
+
+App.Modals.closeConfirmMove = function () {
+  const modal = document.getElementById("confirmMoveModal");
+  if (modal) modal.style.display = "none";
+  const overlay = document.getElementById("overlay");
+overlay.style.zIndex = "900";
+};
+
+// MOVE button in EditHive
+const moveBtn = document.getElementById("moveHiveBtn");
+if (moveBtn) {
+  moveBtn.addEventListener("click", () => {
+    if (!selectedHive) return;
+    App.Modals.openConfirmMove();
+  });
+}
+
+// Confirm Move modal buttons (only if modal exists)
+const confirmMoveYes = document.getElementById("confirmMoveYes");
+const confirmMoveNo  = document.getElementById("confirmMoveNo");
+const closeConfirmMove = document.getElementById("closeConfirmMove");
+
+if (confirmMoveYes) {
+  confirmMoveYes.addEventListener("click", () => {
+    const newApiaryId = document.getElementById("destinationApiarySelect").value;
+
+    App.Modals.closeConfirmMove();
+    if (typeof App.Modals.closeEditHiveModal === "function") {
+      App.Modals.closeEditHiveModal();
+    }
+
+    App.Hives.moveHive(selectedHive, newApiaryId);
+  });
+
+}
+
+if (confirmMoveNo) {
+  confirmMoveNo.addEventListener("click", App.Modals.closeConfirmMove);
+}
+
+if (closeConfirmMove) {
+  closeConfirmMove.addEventListener("click", App.Modals.closeConfirmMove);
+}
+
+
 
 document.getElementById("renewCloseBtn").onclick = App.Modals.closeRenewModal;
  if (overlay) overlay.addEventListener("click", App.Modals.closeRenewModal);
@@ -3680,6 +3872,8 @@ const apiaryManagerCloseBtn = document.getElementById("apiaryManagerCloseBtn");
 //const apiaryManagerCloseFooterBtn = document.getElementById("apiaryManagerCloseFooterBtn");
 const apiaryManagerSaveBtn = document.getElementById("apiaryManagerSaveBtn");
 const apiaryManagerDeleteBtn = document.getElementById("apiaryManagerDeleteBtn");
+const apiaryManagerCompassBtn = document.getElementById("apiaryManagerCompassBtn");
+const apiaryManagerDeleteCompassBtn = document.getElementById("apiaryManagerDeleteCompassBtn");
 
 if (apiaryManagerBtn) apiaryManagerBtn.addEventListener("click", App.Modals.openApiaryManager);
 if (apiaryManagerCloseBtn) apiaryManagerCloseBtn.addEventListener("click", App.Modals.closeApiaryManager);
@@ -3700,6 +3894,12 @@ document.getElementById("apiaryManagerNewBtn")
 document.getElementById("apiaryManagerPrintBtn")
   .addEventListener("click", App.Canvas.print);
 
+  if (apiaryManagerCompassBtn) {
+  apiaryManagerCompassBtn.addEventListener("click", App.Canvas.addApiaryCompass);
+}
+if (apiaryManagerDeleteCompassBtn) {
+  apiaryManagerDeleteCompassBtn.addEventListener("click", App.Canvas.deleteApiaryCompass);
+}
 const closeBtn = document.getElementById("closeBoxTypesBtn");
 if (closeBtn) {
   closeBtn.onclick = App.Modals.closeBoxTypesManager;

@@ -313,10 +313,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const closeBtn1 = document.getElementById("helpModalCloseBtn");
-    const closeBtn2 = document.getElementById("helpModalCloseBtnFooter");
 
     if (closeBtn1) closeBtn1.addEventListener("click", closeHelp);
-    if (closeBtn2) closeBtn2.addEventListener("click", closeHelp);
 
     overlay.addEventListener("click", closeHelp);
   }

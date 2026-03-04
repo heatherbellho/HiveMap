@@ -63,6 +63,7 @@ window.HELP_SECTIONS = [
       Renewal can be done at any time and the new license period will be added to any period you have remaining.<br>
       You can check the status of your license at any time in the toolbar <b>Tools</b> menu - select <b>License</b>.
       <br>
+      You can also see there what Edition and Version you are using.<br>
       A reminder will show next to the HiveMap logo in the toolbar when you have less than 7 days until expiry.</p>
 
       <p>When you first open HiveMap, your browser will show an option to install on your device so you can use HiveMap offline without the requirement for an internet connection.</p>
@@ -70,13 +71,18 @@ window.HELP_SECTIONS = [
       <h3>Create an apiary</h3>
 
       Press the <b>Apiary</b> button in the toolbar - a panel will open to set up the apiary.<br>
-      <p>For your first apiary, it will open in 'create' mode showing <b>Create Apiary</b> - otherwise press the <b>Create Apiary</b> button to open 'create' mode.</p>
+      <p>For your first apiary, it will open in 'create' mode showing <b>Create Apiary</b> - otherwise press the <b>Create Apiary</b> button in the panel's top button toolbar to open 'create' mode.</p>
 
       <p>Enter <b>Apiary Name</b> and optional <b>Grid Location</b> and <b>Address</b>.</p>
 
-      <!--<p>Press the <b>Add Compass</b> button will add a compass rose to the apiary Field View. This can be resized and rotated as required. HiveMap will regard the compass as a 'hive' so to delete it, select it and go to <b>Hives</b> in the toolbar and press <b>Delete Hive</b></p>-->
+      <p>Multiple dated <b>Notes</b> can also be added <b>[+]</b> at any time and they will be stored here.</p>
 
-      <p>Multiple dated <b>Notes</b> can be added <b>[+]</b> at any time and they will be stored here.</p>
+      <p>Press <b>Save</b> in the panel's bottom button toolbar. This data can be edited at any time using the <b>Apiary</b> button.</p>
+
+      <p>Also in the panel's bottom button toolbar:<br>
+      Press the <b>Add Compass</b> button will automatically add a compass to the apiary Field View. This can be dragged to position and rotated to set orientation.<br>
+      Press the <b>Delete Compass</b> button to delete that compass and remove it from the Filed View.<br>
+      Press the <b>Print Apiary</b> to create a snapshot of the apiary Field View together with labels for each hive showing basic data.</p>
 
       <p>This data can be edited at any time using the <b>Apiary</b> button.</p>
 
@@ -201,14 +207,37 @@ window.HELP_SECTIONS = [
       <h3>Archive Hive button in the top button bar of the Hive Details panel.</h3>
 
       <p>Press the <b>Archive Hive</b> button.</p>
-      <p>This will open a confirmation panel, press <b>Delete</b> to confirm.</p>
+      <p>This will open a confirmation panel, press <b>Confirm Archive Hive</b> to confirm.</p>
 
       <p>Archiving a hive allows a hive to be removed from the Field View and all hive counts but still retain all its data and history.<br>
       This particularly useful for when a hive/colony has, for examples, been a loss, failed, died, given away or sold.<br>
       Enter/save that reason for archiving in the <b>Memo</b> of the <b>Hive Details</b> panel so it is easily seen in archived hive records.<br>
       Be sure to save any edits such as these before archiving. No edits can be made to an archived hive and archiving cannot be undone, they are permanent records but archived hives can be deleted.<br>
       Archived hives can be viewed in the toolbar <b>Hives</b>, select <b>Archived Hives</b> to see a table list of all archived hives.<br>
-      They can also be viewed in other table lists that show a black <b>Archived</b> button.</p>
+      Use the <svg class="icon"><use href="#icon-search"></use></svg> 'view' icon shown for each hive in the <strong>Archived Hives</strong> table list to open the hive details panel.<br>
+      The hive can also be permanently deleted in that panel by pressing the <b>Delete</b> button.</p>
+
+      <hr>
+    `
+  },
+
+    {
+    id: "help-graph",
+    title: "Graphs",
+    html: `
+      <h2 id="help-graph">Graphs</h2>
+      <h3>Graphs button in the top button bar of the Hive Details panel.</h3>
+
+      <p>Press the <b>Graphs</b> button.</p>
+      <p>This will open a panel showing a graph for Honey Harvest.</p>
+      <p>This data is taken from recorded hive inspections.<br>
+      Go to <b>Settings</b> in the toolbar and select <b>Inspection Fields</b> to open the <b>Configure Inspection Fields</b> panel.<br>
+      At the top of the panel, the preferred <b>Honey weight unit</b> can be set to use throughout.<br>
+      If this is changed after data has already been recorded, the data will automatically be converted to reflect the new weight unit.</p>
+
+      <p>Select from the <b>Scope</b> menu to show data for the current hive or the current apiary or all apiaries.<br>
+      Select from the <b>Year</b> menu to choose which year from which to fetch data.<br>
+      In this way, comparisons can be made across years.</p>
 
       <hr>
     `
@@ -220,7 +249,7 @@ window.HELP_SECTIONS = [
     html: `
       <h2 id="help-notes">Hive Counts</h2>
 
-      <p>there are two buttons in the toolbar: <b>Apiary Hives</b> and <b>Total Hives</b>.</p>
+      <p>There are two buttons in the toolbar: <b>Apiary Hives</b> and <b>Total Hives</b>.</p>
 
       <p><b>Apiary Hives</b> shows the total number of hives in the selected apiary.<br>
       <b>Total Hives</b> shows the total number of hives in all apiaries.</p>
@@ -269,7 +298,9 @@ window.HELP_SECTIONS = [
       <h2 id="help-saving">Saving Your Data</h2>
       <p>Use the floating red <b>Exit</b> button to back up and save everything as one data file before closing.<br>
       This can also be done by going to <b>Tools</b> in the toolbar and select <b>Export Data</b>.<br>
-      The file can be saved anywhere either on your local device or external drive. This can then be imported on any other device where HiveMap is used by going to <b>Tools</b> in the toolbar and select <b>Import Data</b> to restore your full setup.</p>
+      The file will be saved with a time-stamped name and can be saved anywhere either on your local device or external drive.<br>
+      This can then be imported on any other device where HiveMap is used by going to <b>Tools</b> in the toolbar and select <b>Import Data</b> to restore your full setup.<br>
+      This also provides a time-stamped 'snapshot' backup that could be imported if something has been done that cannot be undone to restore all your data.</p>
 
       <hr>
     `
