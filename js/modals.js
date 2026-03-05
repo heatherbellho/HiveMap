@@ -719,9 +719,46 @@ App.Modals.deleteInspection = function (index) {
   const hiveData = selectedHive.hiveData;
   if (!hiveData.inspections || index < 0 || index >= hiveData.inspections.length) return;
 
-  if (!confirm("Delete this inspection? This cannot be undone.")) return;
+  App.Modals.openConfirmDeleteInspection(index);
+};
+
+App.Modals.openConfirmDeleteInspection = function (index) {
+  const modal = document.getElementById("confirmDeleteInspectionModal");
+  const overlay = document.getElementById("overlay");
+
+  if (!modal || !overlay) return;
+
+  modal.dataset.index = index;
+  overlay.style.zIndex = "1150";
+  modal.style.display = "block";
+  overlay.style.display = "block";
+};
+
+App.Modals.closeConfirmDeleteInspection = function () {
+  const modal = document.getElementById("confirmDeleteInspectionModal");
+  if (!modal) return;
+  const overlay = document.getElementById("overlay");
+  overlay.style.zIndex = "900";
+  modal.style.display = "none";
+  delete modal.dataset.index;
+  App.Modals.updateOverlayState();
+};
+
+App.Modals.confirmDeleteInspection = function () {
+  if (!selectedHive) return;
+
+  const modal = document.getElementById("confirmDeleteInspectionModal");
+  if (!modal) return;
+
+  const index = parseInt(modal.dataset.index, 10);
+  const hiveData = selectedHive.hiveData;
+  if (!hiveData.inspections || index < 0 || index >= hiveData.inspections.length) {
+    App.Modals.closeConfirmDeleteInspection();
+    return;
+  }
 
   hiveData.inspections.splice(index, 1);
+  App.Modals.closeConfirmDeleteInspection();
 
   // Refresh modal
   App.Modals.renderInspectionHistory();
@@ -892,22 +929,7 @@ App.UI.showToast(`Hive name "${name}" already exists.`);
   App.Modals.closeHiveSizeModal();
 };
 
-App.Modals.renderInspectionList = function (title, includeFn) {
-
-  const modal = document.getElementById("hiveListModal");
-  const overlay = document.getElementById("overlay");
-  const tbody = document.getElementById("hiveListBody");
-
-  modal.style.display = "block";
-  overlay.style.display = "block";
-
-  document.getElementById("hiveListTitle").textContent = title;
-
-  // Hide old filter bar if still present
-  //const filterBar = document.getElementById("dueInspectionFilters");
-  //if (filterBar) filterBar.style.display = "none";
-
-  tbody.innerHTML = "";
+App.Modals.getInspectionMatches = function (includeFn) {
 
   const apiaryNames = Storage.getAllApiaries() || [];
   const originalApiary = Storage.getCurrentApiary();
@@ -960,6 +982,42 @@ App.Modals.renderInspectionList = function (title, includeFn) {
   // Restore original apiary
   Storage.saveCurrentApiary(originalApiary);
   App.Canvas.loadLayout();
+
+    dueHives.sort((a, b) => {
+    if (a.apiaryName < b.apiaryName) return -1;
+    if (a.apiaryName > b.apiaryName) return 1;
+
+    if (a.data.nextInspectionDate < b.data.nextInspectionDate) return -1;
+    if (a.data.nextInspectionDate > b.data.nextInspectionDate) return 1;
+
+    return Number(a.data.name) - Number(b.data.name);
+  });
+
+  return { dueHives, originalApiary };
+};
+
+App.Modals.renderInspectionList = function (title, includeFn) {
+
+  const modal = document.getElementById("hiveListModal");
+  const overlay = document.getElementById("overlay");
+  const tbody = document.getElementById("hiveListBody");
+
+  modal.style.display = "block";
+  overlay.style.display = "block";
+
+  document.getElementById("hiveListTitle").textContent = title;
+
+  const calendarBtn = document.getElementById("dueInspectionCalendarBtn");
+  
+    calendarBtn.style.display = "inline-flex";
+
+  // Hide old filter bar if still present
+  //const filterBar = document.getElementById("dueInspectionFilters");
+  //if (filterBar) filterBar.style.display = "none";
+
+  tbody.innerHTML = "";
+
+  const { dueHives, originalApiary } = App.Modals.getInspectionMatches(includeFn);
 
   if (dueHives.length === 0) {
     const row = document.createElement("tr");
@@ -1145,6 +1203,7 @@ App.Modals.openFutureInspections = function () {
 App.Modals.openDueInspectionsModal = function () {
   document.getElementById("archiveBtns").style.display = "none";
   document.getElementById("overallArchiveBtns").style.display = "none";
+  document.getElementById("dueInspectionCalendarBtn").style.display = "none";
   document.getElementById("dueInspectionBtns").style.display = "block";
   App.Modals.renderInspectionList("Inspections Due", (data, today) =>
     !!data.nextInspectionDate
@@ -1157,6 +1216,113 @@ App.Modals.openArchivedHivesModal = function () {
   App.Modals.renderInspectionList("Archived Hives", (data, today) =>
     data.status === "archived"
   );
+};
+
+App.Modals.inspectionCalendarMonth = new Date();
+
+App.Modals.openInspectionCalendarHive = function (item, originalApiary) {
+  if (!item || !item.hiveObj) return;
+
+  const uid = item.hiveObj.__uid;
+  const apiaryName = item.apiaryName;
+
+  if (!uid || !apiaryName) return;
+
+  Storage.saveCurrentApiary(apiaryName);
+  App.Canvas.loadLayout();
+
+  const hiveObj = HiveObjectMap[uid];
+  if (hiveObj) {
+    selectedHive = hiveObj;
+    selectedHive.__apiaryName = apiaryName;
+    App.Modals.openHiveModal(hiveObj);
+  }
+
+  Storage.saveCurrentApiary(originalApiary);
+  App.Canvas.loadLayout();
+};
+
+App.Modals.renderInspectionCalendar = function () {
+  const grid = document.getElementById("inspectionCalendarGrid");
+  const monthLabel = document.getElementById("inspectionCalendarMonthLabel");
+  if (!grid || !monthLabel) return;
+
+  const monthDate = App.Modals.inspectionCalendarMonth || new Date();
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+
+  monthLabel.textContent = monthDate.toLocaleString("en-GB", {
+    month: "long",
+    year: "numeric"
+  });
+
+  const { dueHives, originalApiary } = App.Modals.getInspectionMatches((data) => !!data.nextInspectionDate);
+
+  const mapByDate = dueHives.reduce((acc, entry) => {
+    const due = entry.data.nextInspectionDate;
+    if (!due) return acc;
+    if (!acc[due]) acc[due] = [];
+    acc[due].push(entry);
+    return acc;
+  }, {});
+
+  grid.innerHTML = "";
+
+  ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(label => {
+    const head = document.createElement("div");
+    head.className = "inspection-calendar-head";
+    head.textContent = label;
+    grid.appendChild(head);
+  });
+
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const startOffset = (firstDay.getDay() + 6) % 7;
+
+  for (let i = 0; i < startOffset; i++) {
+    const empty = document.createElement("div");
+    empty.className = "inspection-calendar-day is-empty";
+    grid.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const box = document.createElement("div");
+    box.className = "inspection-calendar-day";
+
+    const date = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    const dateEl = document.createElement("div");
+    dateEl.className = "inspection-calendar-date";
+    dateEl.textContent = String(day);
+    box.appendChild(dateEl);
+
+    (mapByDate[date] || []).forEach(item => {
+      const hive = item.data.name || "—";
+      const line = document.createElement("button");
+      line.type = "button";
+      line.className = `inspection-calendar-item ${item.dueClass}`;
+      line.textContent = `${item.apiaryName}, ${hive}`;
+      line.addEventListener("click", function () {
+        App.Modals.openInspectionCalendarHive(item, originalApiary);
+      });
+      box.appendChild(line);
+    });
+
+    grid.appendChild(box);
+  }
+};
+
+App.Modals.openInspectionCalendarModal = function () {
+  App.Modals.inspectionCalendarMonth = new Date();
+  document.getElementById("hiveListModal").style.display = "none";
+  document.getElementById("inspectionCalendarModal").style.display = "block";
+  document.getElementById("overlay").style.display = "block";
+  App.Modals.renderInspectionCalendar();
+};
+
+App.Modals.closeInspectionCalendarModal = function () {
+  document.getElementById("inspectionCalendarModal").style.display = "none";
+  document.getElementById("hiveListModal").style.display = "block";
 };
 
 // ------------------------------------------------------------
@@ -1432,8 +1598,9 @@ App.Modals.saveInspectionDetails = function () {
   const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
   const color = App.Status.getColor(latest.queenStatus || "");
   selectedHive._objects[0].set("fill", color);
-
+ 
   App.Canvas.saveLayout();
+  App.updateDueInspectionsBadge();
   App.Canvas.requestRender();
   App.Canvas.saveLayout();
 
@@ -1879,6 +2046,7 @@ App.Modals.openHiveListModal = function () {
   App.Modals.resetHiveListHeader();
   document.getElementById("archiveBtns").style.display = "none";
   document.getElementById("dueInspectionBtns").style.display = "none";
+  document.getElementById("dueInspectionCalendarBtn").style.display = "none";
 
   // Show modal + overlay
   document.getElementById("hiveListModal").style.display = "block";
@@ -1995,6 +2163,7 @@ App.Modals.openHiveListModal = function () {
 
 App.Modals.closeHiveListModal = function () {
   document.getElementById("hiveListModal").style.display = "none";
+  document.getElementById("inspectionCalendarModal").style.display = "none";
   document.getElementById("overlay").style.display = "none";
 };
 
@@ -2002,6 +2171,7 @@ App.Modals.resetHiveListHeader = function () {
   document.getElementById("archiveBtns").style.display = "none";
   document.getElementById("overallArchiveBtns").style.display = "none";
   document.getElementById("dueInspectionBtns").style.display = "none";
+  document.getElementById("dueInspectionCalendarBtn").style.display = "none";
 };
 
 
@@ -2010,6 +2180,7 @@ App.Modals.openOverallHiveListModal = function () {
   document.getElementById("dueInspectionBtns").style.display = "none";
   document.getElementById("archiveBtns").style.display = "none";
   document.getElementById("overallArchiveBtns").style.display = "none";
+  document.getElementById("dueInspectionCalendarBtn").style.display = "none";
 
   const modal = document.getElementById("hiveListModal");
   const overlay = document.getElementById("overlay");
@@ -2264,6 +2435,9 @@ App.Modals.openInspectionInput = function (hiveObj) {
 
   // Recorded-at timestamp (set on save, not here)
   document.getElementById("inspectionInputRecordedAt").textContent = "";
+    // Reset per-inspection inputs that are not schema-driven
+  document.getElementById("inspectionInputNextInspection").value = "";
+  document.getElementById("inspectionInputNotes").value = "";
 
   // Queen status dropdown
   const queenSelect = document.getElementById("inspectionInputQueenStatus");
@@ -2430,6 +2604,7 @@ App.Modals.saveInspectionInput = function () {
 
   // Save + update
   App.Canvas.requestRender();
+  App.updateDueInspectionsBadge();
   App.Canvas.saveLayout();
 
   // Refresh Edit Hive modal
@@ -3581,6 +3756,14 @@ document.getElementById("cancelDeleteStatusBtn").onclick = function () {
   App.Modals.closeConfirmDeleteStatus();
 };
 
+document.getElementById("confirmDeleteInspectionBtn").onclick = function () {
+  App.Modals.confirmDeleteInspection();
+};
+
+document.getElementById("cancelDeleteInspectionBtn").onclick = function () {
+  App.Modals.closeConfirmDeleteInspection();
+};
+
   confirmDeleteHiveModal      = document.getElementById("confirmDeleteHiveModal");
   confirmDeleteHiveMessage    = document.getElementById("confirmDeleteHiveMessage");
   confirmDeleteHiveYesBtn     = document.getElementById("confirmDeleteHiveYesBtn");
@@ -3851,6 +4034,7 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
     if (type === "overdue") App.Modals.openOverdueInspections();
     if (type === "future") App.Modals.openFutureInspections();
     if (type === "all") App.Modals.openDueInspectionsModal();
+    if (type === "dueCalendar") App.Modals.openInspectionCalendarModal();
     if (type === "archived") App.Modals.openArchivedHivesModal();
     if (type === "hiveListShowAll") App.Modals.openHiveListModal();
     if (type === "overallListShowAll") App.Modals.openOverallHiveListModal();
@@ -3859,7 +4043,26 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
   document.getElementById("closeInspectionHistoryBtn").addEventListener("click", App.Modals.closeInspectionHistory);
    if (overlay) overlay.addEventListener("click", App.Modals.closeInspectionHistory);
 
-  document.getElementById("saveTreatmentBtn").onclick = App.Modals.saveTreatment;
+  const inspectionCalendarCloseBtn = document.getElementById("inspectionCalendarCloseBtn");
+const inspectionCalendarPrevBtn = document.getElementById("inspectionCalendarPrevBtn");
+const inspectionCalendarNextBtn = document.getElementById("inspectionCalendarNextBtn");
+
+if (inspectionCalendarCloseBtn) {
+  inspectionCalendarCloseBtn.addEventListener("click", App.Modals.closeInspectionCalendarModal);
+}
+if (inspectionCalendarPrevBtn) {
+  inspectionCalendarPrevBtn.addEventListener("click", () => {
+    App.Modals.inspectionCalendarMonth.setMonth(App.Modals.inspectionCalendarMonth.getMonth() - 1);
+    App.Modals.renderInspectionCalendar();
+  });
+}
+if (inspectionCalendarNextBtn) {
+  inspectionCalendarNextBtn.addEventListener("click", () => {
+    App.Modals.inspectionCalendarMonth.setMonth(App.Modals.inspectionCalendarMonth.getMonth() + 1);
+    App.Modals.renderInspectionCalendar();
+  });
+}
+document.getElementById("saveTreatmentBtn").onclick = App.Modals.saveTreatment;
 document.getElementById("treatmentModalCloseBtn").onclick = App.Modals.closeTreatmentModal;
    if (overlay) overlay.addEventListener("click", App.Modals.closeTreatmentModal);
 
