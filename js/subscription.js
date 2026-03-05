@@ -1,4 +1,4 @@
-// HM2 subscription logic (duration-based, stacking)
+// HM2 subscription logic — FIXED EXPIRY MODEL
 
 // IMPORTANT: must match SECRET used in the generator
 const HM2_PUBLIC_SECRET = "REPLACE_WITH_YOUR_PRIVATE_SECRET";
@@ -20,9 +20,10 @@ async function hm2HmacSHA256(message, secret) {
 }
 
 /**
- * Validate an HM2 code and return its edition + duration (days).
- * Format: HM2-<EDITION>-<DURATION>-<SIGNATURE>
+ * Validate an HM2 code and return edition + expiry.
+ * Format: HM2-<EDITION>-<EXPIRY_YYYYMMDD>-<SIGNATURE>
  */
+// Format: HM2-<EDITION>-<EXPIRY_YYYYMMDD>-<SIG+NONCE>
 async function validateHM2Code(code) {
   if (!code || !code.startsWith("HM2-")) {
     return { valid: false, error: "Invalid code format." };
@@ -34,40 +35,34 @@ async function validateHM2Code(code) {
   }
 
   const edition = parts[1];
-  const durationRaw = parts[2];
+  const expiryRaw = parts[2];
   const sigWithNonce = parts[3];
 
-  if (!/^\d+$/.test(durationRaw)) {
-    return { valid: false, error: "Invalid duration." };
+  if (!["CORE", "PLUS"].includes(edition)) {
+    return { valid: false, error: "Invalid edition." };
   }
 
-  const durationDays = parseInt(durationRaw, 10);
-  if (durationDays <= 0) {
-    return { valid: false, error: "Duration must be positive." };
+  if (!/^\d{8}$/.test(expiryRaw)) {
+    return { valid: false, error: "Invalid expiry format." };
   }
 
-  // NEW FORMAT: signature (10 chars) + nonce (>=1 char)
-  let shortSig, nonce;
+  const year = parseInt(expiryRaw.slice(0, 4), 10);
+  const month = parseInt(expiryRaw.slice(4, 6), 10);
+  const day = parseInt(expiryRaw.slice(6, 8), 10);
 
-  if (sigWithNonce.length > 10) {
-    // New format with nonce
-    shortSig = sigWithNonce.slice(0, 10);
-    nonce = sigWithNonce.slice(10);
-  } else {
-    // Old format (no nonce)
-    shortSig = sigWithNonce;
-    nonce = ""; // old codes have no nonce
+  const expiryDate = new Date(year, month - 1, day);
+  if (isNaN(expiryDate.getTime())) {
+    return { valid: false, error: "Invalid expiry date." };
   }
 
-  let message;
-  if (nonce) {
-    // New format
-    message = `${edition}-${durationDays}-${nonce}`;
-  } else {
-    // Old format (backwards compatible)
-    message = `${edition}-${durationDays}`;
+  if (sigWithNonce.length <= 10) {
+    return { valid: false, error: "Invalid signature/nonce." };
   }
 
+  const shortSig = sigWithNonce.slice(0, 10);
+  const nonce = sigWithNonce.slice(10);
+
+  const message = `${edition}-${expiryRaw}-${nonce}`;
   const fullSig = await hm2HmacSHA256(message, HM2_PUBLIC_SECRET);
   const expectedShort = fullSig.slice(0, 10);
 
@@ -75,18 +70,21 @@ async function validateHM2Code(code) {
     return { valid: false, error: "Invalid signature." };
   }
 
+  const expiryIso = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
   return {
     valid: true,
     edition,
-    duration: durationDays,
+    expiry: expiryIso,
     raw: code
   };
 }
 
+
 /**
  * Apply a validated HM2 code:
- * - If no expiry or expiry in the past → start from today
- * - If expiry in the future → add duration on top of existing expiry
+ * - Always use the expiry encoded in the code
+ * - Never add time, never stack, never extend
  */
 async function applyHM2Code(rawCode) {
   const result = await validateHM2Code(rawCode);
@@ -94,39 +92,17 @@ async function applyHM2Code(rawCode) {
     return result;
   }
 
-  const durationDays = result.duration;
-
-  const existingStr = localStorage.getItem("hivemap_license_expiry");
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  let baseDate;
-  if (existingStr) {
-    const existing = new Date(existingStr);
-    existing.setHours(0, 0, 0, 0);
-    baseDate = existing > today ? existing : today;
-  } else {
-    baseDate = today;
-  }
-
-  baseDate.setDate(baseDate.getDate() + durationDays);
-
-  const yyyy = baseDate.getFullYear();
-  const mm = String(baseDate.getMonth() + 1).padStart(2, "0");
-  const dd = String(baseDate.getDate()).padStart(2, "0");
-  const newExpiryStr = `${yyyy}-${mm}-${dd}`;
-
-  localStorage.setItem("hivemap_license_expiry", newExpiryStr);
+  localStorage.setItem("hivemap_license_expiry", result.expiry);
   localStorage.setItem("hivemap_license_code", result.raw);
-  localStorage.setItem("hivemap_license_edition", result.edition); // CORE or PLUS
+  localStorage.setItem("hivemap_license_edition", result.edition);
 
   return {
     valid: true,
     edition: result.edition,
-    duration: durationDays,
-    newExpiry: newExpiryStr
+    expiry: result.expiry
   };
 }
+
 
 /**
  * Helper: check if editing is allowed based on expiry.

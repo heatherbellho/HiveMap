@@ -532,11 +532,12 @@ body {
 }
 
 .modal-close {
-  padding: 0px 6px;
+  padding: 1px 7px;
   border-radius: 6px;
   float: right;
   cursor: pointer;
   font-size: 24px;
+  margin-left: 6px;
 }
 
 /*=====*/
@@ -883,6 +884,75 @@ body {
   font-size: 0.9rem;
   cursor: pointer;
 }
+
+.inspection-calendar-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 10px 0;
+}
+
+#inspectionCalendarModal.modal {
+  width: 1000px;
+  max-width: 95vw;
+  z-index: 1060 !important;
+}
+
+.inspection-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.inspection-calendar-day,
+.inspection-calendar-head {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.inspection-calendar-head {
+  text-align: center;
+  font-weight: 700;
+  padding: 6px;
+  background: #f6f6f6;
+}
+
+.inspection-calendar-day {
+  min-height: 110px;
+  padding: 6px;
+}
+
+.inspection-calendar-day.is-empty {
+  background: #f9f9f9;
+}
+
+.inspection-calendar-date {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.inspection-calendar-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  font-size: 0.8rem;
+  margin-bottom: 3px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  background: #f4f4f4;
+  cursor: pointer;
+}
+.filter-btn {
+  display: inline-flex; 
+  align-items: center; 
+  gap: 6px; 
+  margin-left: 18px; 
+  font-weight: bold;
+}
+
 #filterNext7 {
   margin-right: 6px;
 }
@@ -1406,9 +1476,11 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9998;
+  z-index: 9998 !important;
 }
-
+#exitAppModal {
+  z-index: 9999 !important;
+}
 #exitModal.hidden {
   display: none;
 }
@@ -1573,6 +1645,7 @@ canvas {
   box-sizing: border-box;
   border: 1px solid #ccc;
     border-radius: 6px;
+    padding: 6px;
 }
 
 /* Labels inside the header */
@@ -2076,6 +2149,9 @@ padding: 12px 0px;
 #confirmDeleteStatusModal {
   z-index: 1100 !important;
 }
+#confirmDeleteInspectionModal {
+  z-index: 1200 !important;
+}
 #honeyGraphModal {
   z-index: 1200 !important;
   min-width: 600px !important;
@@ -2099,10 +2175,45 @@ padding: 12px 0px;
 }
 
 .icon {
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
   fill: currentColor;
-  vertical-align: -2px;
 }
 #inspectionDetailsNotesInput { white-space: pre-wrap !important; }
 .inspection-history-group-table td { white-space: pre-wrap; }
+
+.exit-modal {
+  text-align: center;
+  padding: 30px !important;
+  animation: fadeSlideIn 0.8s ease-out;
+}
+
+.exit-logo {
+  width: 80px;
+  margin-bottom: 20px;
+}
+
+.modal-buttons.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.primary-btn {
+  background: #4caf50;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.danger-btn {
+  background: #d9534f;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
