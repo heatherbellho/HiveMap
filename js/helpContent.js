@@ -1,3 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
+
 // -----------------------------
 // HELP CONTENT SECTIONS (METADATA FORMAT)
 // -----------------------------
@@ -171,7 +183,15 @@ window.HELP_SECTIONS = [
 
       <p>This opens a new <b>Add Inspection</b> panel with input fields for all the details of an inspection that you can customise in the settings.<br>
       Press <b>Settings</b> menu in the toolbar and select <b>Inspection Fields</b> to add/remove, edit, reorder and set Groups and Fields within those Groups.<br>
-      This is a powerful system to make your inspection records just right for your needs, the way you work and how you want to keep records of your inspections.</p>
+      This is a powerful system to make your inspection records just right for your needs, the way you work and how much variety of data you want to keep as records of your inspections.</p>
+
+      <p>Note that you can set <b>Honey weight unit</b> to your preference.<br>
+      Then use this unit if/when entering <b>Honey Taken</b> in an inspection record.<br>
+      This data can then be seen in a <b>Honey Harvest</b> graph.</p>
+
+      <p>If/when entering data for <b>Forage</b> in an inspection record, use consistent plant names, for example, Clover, Bramble etc.<br>
+      This only needs to be done for one hive inspection record per apiary to produce a <b>Forage</b> chart for each apiary.
+      </p>
 
       <p>In the <b>Add Inspection</b> panel the date and time of the inspection will be auto set to the current date/time but can be edited if needed.</p>
       
@@ -223,12 +243,12 @@ window.HELP_SECTIONS = [
 
     {
     id: "help-graph",
-    title: "Graphs",
+    title: "Graphs & Charts",
     html: `
-      <h2 id="help-graph">Graphs</h2>
-      <h3>Graphs button in the top button bar of the Hive Details panel.</h3>
+      <h2 id="help-graph">Graphs & Charts</h2>
+      <h3><svg id="iconGraph" class="icon"><use href="#icon-graph"></use></svg> Honey button in the top button bar of the Hive Details panel.</h3>
 
-      <p>Press the <b>Graphs</b> button.</p>
+      <p>Press the <svg id="iconGraph" class="icon"><use href="#icon-graph"></use></svg> Honey button.</p>
       <p>This will open a panel showing a graph for Honey Harvest.</p>
       <p>This data is taken from recorded hive inspections.<br>
       Go to <b>Settings</b> in the toolbar and select <b>Inspection Fields</b> to open the <b>Configure Inspection Fields</b> panel.<br>
@@ -238,6 +258,13 @@ window.HELP_SECTIONS = [
       <p>Select from the <b>Scope</b> menu to show data for the current hive or the current apiary or all apiaries.<br>
       Select from the <b>Year</b> menu to choose which year from which to fetch data.<br>
       In this way, comparisons can be made across years.</p>
+
+      <h3><svg class="icon"><use href="#icon-chart"></use></svg> Forage button in the top button bar of the <b>Apiary</b> panel.</h3>
+
+      <p>If/when entering data for <b>Forage</b> in an inspection record, use consistent plant names, for example, Clover, Bramble etc.<br>
+      This data can then be seen in a <b>Forage</b> chart. Press <b>Apiary</b> in the main toolbar and press the <svg class="icon"><use href="#icon-chart"></use></svg> Forage button to show the chart.<br>
+      This will then show what forage is out, in what months over a year for the selected apiary. This builds a valuable source of knowledge to help plan management and compare year on year.
+      </p>
 
       <hr>
     `

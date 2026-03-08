@@ -1,3 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
+
 App.Analytics = {};
 
 //
@@ -96,6 +108,9 @@ App.Analytics.renderHoneyGraph = function (canvasEl, inspections) {
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 16 / 9,
             scales: {
                 x: {
                     ticks: {
@@ -251,4 +266,88 @@ App.Analytics.buildYearDateRange = function (year) {
     }
 
     return dates;
+};
+
+App.Analytics.getApiaryInspections = function (apiaryName) {
+    if (!apiaryName) return [];
+
+    const rawLayout = Storage.getHiveLayout(apiaryName);
+    if (!rawLayout) return [];
+
+    try {
+        const parsed = JSON.parse(rawLayout);
+        const objects = Array.isArray(parsed?.objects) ? parsed.objects : [];
+
+        return objects.flatMap(o =>
+            Array.isArray(o?.hiveData?.inspections) ? o.hiveData.inspections : []
+        );
+    } catch {
+        return [];
+    }
+};
+
+App.Analytics.getApiaryForageYears = function (apiaryName) {
+    const years = new Set();
+
+    App.Analytics.getApiaryInspections(apiaryName).forEach(i => {
+        if (i?.date && i?.forage && String(i.forage).trim()) {
+            years.add(i.date.substring(0, 4));
+        }
+    });
+
+    return Array.from(years).sort();
+};
+
+App.Analytics.parseForageSources = function (raw) {
+    if (!raw) return [];
+
+    return String(raw)
+        .split(/[;,\n]+/)
+        .map(v => v.trim())
+        .filter(Boolean)
+        .map(v => v.toLowerCase().replace(/\s+/g, " "));
+};
+
+App.Analytics.buildApiaryForageCalendar = function (apiaryName, year) {
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const inspections = App.Analytics.getApiaryInspections(apiaryName)
+        .filter(i => i?.date?.startsWith(year));
+
+    const sourcesByMonth = new Map();
+    const allSources = new Set();
+
+    inspections.forEach(i => {
+        const monthIndex = Number(i.date.substring(5, 7)) - 1;
+        if (monthIndex < 0 || monthIndex > 11) return;
+
+        const tokens = App.Analytics.parseForageSources(i.forage);
+        if (!tokens.length) return;
+
+        if (!sourcesByMonth.has(monthIndex)) {
+            sourcesByMonth.set(monthIndex, new Set());
+        }
+
+        tokens.forEach(source => {
+            sourcesByMonth.get(monthIndex).add(source);
+            allSources.add(source);
+        });
+    });
+
+    const sources = Array.from(allSources).sort((a, b) => a.localeCompare(b));
+
+    const rows = sources.map(source => {
+        const months = monthNames.map((_, monthIndex) =>
+            sourcesByMonth.get(monthIndex)?.has(source) ? 1 : 0
+        );
+
+        return {
+            source,
+            months
+        };
+    });
+
+    return {
+        monthNames,
+        rows
+    };
 };

@@ -1,3 +1,14 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
 // ------------------------------------------------------------
 // modals.js
 // Handles all modal windows: hive edit modal, hive size modal,
@@ -26,7 +37,7 @@ App.Modals.defaultInspectionSchema = {
         { id: "honeyFrames", label: "Honey Frames", type: "text", sortOrder: 2, placeholder: "e.g. 2/11 D + 12/22 S" },
         { id: "pollenFrames", label: "Pollen Frames", type: "text", sortOrder: 3, placeholder: "e.g. 2/11 D" },
         { id: "feedingType", label: "Feeding", type: "text", sortOrder: 4, placeholder: "e.g. +4pts 50/50" },
-        { id: "supersAddedRemoved", label: "Boxes Added/Removed", type: "text", sortOrder: 5, placeholder: "e.g. +1 S" },
+        { id: "supersAddedRemoved", label: "Boxes +/-", type: "text", sortOrder: 5, placeholder: "e.g. +1 S" },
         { id: "honeyTaken", label: "Honey Taken", type: "number", sortOrder: 5, placeholder: "e.g. 10" }
       ]
     },
@@ -651,9 +662,20 @@ App.Modals.renderInspectionHistory = function () {
       : "";
   }
 
-  // ⭐ Render inspection rows
-  data.inspections.slice().reverse().forEach((ins, reversedIndex) => {
-    const originalIndex = data.inspections.length - 1 - reversedIndex;
+  // ⭐ Render inspection rows latest -> oldest
+  const orderedInspections = (data.inspections || [])
+    .map((ins, originalIndex) => ({ ins, originalIndex }))
+    .sort((a, b) => {
+      const aDate = new Date(`${a.ins.date || ""}T${a.ins.time || "00:00"}`);
+      const bDate = new Date(`${b.ins.date || ""}T${b.ins.time || "00:00"}`);
+      const aTime = Number.isNaN(aDate.getTime()) ? 0 : aDate.getTime();
+      const bTime = Number.isNaN(bDate.getTime()) ? 0 : bDate.getTime();
+
+      if (bTime !== aTime) return bTime - aTime;
+      return b.originalIndex - a.originalIndex;
+    });
+
+  orderedInspections.forEach(({ ins, originalIndex }) => {
 
     const li = document.createElement("li");
     li.style.marginBottom = "6px";
@@ -2622,13 +2644,24 @@ App.Modals.closeInspectionInput = function () {
 App.Modals.openInspectionHistory = function (hiveGroup) {
 
   const data = hiveGroup.hiveData || {};
+  const getInspectionSortTimestamp = ({ date, time }) => {
+    if (!date) return Number.NEGATIVE_INFINITY;
+
+    const isoCandidate = `${date}T${time || "00:00"}`;
+    const isoTime = Date.parse(isoCandidate);
+    if (!Number.isNaN(isoTime)) return isoTime;
+
+    const ukMatch = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!ukMatch) return Number.NEGATIVE_INFINITY;
+
+    const [, dd, mm, yyyy] = ukMatch;
+    const ukTime = Date.parse(`${yyyy}-${mm}-${dd}T${time || "00:00"}`);
+    return Number.isNaN(ukTime) ? Number.NEGATIVE_INFINITY : ukTime;
+  };
+
   const inspections = (data.inspections || [])
     .slice()
-    .sort((a, b) => {
-      const aDT = new Date(`${a.date}T${a.time || "00:00"}`);
-      const bDT = new Date(`${b.date}T${b.time || "00:00"}`);
-      return bDT - aDT;
-    });
+    .sort((a, b) => getInspectionSortTimestamp(b) - getInspectionSortTimestamp(a));
 
   document.getElementById("inspectionHistoryTitle").textContent =
     `Inspection History — ${data.name || "Hive"} (${Storage.getCurrentApiary() || "Unknown Apiary"})`;
@@ -3078,6 +3111,94 @@ App.Modals.closeApiaryManager = function () {
 
   modal.style.display = "none";
   overlay.style.display = "none";
+};
+
+App.Modals.openForageCalendarModal = function () {
+  const apiaryName = Storage.getCurrentApiary();
+  if (!apiaryName) {
+    App.UI.showToast("No apiary selected.");
+    return;
+  }
+
+  const overlay = document.getElementById("overlay");
+  const modal = document.getElementById("forageCalendarModal");
+  const yearSelect = document.getElementById("forageCalendarYear");
+  const titleEl = document.getElementById("forageCalendarTitle");
+
+  titleEl.textContent = `Forage Chart — Apiary: ${apiaryName}`;
+
+  let years = App.Analytics.getApiaryForageYears(apiaryName);
+  if (!years.length) {
+    years = [String(new Date().getFullYear())];
+  }
+
+  yearSelect.innerHTML = years
+    .map(y => `<option value="${y}">${y}</option>`)
+    .join("");
+
+  yearSelect.value = years[years.length - 1];
+  yearSelect.onchange = function () {
+    App.Modals.renderForageCalendar();
+  };
+
+  modal.style.display = "block";
+  overlay.style.display = "block";
+  overlay.style.zIndex = "1125";
+
+  App.Modals.renderForageCalendar();
+};
+
+App.Modals.renderForageCalendar = function () {
+  const apiaryName = Storage.getCurrentApiary();
+  const year = document.getElementById("forageCalendarYear").value;
+  const container = document.getElementById("forageCalendarGridWrap");
+  if (!container || !apiaryName || !year) return;
+
+  const calendar = App.Analytics.buildApiaryForageCalendar(apiaryName, year);
+  const { monthNames, rows } = calendar;
+
+  if (!rows.length) {
+    container.innerHTML = `<div class="forage-calendar-empty">No forage entries recorded for ${year} in ${apiaryName}.</div>`;
+    return;
+  }
+
+  const thead = `
+    <thead>
+      <tr>
+        <th>Floral Source</th>
+        ${monthNames.map(m => `<th>${m}</th>`).join("")}
+      </tr>
+    </thead>
+  `;
+
+  const tbody = `
+    <tbody>
+      ${rows.map(row => `
+        <tr>
+          <td>${row.source}</td>
+          ${row.months.map(isPresent => `
+            <td class="forage-calendar-cell ${isPresent ? "is-present" : ""}">${isPresent ? "✓" : ""}</td>
+          `).join("")}
+        </tr>
+      `).join("")}
+    </tbody>
+  `;
+
+  container.innerHTML = `<table class="forage-calendar-table">${thead}${tbody}</table>`;
+};
+
+App.Modals.closeForageCalendarModal = function () {
+  const modal = document.getElementById("forageCalendarModal");
+  const overlay = document.getElementById("overlay");
+  if (modal) {
+    modal.style.display = "none";
+  }
+
+  const anyOpen = [...document.querySelectorAll('.modal')]
+    .some(m => window.getComputedStyle(m).display !== "none");
+
+  overlay.style.display = anyOpen ? "block" : "none";
+  overlay.style.zIndex = "900";
 };
 
 App.Modals.apiaryManagerMode = "edit"; // "edit" or "create"
@@ -3889,6 +4010,7 @@ document.getElementById("confirmArchiveHiveYesBtn")
   });
 
   if (overlay) overlay.addEventListener("click", App.Modals.closeHiveModal);
+  document.getElementById("saveInspectionInputBtnHdr").addEventListener("click", App.Modals.saveInspectionInput);
 document.getElementById("saveInspectionInputBtn").addEventListener("click", App.Modals.saveInspectionInput);
   document.getElementById("closeInspectionInputBtn").addEventListener("click", App.Modals.closeInspectionInput);
 
@@ -4077,6 +4199,8 @@ const apiaryManagerSaveBtn = document.getElementById("apiaryManagerSaveBtn");
 const apiaryManagerDeleteBtn = document.getElementById("apiaryManagerDeleteBtn");
 const apiaryManagerCompassBtn = document.getElementById("apiaryManagerCompassBtn");
 const apiaryManagerDeleteCompassBtn = document.getElementById("apiaryManagerDeleteCompassBtn");
+const apiaryForageCalendarBtn = document.getElementById("apiaryForageCalendarBtn");
+const forageCalendarCloseBtn = document.getElementById("forageCalendarCloseBtn");
 
 if (apiaryManagerBtn) apiaryManagerBtn.addEventListener("click", App.Modals.openApiaryManager);
 if (apiaryManagerCloseBtn) apiaryManagerCloseBtn.addEventListener("click", App.Modals.closeApiaryManager);
@@ -4084,7 +4208,9 @@ if (apiaryManagerCloseBtn) apiaryManagerCloseBtn.addEventListener("click", App.M
 if (apiaryManagerSaveBtn) apiaryManagerSaveBtn.addEventListener("click", App.Modals.saveApiaryManager);
 if (apiaryManagerDeleteBtn) apiaryManagerDeleteBtn.addEventListener("click", App.Modals.deleteApiaryManager);
    if (overlay) overlay.addEventListener("click", App.Modals.closeApiaryManager);
-
+if (apiaryForageCalendarBtn) apiaryForageCalendarBtn.addEventListener("click", App.Modals.openForageCalendarModal);
+if (forageCalendarCloseBtn) forageCalendarCloseBtn.addEventListener("click", App.Modals.closeForageCalendarModal);
+if (overlay) overlay.addEventListener("click", App.Modals.closeForageCalendarModal);
 
 const newApiaryBtn = document.getElementById("newApiaryBtn");
 if (newApiaryBtn) newApiaryBtn.addEventListener("click", () => {
@@ -4108,6 +4234,7 @@ if (closeBtn) {
   closeBtn.onclick = App.Modals.closeBoxTypesManager;
 }
 if (overlay) overlay.addEventListener("click", App.Modals.closeBoxTypesManager);
+
 const addBoxTypeBtn = document.getElementById("addBoxTypeBtn");
 if (addBoxTypeBtn) {
   addBoxTypeBtn.onclick = App.Modals.addBoxType;
