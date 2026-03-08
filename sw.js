@@ -1,3 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
+
 /* ------------------------------------------------------------
    HiveMap Instant-Update Service Worker
    - Always loads fresh JS (no stale code)
@@ -5,7 +17,7 @@
    - Keeps offline support for static assets
 ------------------------------------------------------------ */
 
-const CACHE_VERSION = 'v235';  // bump this every release
+const CACHE_VERSION = 'v236';  // bump this every release
 const CACHE_NAME = `hivemap-static-${CACHE_VERSION}`;
 
 // Only cache static, non-JS assets

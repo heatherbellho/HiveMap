@@ -1,3 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
+
 // ------------------------------------------------------------
 // status.js
 // Handles queen status list, legend rendering, and the
@@ -9,6 +21,39 @@ App.Status = {};
 
 // Cached list of statuses
 let queenStatuses = Storage.getQueenStatuses() || [];
+
+function refreshStatusUi() {
+  Storage.saveQueenStatuses(queenStatuses);
+  App.Status.renderLegend();
+  App.Status.populateStatusSelect();
+}
+
+function moveStatus(fromIndex, toIndex) {
+  if (toIndex < 0 || toIndex >= queenStatuses.length) return;
+  const [status] = queenStatuses.splice(fromIndex, 1);
+  queenStatuses.splice(toIndex, 0, status);
+  refreshStatusUi();
+  App.Status.openSettings();
+}
+
+function renderStatusRows(list) {
+  list.innerHTML = "";
+
+  queenStatuses.forEach((status, index) => {
+    const row = document.createElement("div");
+    row.className = "status-row";
+
+    row.innerHTML = `
+      <button class="status-move" data-index="${index}" data-direction="up" type="button" aria-label="Move status up" ${index === 0 ? "disabled" : ""}>↑</button>
+      <button class="status-move" data-index="${index}" data-direction="down" type="button" aria-label="Move status down" ${index === queenStatuses.length - 1 ? "disabled" : ""}>↓</button>
+      <input type="text" value="${status.name}" data-index="${index}">
+      <input type="color" value="${status.color}" data-index="${index}">
+      <button class="small-delete" data-index="${index}" type="button">×</button>
+    `;
+
+    list.appendChild(row);
+  });
+}
 
 // ------------------------------------------------------------
 // Get colour for a given queen status
@@ -116,29 +161,14 @@ if (btn) btn.style.display = "block";
 
   if (!modal || !list) return;
 
-  list.innerHTML = "";
-
-  queenStatuses.forEach((status, index) => {
-    const row = document.createElement("div");
-    row.className = "status-row";
-
-    row.innerHTML = `
-      <input type="text" value="${status.name}" data-index="${index}">
-      <input type="color" value="${status.color}" data-index="${index}">
-      <button class="small-delete" data-index="${index}" type="button">×</button>
-    `;
-
-    list.appendChild(row);
-  });
+renderStatusRows(list);
 
   // Name change handlers
   list.querySelectorAll("input[type='text']").forEach(input => {
     input.addEventListener("change", e => {
       const i = parseInt(e.target.dataset.index, 10);
       queenStatuses[i].name = e.target.value.trim() || "(Unnamed)";
-      Storage.saveQueenStatuses(queenStatuses);
-      App.Status.renderLegend();
-      App.Status.populateStatusSelect();
+      refreshStatusUi();
     });
   });
 
@@ -147,9 +177,15 @@ if (btn) btn.style.display = "block";
     input.addEventListener("change", e => {
       const i = parseInt(e.target.dataset.index, 10);
       queenStatuses[i].color = e.target.value;
-      Storage.saveQueenStatuses(queenStatuses);
-      App.Status.renderLegend();
-      App.Status.populateStatusSelect();
+      refreshStatusUi();
+    });
+  });
+
+  list.querySelectorAll(".status-move").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const i = parseInt(e.target.dataset.index, 10);
+      const direction = e.target.dataset.direction;
+      moveStatus(i, direction === "up" ? i - 1 : i + 1);
     });
   });
 
@@ -208,7 +244,7 @@ App.Status.addStatus = function () {
     if (!name) return;
 
     queenStatuses.push({ name, color });
-    Storage.saveQueenStatuses(queenStatuses);
+    refreshStatusUi();
 
     // Re-render the list
     App.Status.openSettings();
@@ -236,9 +272,7 @@ App.Status.saveSettings = function () {
     if (name) queenStatuses.push({ name, color });
   }
 
-  Storage.saveQueenStatuses(queenStatuses);
-  App.Status.renderLegend();
-  App.Status.populateStatusSelect();
+  refreshStatusUi();
   App.Status.closeSettings();
 
   // Restore + button

@@ -1,3 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
+
 /* ------------------------------------------------------------
    app.js
    Main orchestrator. Initialises all modules in the correct
@@ -229,19 +241,19 @@ document.addEventListener("click", (e) => {
 });
 
 
-  const exitToast = document.getElementById("exitToast");
-  const exitCloseBtn = document.getElementById("exitToastClose");
+//  const exitToast = document.getElementById("exitToast");
+ // const exitCloseBtn = document.getElementById("exitToastClose");
 
-  setTimeout(() => {
-    exitToast.classList.remove("hidden");
-    exitToast.classList.add("show");
-  }, 800);
+ // setTimeout(() => {
+ //   exitToast.classList.remove("hidden");
+ //   exitToast.classList.add("show");
+//  }, 800);
 
-  exitCloseBtn.addEventListener("click", () => {
-    exitToast.classList.remove("show");
+ // exitCloseBtn.addEventListener("click", () => {
+//    exitToast.classList.remove("show");
 
-    setTimeout(() => {
-      exitToast.classList.add("hidden");
-    }, 400);
-  });
+//    setTimeout(() => {
+ //     exitToast.classList.add("hidden");
+//    }, 400);
+//  });
 });

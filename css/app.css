@@ -1,3 +1,15 @@
+/*
+ * ------------------------------------------------------------
+ *  © 2026 Heather Bell Honey Bees Ltd. All rights reserved.
+ *
+ *  This file is part of the HiveMap© software system.
+ *  Unauthorized copying, modification, distribution, or use
+ *  of this file, via any medium, is strictly prohibited.
+ *
+ *  Proprietary and confidential.
+ * ------------------------------------------------------------
+ */ 
+
 /* css/app.css */
 body { margin: 0; font-family: sans-serif; }
 canvas { display: block; margin: 0 auto; }
@@ -112,6 +124,7 @@ button.save:hover {
   font-size: 0.95rem;
 }
 #honeyGraphModal select,
+.forage-calendar-toolbar select,
 #manageHiveTypesModal input,
 #boxTypesModal input,
 #renameFieldModal input,
@@ -199,7 +212,9 @@ button.save:hover {
 }
 
 /* Status Modal */
-
+#statusModal {
+  min-width: 600px !important;
+}
 
 #statusModal h3 {
   margin-top: 0;
@@ -223,13 +238,29 @@ button.save:hover {
 .status-row {
   display: flex;
   align-items: center;
+  gap: 6px;
   margin-bottom: 8px;
+}
+
+.status-move {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.status-move:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 .status-row input[type="text"] {
   flex: 1 1 auto;
   padding: 6px 8px;
-  margin-right: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 0.95rem;
@@ -240,7 +271,6 @@ button.save:hover {
   height: 32px;
   border: none;
   padding: 0;
-  margin-right: 8px;
   cursor: pointer;
   border-radius: 4px;
 }
@@ -1219,6 +1249,19 @@ body {
     cursor: pointer;
 }
 
+#analyticsBtn,
+#apiaryForageCalendarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  vertical-align: middle;
+}
+
+#analyticsBtn .icon,
+#apiaryForageCalendarBtn .icon {
+  flex: 0 0 auto;
+}
+
 /* Inspection Details Modal Grid */
 .inspection-details-grid {
   display: grid;
@@ -1943,6 +1986,7 @@ padding: 12px 0px;
 }
 
 .footer-left button,
+.btn-header,
 .footer-right button,
 .footer-center button {
   margin-right: 8px;
@@ -2154,11 +2198,18 @@ padding: 12px 0px;
 }
 #honeyGraphModal {
   z-index: 1200 !important;
-  min-width: 600px !important;
+  width: min(900px, 95vw) !important;
+  max-width: 95vw !important;
+  min-width: 320px !important;
+  max-height: 90vh !important;
+  overflow: hidden !important;
 }
 #honeyGraphModal .modal-content {
-    max-width: 600px;
+    max-width: 100%;
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 #honeyGraphModal h2 {
@@ -2167,11 +2218,129 @@ padding: 12px 0px;
 
 #honeyGraphCanvas {
     width: 100% !important;
+    height: 100% !important;
     margin-bottom: 20px;
+}
+
+#honeyGraphScroll {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    min-height: 220px;
 }
 
 #honeyGraphModal .modal-actions {
     text-align: right;
+}
+
+#forageCalendarModal {
+  z-index: 1200 !important;
+  width: min(1100px, 95vw) !important;
+  max-width: 95vw !important;
+  max-height: 85vh !important;
+  overflow: hidden !important;
+}
+
+#forageCalendarModal .modal-content,
+.forage-calendar-modal-content {
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  max-height: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+#forageCalendarModal .modal-content {
+  padding: 0 !important;
+}
+
+#forageCalendarModal .modal-body {
+  display: block;
+  padding: 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.forage-calendar-toolbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #ccc;
+  padding: 8px 12px;
+}
+
+.forage-calendar-grid-wrap {
+  height: 100%;
+  max-height: none;
+  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.forage-calendar-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.forage-calendar-table th,
+.forage-calendar-table td {
+  border: 1px solid #e1e1e1;
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.forage-calendar-table th {
+  background: #f7f7f7;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.forage-calendar-table th:first-child,
+.forage-calendar-table td:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 2;
+}
+
+.forage-calendar-cell.is-present {
+  background: #dff5df;
+  color: #1d5f1d;
+  font-weight: 600;
+}
+
+.forage-calendar-empty {
+  color: #666;
+  padding: 16px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  #forageCalendarModal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+  }
+
+  .forage-calendar-toolbar {
+    justify-content: flex-start;
+    padding: 8px;
+  }
+
+  .forage-calendar-table {
+    font-size: 0.82rem;
+  }
+
+  .forage-calendar-table th,
+  .forage-calendar-table td {
+    padding: 6px 8px;
+  }
 }
 
 .icon {
@@ -2179,6 +2348,13 @@ padding: 12px 0px;
   height: 16px;
   fill: currentColor;
 }
+
+#iconGraph {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
 #inspectionDetailsNotesInput { white-space: pre-wrap !important; }
 .inspection-history-group-table td { white-space: pre-wrap; }
 
