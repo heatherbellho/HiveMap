@@ -78,6 +78,7 @@ App.Export.exportAllData = function () {
   allApiaries.forEach(apiary => {
     const layoutJSON = Storage.getHiveLayout(apiary);
     const note = Storage.getApiaryNotes(apiary) || [];
+    const forageRecords = Storage.getForageRecords(apiary) || [];
     let hives = {};
 
     if (layoutJSON) {
@@ -98,7 +99,8 @@ App.Export.exportAllData = function () {
     exportObj.apiaries[apiary] = {
       canvas: layoutJSON ? JSON.parse(layoutJSON) : {},
       hives,
-      note
+      note,
+      forageRecords
     };
   });
 
@@ -252,6 +254,7 @@ if (
         const apiary = loaded.apiaries[name];
         Storage.saveHiveLayout(name, JSON.stringify(apiary.canvas || {}));
         Storage.saveApiaryNotes(name, apiary.note || []);
+        Storage.saveForageRecords(name, Array.isArray(apiary.forageRecords) ? apiary.forageRecords : []);
       });
 
       Storage.saveAllApiaries(apiaryNames);

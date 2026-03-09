@@ -74,7 +74,7 @@ App.Modals.defaultInspectionSchema = {
         { id: "wind", label: "Wind mph/kmph", type: "number", sortOrder: 1, placeholder: "e.g. 12" },
         { id: "windDirection", label: "Wind Direction", type: "text", sortOrder: 1, placeholder: "e.g. SW" },
         { id: "weather", label: "Weather", type: "text", sortOrder: 2, placeholder: "e.g. calm, dry" },
-        { id: "forage", label: "Forage", type: "text", sortOrder: 3, placeholder: "e.g. willow out and pollen seen" }
+        { id: "forage", label: "Forage", type: "text", sortOrder: 3, placeholder: "e.g. Clover, Bramble" }
       ]
     }
   ]
@@ -779,12 +779,41 @@ App.Modals.confirmDeleteInspection = function () {
     return;
   }
 
+  const inspectionToDelete = hiveData.inspections[index];
+  App.Modals.removeForageRecordForInspection(selectedHive, inspectionToDelete);
+
   hiveData.inspections.splice(index, 1);
   App.Modals.closeConfirmDeleteInspection();
 
   // Refresh modal
   App.Modals.renderInspectionHistory();
   App.Canvas.saveLayout();
+};
+
+App.Modals.syncForageRecordForInspection = function (hiveObj, inspection) {
+  if (!inspection) return;
+
+  const apiaryName = hiveObj?.__apiaryName || Storage.getCurrentApiary();
+  if (!apiaryName) return;
+
+  inspection.__forageRecordId = inspection.__forageRecordId || App.Utils.uid();
+
+  Storage.upsertForageRecord(apiaryName, {
+    id: inspection.__forageRecordId,
+    date: inspection.date || "",
+    forage: inspection.forage || "",
+    hiveUid: hiveObj?.hiveData?.__uid || "",
+    hiveName: hiveObj?.hiveData?.name || ""
+  });
+};
+
+App.Modals.removeForageRecordForInspection = function (hiveObj, inspection) {
+  if (!inspection?.__forageRecordId) return;
+
+  const apiaryName = hiveObj?.__apiaryName || Storage.getCurrentApiary();
+  if (!apiaryName) return;
+
+  Storage.deleteForageRecord(apiaryName, inspection.__forageRecordId);
 };
 
 
@@ -1620,7 +1649,8 @@ App.Modals.saveInspectionDetails = function () {
   const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
   const color = App.Status.getColor(latest.queenStatus || "");
   selectedHive._objects[0].set("fill", color);
- 
+
+  App.Modals.syncForageRecordForInspection(selectedHive, inspection); 
   App.Canvas.saveLayout();
   App.updateDueInspectionsBadge();
   App.Canvas.requestRender();
@@ -2619,6 +2649,8 @@ App.Modals.saveInspectionInput = function () {
   hiveData.inspections.push(newInspection);
   hiveData.nextInspectionDate = nextInspection;
 
+  App.Modals.syncForageRecordForInspection(hiveObj, newInspection);
+
   // Update hive colour
   const latest = hiveData.inspections[hiveData.inspections.length - 1] || {};
   const color = App.Status.getColor(latest.queenStatus || "");
@@ -2641,33 +2673,16 @@ App.Modals.closeInspectionInput = function () {
   document.getElementById("overlay").style.display = anyOpen ? "block" : "none";
   };
 
-App.Modals.openInspectionHistory = function (hiveGroup) {
-
-  const data = hiveGroup.hiveData || {};
-  const getInspectionSortTimestamp = ({ date, time }) => {
-    if (!date) return Number.NEGATIVE_INFINITY;
-
-    const isoCandidate = `${date}T${time || "00:00"}`;
-    const isoTime = Date.parse(isoCandidate);
-    if (!Number.isNaN(isoTime)) return isoTime;
-
-    const ukMatch = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (!ukMatch) return Number.NEGATIVE_INFINITY;
-
-    const [, dd, mm, yyyy] = ukMatch;
-    const ukTime = Date.parse(`${yyyy}-${mm}-${dd}T${time || "00:00"}`);
-    return Number.isNaN(ukTime) ? Number.NEGATIVE_INFINITY : ukTime;
-  };
-
-  const inspections = (data.inspections || [])
-    .slice()
-    .sort((a, b) => getInspectionSortTimestamp(b) - getInspectionSortTimestamp(a));
-
-  document.getElementById("inspectionHistoryTitle").textContent =
-    `Inspection History — ${data.name || "Hive"} (${Storage.getCurrentApiary() || "Unknown Apiary"})`;
-
+App.Modals.buildInspectionHistoryReport = function ({
+  title,
+  inspections = [],
+  blankRows = 0
+}) 
+{
   const schema = App.Modals.inspectionSchema;
   const unit = schema.weightUnit === "lbs" ? "lbs" : "kg";
+
+  document.getElementById("inspectionHistoryTitle").textContent = title;
 
   const container = document.getElementById("inspectionHistoryGroups");
   container.innerHTML = ""; // clear previous
@@ -2714,7 +2729,14 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
     //
     // ROWS
     //
-    const rowsHtml = inspections.map(i => {
+        const rowCount = Math.max(
+      inspections.length,
+      blankRows,
+      0
+    );
+
+        const rowsHtml = Array.from({ length: rowCount }, (_, rowIndex) => {
+      const i = inspections[rowIndex] || {};
 
       const dateStr = i.date ? App.Utils.formatDateUK(i.date) : "";
       const timeStr = i.time || "";
@@ -2775,6 +2797,33 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
 
     container.insertAdjacentHTML("beforeend", sectionHtml);
   });
+};
+
+App.Modals.openInspectionHistory = function (hiveGroup) {
+  const data = hiveGroup.hiveData || {};
+  const getInspectionSortTimestamp = ({ date, time }) => {
+    if (!date) return Number.NEGATIVE_INFINITY;
+
+    const isoCandidate = `${date}T${time || "00:00"}`;
+    const isoTime = Date.parse(isoCandidate);
+    if (!Number.isNaN(isoTime)) return isoTime;
+
+    const ukMatch = date.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (!ukMatch) return Number.NEGATIVE_INFINITY;
+
+    const [, dd, mm, yyyy] = ukMatch;
+    const ukTime = Date.parse(`${yyyy}-${mm}-${dd}T${time || "00:00"}`);
+    return Number.isNaN(ukTime) ? Number.NEGATIVE_INFINITY : ukTime;
+  };
+
+  const inspections = (data.inspections || [])
+    .slice()
+    .sort((a, b) => getInspectionSortTimestamp(b) - getInspectionSortTimestamp(a));
+
+  App.Modals.buildInspectionHistoryReport({
+    title: `Inspection History — ${data.name || "Hive"} (${Storage.getCurrentApiary() || "Unknown Apiary"})`,
+    inspections
+  });
 
   // Wire close
   const close1 = document.getElementById("closeInspectionHistoryBtn");
@@ -2785,6 +2834,112 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
   overlay.style.zIndex = 1150;
 
   document.getElementById("inspectionHistoryModal").style.display = "block";
+};
+
+App.Modals.printBlankInspectionHistory = function () {
+  const currentApiary = Storage.getCurrentApiary() || "Unknown Apiary";
+  const title = `Inspection Form`;
+
+  App.Modals.buildInspectionHistoryReport({
+    title,
+    inspections: [],
+    blankRows: 4
+  });
+
+  const groupsMarkup = document.getElementById("inspectionHistoryGroups").innerHTML;
+  const iframe = document.createElement("iframe");
+  iframe.style.position = "fixed";
+  iframe.style.right = "0";
+  iframe.style.bottom = "0";
+  iframe.style.width = "0";
+  iframe.style.height = "0";
+  iframe.style.border = "0";
+  iframe.setAttribute("aria-hidden", "true");
+
+  document.body.appendChild(iframe);
+
+  const printDoc = iframe.contentWindow.document;
+  printDoc.open();
+  printDoc.write(`
+    <!doctype html>
+    <html>
+    <head>
+      <meta charset="utf-8" />
+      <title>${title}</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          margin: 20px;
+          color: #111;
+        }
+
+        h1 {
+          margin: 0 0 14px;
+          font-size: 22px;
+          font-weight: 700;
+        }
+
+        .inspection-history-group {
+          margin-bottom: 16px;
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+
+        .inspection-history-group-title {
+          margin: 0 0 6px;
+          font-size: 16px;
+        }
+
+        .inspection-history-group-table-wrap {
+          overflow: visible;
+        }
+
+        .inspection-history-group-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .inspection-history-group-table th,
+        .inspection-history-group-table td {
+          border: 1px solid #bbb;
+          padding: 8px;
+          text-align: left;
+          font-size: 12px;
+          vertical-align: top;
+          min-height: 20px;
+        }
+
+        .inspection-history-group-table td {
+          height: 28px;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>${title}</h1>
+      ${groupsMarkup}
+    </body>
+    </html>
+  `);
+  printDoc.close();
+
+  const cleanup = () => {
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  };
+
+  const runPrint = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } finally {
+      setTimeout(cleanup, 250);
+    }
+  };
+
+  if (printDoc.readyState === "complete") {
+    runPrint();
+  } else {
+    iframe.onload = runPrint;
+  }
 };
 
 App.Modals.closeInspectionHistory = function () {
@@ -3176,9 +3331,11 @@ App.Modals.renderForageCalendar = function () {
       ${rows.map(row => `
         <tr>
           <td>${row.source}</td>
-          ${row.months.map(isPresent => `
-            <td class="forage-calendar-cell ${isPresent ? "is-present" : ""}">${isPresent ? "✓" : ""}</td>
-          `).join("")}
+          ${row.months.map(intensity => {
+            const level = Number(intensity) || 0;
+            const marker = level > 0 ? (level === 1 ? "✿" : `✿${level}`) : "";
+            return `<td class="forage-calendar-cell ${level ? "is-present" : ""}" title="${level ? `Intensity: ${level}` : ""}">${marker}</td>`;
+          }).join("")}
         </tr>
       `).join("")}
     </tbody>

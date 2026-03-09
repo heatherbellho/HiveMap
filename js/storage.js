@@ -123,6 +123,56 @@ saveAllApiaries(list) {
     localStorage.removeItem('hiveLayout_' + apiary);
   },
 
+  /* ------------------ FORAGE RECORDS ------------------ */
+  getForageRecords(apiaryName) {
+    if (!apiaryName) return [];
+
+    const raw = localStorage.getItem('forageRecords_' + apiaryName);
+    if (!raw) return [];
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  },
+
+  saveForageRecords(apiaryName, records) {
+    if (!apiaryName) return;
+    const safeRecords = Array.isArray(records) ? records : [];
+    localStorage.setItem('forageRecords_' + apiaryName, JSON.stringify(safeRecords));
+  },
+
+  upsertForageRecord(apiaryName, record) {
+    if (!apiaryName || !record || !record.id) return;
+
+    const records = Storage.getForageRecords(apiaryName);
+    const idx = records.findIndex(r => r?.id === record.id);
+
+    if (idx === -1) {
+      records.push(record);
+    } else {
+      records[idx] = { ...records[idx], ...record };
+    }
+
+    Storage.saveForageRecords(apiaryName, records);
+  },
+
+  deleteForageRecord(apiaryName, recordId) {
+    if (!apiaryName || !recordId) return;
+
+    const records = Storage.getForageRecords(apiaryName)
+      .filter(r => r?.id !== recordId);
+
+    Storage.saveForageRecords(apiaryName, records);
+  },
+
+  deleteForageRecords(apiaryName) {
+    if (!apiaryName) return;
+    localStorage.removeItem('forageRecords_' + apiaryName);
+  },
+
 
   /* ------------------ INSPECTION SCHEMA ------------------ */
   getInspectionSchema() {

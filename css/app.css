@@ -2310,9 +2310,10 @@ padding: 12px 0px;
 }
 
 .forage-calendar-cell.is-present {
-  background: #dff5df;
-  color: #1d5f1d;
+  background: #3f6f3f;
+  color: #ffff4d;
   font-weight: 600;
+  letter-spacing: 0.08em;
 }
 
 .forage-calendar-empty {

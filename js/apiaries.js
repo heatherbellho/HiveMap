@@ -127,6 +127,12 @@ App.Apiaries.rename = function () {
     Storage.deleteHiveLayout(oldName);
   }
 
+  const oldForageRecords = Storage.getForageRecords(oldName);
+  if (oldForageRecords.length) {
+    Storage.saveForageRecords(newName, oldForageRecords);
+  }
+  Storage.deleteForageRecords(oldName);
+
   // Move note
   const oldNote = Storage.getApiaryNote(oldName);
   if (oldNote !== null && oldNote !== undefined) {
@@ -166,6 +172,7 @@ App.Apiaries.delete = function () {
   // Remove layout + note
   Storage.deleteHiveLayout(current);
   Storage.deleteApiaryNote(current);
+  Storage.deleteForageRecords(current);
 
   // Remove from list
   const updated = all.filter(a => a !== current);

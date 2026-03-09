@@ -187,7 +187,7 @@ App.Analytics.updateHoneyGraph = function () {
     // MERGE ALL HONEY ENTRIES BY DATE (stored values are always kg)
     const totalsByDate = {};
 
-    inspections.forEach(i => {
+    forageRecords.forEach(record => {
         const d = i.date;
         const amount = Number(i.honeyTaken) || 0;
 
@@ -286,12 +286,35 @@ App.Analytics.getApiaryInspections = function (apiaryName) {
     }
 };
 
+App.Analytics.getApiaryForageRecords = function (apiaryName) {
+    if (!apiaryName) return [];
+
+    const stored = Storage.getForageRecords(apiaryName);
+    if (stored.length) return stored;
+
+    // Backfill existing inspection forage into the dedicated store.
+    const inspections = App.Analytics.getApiaryInspections(apiaryName);
+    const migrated = inspections
+        .filter(i => i?.date && i?.forage)
+        .map(i => ({
+            id: App.Utils.uid(),
+            date: i.date,
+            forage: i.forage
+        }));
+
+    if (migrated.length) {
+        Storage.saveForageRecords(apiaryName, migrated);
+    }
+
+    return migrated;
+};
+
 App.Analytics.getApiaryForageYears = function (apiaryName) {
     const years = new Set();
 
-    App.Analytics.getApiaryInspections(apiaryName).forEach(i => {
-        if (i?.date && i?.forage && String(i.forage).trim()) {
-            years.add(i.date.substring(0, 4));
+    App.Analytics.getApiaryForageRecords(apiaryName).forEach(record => {
+        if (record?.date && record?.forage && String(record.forage).trim()) {
+            years.add(record.date.substring(0, 4));
         }
     });
 
@@ -308,44 +331,83 @@ App.Analytics.parseForageSources = function (raw) {
         .map(v => v.toLowerCase().replace(/\s+/g, " "));
 };
 
+App.Analytics.parseForageSourceWithIntensity = function (token) {
+    const normalized = String(token || "").trim().replace(/\s+/g, " ");
+    if (!normalized) return null;
+
+    const match = normalized.match(/^(.*?)(?:\s*(\d+))?$/);
+    if (!match) return null;
+
+    const sourceName = (match[1] || "").trim();
+    if (!sourceName) return null;
+
+    return {
+        key: sourceName.toLowerCase(),
+        label: sourceName,
+        intensity: Math.max(1, Number(match[2] || 1))
+    };
+};
+
 App.Analytics.buildApiaryForageCalendar = function (apiaryName, year) {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const inspections = App.Analytics.getApiaryInspections(apiaryName)
-        .filter(i => i?.date?.startsWith(year));
+    const forageRecords = (typeof App.Analytics.getApiaryForageRecords === "function"
+        ? App.Analytics.getApiaryForageRecords(apiaryName)
+        : App.Analytics.getApiaryInspections(apiaryName)
+    ).filter(record => record?.date?.startsWith(year));
 
     const sourcesByMonth = new Map();
-    const allSources = new Set();
+    const allSources = new Map();
+    const firstSeenBySource = new Map();
 
-    inspections.forEach(i => {
-        const monthIndex = Number(i.date.substring(5, 7)) - 1;
+    forageRecords.forEach(record => {
+        const recordDate = String(record?.date || "");
+        const monthIndex = Number(recordDate.substring(5, 7)) - 1;
         if (monthIndex < 0 || monthIndex > 11) return;
 
-        const tokens = App.Analytics.parseForageSources(i.forage);
+        const tokens = App.Analytics.parseForageSources(record.forage);
         if (!tokens.length) return;
 
         if (!sourcesByMonth.has(monthIndex)) {
-            sourcesByMonth.set(monthIndex, new Set());
+            sourcesByMonth.set(monthIndex, new Map());
         }
 
         tokens.forEach(source => {
-            sourcesByMonth.get(monthIndex).add(source);
-            allSources.add(source);
+            const parsed = App.Analytics.parseForageSourceWithIntensity(source);
+            if (!parsed) return;
+
+            const monthSources = sourcesByMonth.get(monthIndex);
+            const currentIntensity = monthSources.get(parsed.key) || 0;
+            monthSources.set(parsed.key, Math.max(currentIntensity, parsed.intensity));
+
+            if (!allSources.has(parsed.key)) {
+                allSources.set(parsed.key, parsed.label);
+            }
+
+            const existingFirstSeen = firstSeenBySource.get(parsed.key);
+            if (!existingFirstSeen || recordDate < existingFirstSeen) {
+                firstSeenBySource.set(parsed.key, recordDate);
+            }
         });
     });
 
-    const sources = Array.from(allSources).sort((a, b) => a.localeCompare(b));
+    const sources = Array.from(allSources.entries())
+        .sort((a, b) => {
+            const firstSeenA = firstSeenBySource.get(a[0]) || "9999-12-31";
+            const firstSeenB = firstSeenBySource.get(b[0]) || "9999-12-31";
+            if (firstSeenA !== firstSeenB) return firstSeenA.localeCompare(firstSeenB);
+            return a[1].localeCompare(b[1]);
+        });
 
-    const rows = sources.map(source => {
+    const rows = sources.map(([sourceKey, sourceLabel]) => {
         const months = monthNames.map((_, monthIndex) =>
-            sourcesByMonth.get(monthIndex)?.has(source) ? 1 : 0
+            sourcesByMonth.get(monthIndex)?.get(sourceKey) || 0
         );
 
         return {
-            source,
+            source: sourceLabel,
             months
         };
     });
-
     return {
         monthNames,
         rows

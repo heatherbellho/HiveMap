@@ -10,6 +10,6 @@
  * ------------------------------------------------------------
  */ 
 
-App.Version = "v2.3.6";
+App.Version = "v2.3.7";
 App.Release = "08/03/2026";
-App.Change = "New Feature: Forage Chart<br>Style: Honey Graph display. Inspection History reverse date order.";
+App.Change = "Style: Forage Chart, list forage sources by date order. Introduce forage density indicators. <br>Separate storage of forage data from hive to persist after hive delete.<br>New Feature: Print Inspection Form in Hives menu.";
