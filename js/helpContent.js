@@ -189,8 +189,10 @@ window.HELP_SECTIONS = [
       Then use this unit if/when entering <b>Honey Taken</b> in an inspection record.<br>
       This data can then be seen in a <b>Honey Harvest</b> graph.</p>
 
-      <p>If/when entering data for <b>Forage</b> in an inspection record, use consistent plant names, for example, Clover, Bramble etc.<br>
-      This only needs to be done for one hive inspection record per apiary to produce a <b>Forage</b> chart for each apiary.
+      <p>If/when entering data for <b>Forage</b> in inspection records, use consistent plant names or forage sources to avoid duplication. For example, use Bramble <u>or</u> Blackberry, not Bramble and Blackberry inconsistently. Multiple forage sources can be entered in an inspection record by comma separating. For example enter: White Clover, Bramble, Creeping Thistle. Optionally, use a score of 1 to 5 to indicate the intensity and peak flowering. For example, enter: Clover 4, Bramble 2.<br>
+      This will enable the data to be shown in an Apiary Forage Chart for the year.<br>
+      Forage data only needs to be entered for one hive inspection record per apiary to produce a chart for each apiary.<br>
+      Forage records are stored separately so they will not be lost if a hive is deleted.
       </p>
 
       <p>In the <b>Add Inspection</b> panel the date and time of the inspection will be auto set to the current date/time but can be edited if needed.</p>
@@ -261,8 +263,8 @@ window.HELP_SECTIONS = [
 
       <h3><svg class="icon"><use href="#icon-chart"></use></svg> Forage button in the top button bar of the <b>Apiary</b> panel.</h3>
 
-      <p>If/when entering data for <b>Forage</b> in an inspection record, use consistent plant names, for example, Clover, Bramble etc.<br>
-      This data can then be seen in a <b>Forage</b> chart. Press <b>Apiary</b> in the main toolbar and press the <svg class="icon"><use href="#icon-chart"></use></svg> Forage button to show the chart.<br>
+      <p>Forage data entered in a hive inspection record can be seen in an <b>Apiary Forage Chart</b>.<br>
+      Press <b>Apiary</b> in the main toolbar and press the <svg class="icon"><use href="#icon-chart"></use></svg> Forage button to show the chart.<br>
       This will then show what forage is out, in what months over a year for the selected apiary. This builds a valuable source of knowledge to help plan management and compare year on year.
       </p>
 

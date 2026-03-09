@@ -82,6 +82,15 @@ document.getElementById("toolbarShowArchivedHives")
     document.getElementById("archivedFilterBtn").click();
   });
 
+  
+const toolsBlankInspectionHistory = document.getElementById("toolsBlankInspectionHistory");
+if (toolsBlankInspectionHistory) {
+  toolsBlankInspectionHistory.addEventListener("click", () => {
+    closeAllMenus();
+    App.Modals.printBlankInspectionHistory();
+  });
+}
+
 document.getElementById("toolsVetReport").onclick = function () {
   closeAllMenus();
   App.Reports.openVetReportModal();
