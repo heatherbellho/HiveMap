@@ -27,33 +27,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Storage must load before everything else -->
-  <script src="js/storage.js?v=237"></script>
+  <script src="js/storage.js?v=238"></script>
 
   <!-- Help content must load before app.js -->
-  <script src="js/helpContent.js?v=237"></script>
+  <script src="js/helpContent.js?v=238"></script>
 
   <!-- Core modules -->
-  <script src="js/utils.js?v=237"></script>
-  <script src="js/apiaries.js?v=237"></script>
-  <script src="js/hives.js?v=237"></script>
-  <script src="js/subscription.js?v=237"></script>
-  <script src="js/analytics.js?v=237"></script>
-  <script src="js/modals.js?v=237"></script>
-  <script src="js/status.js?v=237"></script>
-  <script src="js/export.js?v=237"></script>
-  <script src="js/version.js?v=237"></script>
-  <script src="js/helpContent.js?v=237"></script>
+  <script src="js/utils.js?v=238"></script>
+  <script src="js/apiaries.js?v=238"></script>
+  <script src="js/hives.js?v=238"></script>
+  <script src="js/subscription.js?v=238"></script>
+  <script src="js/analytics.js?v=238"></script>
+  <script src="js/modals.js?v=238"></script>
+  <script src="js/status.js?v=238"></script>
+  <script src="js/export.js?v=238"></script>
+  <script src="js/version.js?v=238"></script>
+  <script src="js/helpContent.js?v=238"></script>
 
   <!-- Canvas subsystem -->
-  <script src="js/canvas.js?v=237"></script>
+  <script src="js/canvas.js?v=238"></script>
 
   <!-- Reports subsystem --> 
-  <script src="js/reports.js?v=237"></script>
+  <script src="js/reports.js?v=238"></script>
 
   <!-- App orchestrator (must be last) -->
-  <script src="js/app.js?v=237"></script>
+  <script src="js/app.js?v=238"></script>
 
-  <link rel="stylesheet" href="css/app.css?v=237">
+  <link rel="stylesheet" href="css/app.css?v=238">
 </head>
 
 <body>
@@ -73,7 +73,7 @@
   <div class="toolbar-group toolbar-apiary">
     <label for="apiarySelect" style="font-weight: 600; white-space: nowrap;">Select Apiary:</label>
     <select id="apiarySelect" class="styled-select" aria-live="polite"></select>
-    <button id="apiaryManagerBtn" class="toolbar-btn">Apiary</button>
+    <button id="apiaryManagerBtn" class="toolbar-btn">Apiary ▶</button>
   </div>
 
   <!-- LEFT GROUP -->
@@ -96,7 +96,7 @@
               stroke-width="2"
               stroke-linecap="round" />
         <circle cx="12" cy="17" r="1.5" fill="#000" />
-      </svg>
+      </svg> 
       <span id="dueBadge" class="badge" style="display:none;">0</span>
     </button>
   </div>
@@ -246,7 +246,15 @@
 <div id="forageCalendarModal" class="modal" style="display:none;">
   <div class="modal-content forage-calendar-modal-content">
     <header class="modal-header">
+      <div class="field-label-row">
       <h2 id="forageCalendarTitle">Forage Chart</h2>
+      <div class="inline-help-wrap" tabindex="0" aria-label="Tile Size help">
+            <span style="color: #1b8ebc;" aria-hidden="true"><svg style="fill: currentColor; width: 20px; height: 20px;"><use href="#icon-question"></use></svg></span>
+            <div class="inline-help-tooltip" role="tooltip">
+              Shows Forage recorded in Inspections over year.
+            </div>
+          </div>
+      </div>
       <button id="forageCalendarCloseBtn" class="modal-close">&times;</button>
     </header>
 
@@ -731,7 +739,15 @@
   <main class="modal-body">
     <div class="modal-column">
       <div class="modal-section">
-        <label for="hiveSizeSelect"><strong>Tile Size</strong></label>
+                <div class="field-label-row">
+          <label for="hiveSizeSelect"><strong>Tile Size</strong></label>
+          <div class="inline-help-wrap" tabindex="0" aria-label="Tile Size help">
+            <span style="color: #1b8ebc;" aria-hidden="true"><svg style="fill: currentColor; width: 20px; height: 20px;"><use href="#icon-question"></use></svg></span>
+            <div class="inline-help-tooltip" role="tooltip">
+              Choose a Tile Size or enter a Custom size. This determines the size of the Hive Tile as shown in the Field View.
+            </div>
+          </div>
+        </div>
         <select id="hiveSizeSelect">
           <option value="40x40">Standard Hive (40×40)</option>
           <option value="40x20">Nucleus (40×20)</option>
@@ -748,14 +764,32 @@
       </div>
         
       <div class="modal-section">
+        <div class="field-label-row">
         <label for="hiveNameInput"><strong>Hive ID</strong></label>
+        <div class="inline-help-wrap" tabindex="0" aria-label="HiveID help">
+            <span style="color: #1b8ebc;" aria-hidden="true"><svg style="fill: currentColor; width: 20px; height: 20px;"><use href="#icon-question"></use></svg></span>
+            <div class="inline-help-tooltip" role="tooltip">
+              Enter a Hive ID number, it will be shown on the hive in Field View.
+              A new ID number will be auto suggested avoiding duplicates and a list of existing hive IDs is also shown.
+            </div>
+        </div>
+        </div>
         <input type="text" id="hiveNameInput" placeholder="e.g. 12">
 
         <div id="usedHiveNumbers" class="used-hive-numbers"></div>
       </div>
 
       <div class="modal-section">
+        <div class="field-label-row">
         <label for="hiveEntranceInput"><strong>Entrance</strong></label>
+             <div class="inline-help-wrap" tabindex="0" aria-label="hiveEntrance help">
+            <span style="color: #1b8ebc;" aria-hidden="true"><svg style="fill: currentColor; width: 20px; height: 20px;"><use href="#icon-question"></use></svg></span>
+            <div class="inline-help-tooltip" role="tooltip">
+Choose an Entrance Direction. This is used to help you orient the hive in the Field View and can be changed later if needed.
+      It will be shown in the Field View as < or >. Rotate the hive in the Field View for other orientations.
+            </div>
+        </div>
+      </div>
         <select id="hiveEntranceInput">
           <option value="">None</option>
         <option value="❮">❮ (Left)</option>
@@ -1239,7 +1273,7 @@
   </script>
 <input type="file" id="importAllFile" accept="application/json" style="display:none">
 <button id="importAllBtn" style="display:none"></button>
-<script src="js/toolbar.js?v=237"></script>
+<script src="js/toolbar.js?v=238"></script>
 </div>
 <div id="footer">
       <div style="text-align: center;">&copy; <span id="year"></span> <span id="appVersion"></span> - <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a></div>
@@ -1275,6 +1309,11 @@
   </symbol>
   </svg>
   
+   <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+  <symbol id="icon-question" viewBox="0 0 512 512">
+    <path d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-336c-17.7 0-32 14.3-32 32 0 13.3-10.7 24-24 24s-24-10.7-24-24c0-44.2 35.8-80 80-80s80 35.8 80 80c0 47.2-36 67.2-56 74.5l0 3.8c0 13.3-10.7 24-24 24s-24-10.7-24-24l0-8.1c0-20.5 14.8-35.2 30.1-40.2 6.4-2.1 13.2-5.5 18.2-10.3 4.3-4.2 7.7-10 7.7-19.6 0-17.7-14.3-32-32-32zM224 368a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/>
+  </symbol>
+  </svg>
 
 </body>
 </html>

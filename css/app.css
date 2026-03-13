@@ -391,6 +391,50 @@ body {
   gap: 6px;
 }
 
+#hiveSizeModal .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-help-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  outline: none;
+}
+
+.inline-help-tooltip {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 1300;
+  width: min(260px, 70vw);
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fffdf4;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+  color: #333;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.inline-help-wrap:hover .inline-help-tooltip,
+.inline-help-wrap:focus-within .inline-help-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
 .accordion-header {
   width: 100%;
   background: #FFE3A4;
@@ -1152,7 +1196,7 @@ body {
   gap: 20px;
 }
 .modal-hive-size {
-  max-width: 400px !important;
+  width: 500px !important;
 }
 
 /* Fix Help modal sizing + scrolling */
