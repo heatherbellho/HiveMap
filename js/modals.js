@@ -1047,7 +1047,7 @@ App.Modals.getInspectionMatches = function (includeFn) {
   return { dueHives, originalApiary };
 };
 
-App.Modals.renderInspectionList = function (title, includeFn) {
+App.Modals.renderInspectionList = function (title, includeFn, options = {}) {
 
   const modal = document.getElementById("hiveListModal");
   const overlay = document.getElementById("overlay");
@@ -1057,10 +1057,10 @@ App.Modals.renderInspectionList = function (title, includeFn) {
   overlay.style.display = "block";
 
   document.getElementById("hiveListTitle").textContent = title;
-
   const calendarBtn = document.getElementById("dueInspectionCalendarBtn");
-  
-    calendarBtn.style.display = "inline-flex";
+  const showCalendarButton = options.showCalendarButton !== false;
+
+  calendarBtn.style.display = showCalendarButton ? "inline-flex" : "none";
 
   // Hide old filter bar if still present
   //const filterBar = document.getElementById("dueInspectionFilters");
@@ -1265,7 +1265,8 @@ App.Modals.openArchivedHivesModal = function () {
   document.getElementById("archiveBtns").style.display = "none";
   document.getElementById("dueInspectionBtns").style.display = "none";
   App.Modals.renderInspectionList("Archived Hives", (data, today) =>
-    data.status === "archived"
+    data.status === "archived",
+    { showCalendarButton: false }
   );
 };
 
@@ -2035,7 +2036,6 @@ App.Modals.renderInspectionFieldConfig = function () {
   globalSettings.style.borderRadius = "6px";
 
   globalSettings.innerHTML = `
-    <h3 style="margin-top:0;">Inspection Settings</h3>
     <label for="weightUnitSelect" style="margin-right:6px;">Honey weight unit</label>
     <select id="weightUnitSelect" style="width: 180px; padding: 6px; border: 1px solid #ccc; border-radius: 6px;">
       <option value="kg">Kilograms (kg)</option>
@@ -2676,7 +2676,8 @@ App.Modals.closeInspectionInput = function () {
 App.Modals.buildInspectionHistoryReport = function ({
   title,
   inspections = [],
-  blankRows = 0
+  blankRows = 0,
+  columnWidths = null
 }) 
 {
   const schema = App.Modals.inspectionSchema;
@@ -2724,7 +2725,43 @@ App.Modals.buildInspectionHistoryReport = function ({
       }
     });
 
-    headerHtml += "</tr>";
+       headerHtml += "</tr>";
+
+    const resolvedWidths = (() => {
+      if (!columnWidths) return [];
+
+      const groupSpecific = columnWidths.byGroup?.[group.id]
+        || columnWidths.byGroup?.[group.name]
+        || columnWidths.byGroupIndex?.[groupIndex]
+        || {};
+
+      const baseCols = groupIndex === 0
+        ? ["date", "time", "status", "notes"]
+        : ["date"];
+
+      const baseWidths = baseCols.map((colKey, colIndex) => (
+        groupSpecific.base?.[colKey]
+        || groupSpecific.base?.[colIndex]
+        || columnWidths.base?.[colKey]
+        || columnWidths.base?.[colIndex]
+        || null
+      ));
+
+      const fieldWidths = groupFields.map((field, fieldIndex) => (
+        groupSpecific.fields?.[field.id]
+        || groupSpecific.fields?.[fieldIndex]
+        || columnWidths.fields?.[field.id]
+        || columnWidths.fields?.[fieldIndex]
+        || columnWidths.defaultField
+        || null
+      ));
+
+      return [...baseWidths, ...fieldWidths];
+    })();
+
+    const colGroupHtml = resolvedWidths.length
+      ? `<colgroup>${resolvedWidths.map(width => `<col${width ? ` style="width:${width}"` : ""}>`).join("")}</colgroup>`
+      : "";
 
     //
     // ROWS
@@ -2788,6 +2825,7 @@ App.Modals.buildInspectionHistoryReport = function ({
         <h3 class="inspection-history-group-title">${group.name}</h3>
         <div class="inspection-history-group-table-wrap">
           <table class="inspection-history-group-table">
+            ${colGroupHtml}
             <thead>${headerHtml}</thead>
             <tbody>${rowsHtml}</tbody>
           </table>
@@ -2837,13 +2875,45 @@ App.Modals.openInspectionHistory = function (hiveGroup) {
 };
 
 App.Modals.printBlankInspectionHistory = function () {
-  const currentApiary = Storage.getCurrentApiary() || "Unknown Apiary";
   const title = `Inspection Form`;
+
+  // Edit widths here for printed blank forms.
+  // Example: set Environmental -> Temperature °C/F width via
+  // byGroup.environment.fields.temperature (or byGroup["Environmental"]).
+  const printColumnWidths = {
+    base: {
+      date: "12%",
+      time: "10%",
+      status: "11%",
+      notes: "32%"
+    },
+    byGroup: {
+      environment: {
+        fields: {
+          temperature: "22px", // <-- Temperature °C/F column width
+          wind: "22px", // <-- Temperature °C/F column width
+          windDirection: "22px" // <-- Temperature °C/F column width
+        }
+      },
+      queenBrood: {
+        fields: {
+          broodFrames: "80px" // <-- Temperature °C/F column width
+        }
+      },
+      health: {
+        fields: {
+          miteCount: "100px" // <-- Temperature °C/F column width
+        }
+      }
+    },
+    defaultField: "auto"
+  };
 
   App.Modals.buildInspectionHistoryReport({
     title,
     inspections: [],
-    blankRows: 4
+    blankRows: 4,
+    columnWidths: printColumnWidths
   });
 
   const groupsMarkup = document.getElementById("inspectionHistoryGroups").innerHTML;
@@ -3333,7 +3403,7 @@ App.Modals.renderForageCalendar = function () {
           <td>${row.source}</td>
           ${row.months.map(intensity => {
             const level = Number(intensity) || 0;
-            const marker = level > 0 ? (level === 1 ? "✿" : `✿${level}`) : "";
+            const marker = level > 0 ? (level === 1 ? "✿" : `${level}✿`) : "";
             return `<td class="forage-calendar-cell ${level ? "is-present" : ""}" title="${level ? `Intensity: ${level}` : ""}">${marker}</td>`;
           }).join("")}
         </tr>

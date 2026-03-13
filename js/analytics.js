@@ -187,7 +187,7 @@ App.Analytics.updateHoneyGraph = function () {
     // MERGE ALL HONEY ENTRIES BY DATE (stored values are always kg)
     const totalsByDate = {};
 
-    forageRecords.forEach(record => {
+    inspections.forEach(i => {
         const d = i.date;
         const amount = Number(i.honeyTaken) || 0;
 

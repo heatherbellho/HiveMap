@@ -22,17 +22,17 @@ window.HELP_SECTIONS = [
     html: `
       <h2 id="help-hivemap">About HiveMap</h2>
 
-      <p>Maintaining good records is a must for good colony management and a valuable learning tool. Keeping records of veterinary treatments is also a legal requirement in many countries.</p>
+      <p>Maintaining good records is a must for good colony management and a valuable learning tool. Keeping records of veterinary treatments is also a legal requirement.</p>
 
       <p>Over many years as professional bee farmers we have trialled numerous systems and commercial products but never found something that worked for us. It can be a challenge to find a system that truly fits the practicalities of beekeeping.<br>
-      Paper record sheets kept with hives still have their uses. Spreadsheets work for data entry and display but have their limitations as a visual tool. So we created HiveMap to help us manage our own apiaries and hives to give a simple, visual way to see important data at-a-glance.</p>
+      When working in an apiary, we have found no replacement for hand-written notes and records. Pencil, paper and clipboard seldom fail, even with sticky gloves!<br>
+      However, even the best kept record cards are not the easiest way to see and compare data across apiaries, hives and colonies at a glance.<br>
+      So we created HiveMap to give a simple, visual way to quickly see important data while providing a central repository for all apiary, hive and colony records.</p>
 
-      <p>Everything you create is stored locally on your device so your data stays private and loads instantly but everything can also be exported as a single backup file to import and use on other devices.</p>
+      <p>All data is stored locally on your device so it stays private and loads instantly but everything can also be exported as a single backup file to import and use on other devices.</p>
 
       <p><strong>HiveMap Core</strong> edition is limited to 1 apiary and 1 hive but is fully functional.<br>
       <strong>HiveMap Plus</strong> edition supports unlimited apiaries and hives.</p>
-
-      <p>Development is ongoing, with updates and new features that make it a work in progress.</p>
 
       <p>HiveMap Core and HiveMap Plus are &copy; products of 
       <a href="https://cornishhoney.co.uk" target="_blank"><strong>Heather Bell Honey Bees Ltd</strong></a>.
@@ -112,7 +112,7 @@ window.HELP_SECTIONS = [
       It will be shown simply on the hive in the Field View as <b><</b> or <b>></b>.<br>
       Press <b>Save</b> and the hive will be immediately shown in the Field View.</p>
 
-      <p>Hover over or press a hive will instantlyreveal a pop-up with basic hive details.</p>
+      <p>Hover over or press a hive will instantly reveal a pop-up with basic hive details.</p>
 
       <p>Position a hive in the Field View in 2 ways. Press the hive and a 'handle' will appear. Press and hold the handle and drag it to rotate the hive around its centre to match its real position. Press and hold the hive and drag it to match its real position.</p>
 
@@ -217,6 +217,8 @@ window.HELP_SECTIONS = [
       The <b>Next Due</b> dates will be colour coded for <b>Due Today</b>, <b>Overdue</b>, and <b>Due Future</b>.<br>
       The table list can be filtered by pressing the appropriate buttons in the button bar.<br>
       This is an essential tool to help inspection planning.</p>
+
+      <p>Go to <b>Hives</b> in the toolbar and select <b>Print Inspection Form</b> in the menu. This will open a blank Inspection Form for printing for recording notes in the field.</p>
 
       <hr>
     `

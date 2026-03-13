@@ -445,10 +445,10 @@ App.Toolbar.getHiveCountLabel = function (hives) {
   // Mode: specificStatus
   if (settings.mode === "specificStatus" && settings.status) {
     const count = safeHives.filter(h => h.queenStatus === settings.status).length;
-    return `Hives: ${total} (${count} ${settings.status})`;
+    return `Hives: ${total} (${count} ${settings.status}) ▶`;
   }
 
-  return `Hives: ${total}`;
+  return `Hives: ${total} ▶`;
 };
 
 // Refresh both toolbar labels
