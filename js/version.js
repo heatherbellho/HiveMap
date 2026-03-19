@@ -10,6 +10,6 @@
  * ------------------------------------------------------------
  */ 
 
-App.Version = "v2.3.8";
-App.Release = "13/03/2026";
-App.Change = "Style: Inspection Form, change column widths.<br>";
+App.Version = "v2.3.9";
+App.Release = "19/03/2026";
+App.Change = "Fix: Auto update version for installed app.<br>Persistent Inspection Due in Inspection History";

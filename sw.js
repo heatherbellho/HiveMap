@@ -17,7 +17,7 @@
    - Keeps offline support for static assets
 ------------------------------------------------------------ */
 
-const CACHE_VERSION = 'v238';  // bump this every release
+const CACHE_VERSION = 'v239';  // bump this every release
 const CACHE_NAME = `hivemap-static-${CACHE_VERSION}`;
 
 // Only cache static, non-JS assets
@@ -33,12 +33,18 @@ const STATIC_ASSETS = [
   'css/app.css'
 ];
 
-// Install: cache static assets
 self.addEventListener('install', event => {
   self.skipWaiting(); // Activate immediately
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
   );
+});
+
+// Allow pages to trigger immediate activation for an updated SW
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate: take control immediately and clean old caches
@@ -58,6 +64,7 @@ self.addEventListener('activate', event => {
 // Fetch handler
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
+  const pathname = url.pathname.replace(/^\//, '');
 
   // Always fetch JS fresh (never cache)
   if (url.pathname.endsWith('.js')) {
@@ -69,7 +76,7 @@ self.addEventListener('fetch', event => {
     fetch(event.request)
       .then(response => {
         // Cache static assets
-        if (STATIC_ASSETS.includes(url.pathname)) {
+        if (STATIC_ASSETS.includes(pathname)) {
           caches.open(CACHE_NAME).then(cache => {
             cache.put(event.request, response.clone());
           });
