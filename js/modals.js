@@ -90,6 +90,12 @@ App.Modals.inspectionSchema =
 App.Modals.openHiveModal = function (hiveGroup) {
   selectedHive = hiveGroup;
 const data = hiveGroup.hiveData;   // MUST be the live reference
+  const nextInspectionDateChanged = App.Modals.syncHiveNextInspectionDate(hiveGroup);
+  if (nextInspectionDateChanged) {
+    App.Canvas.saveLayout();
+    App.updateDueInspectionsBadge();
+  }
+
 // Change modal title depending on hive status
 const titleEl = document.getElementById("modalTitle");
 if (data.status === "archived") {
@@ -447,6 +453,7 @@ App.Modals.saveHiveData = function () {
   if (!selectedHive) return;
 
   const hiveData = selectedHive.hiveData;
+  App.Modals.syncHiveNextInspectionDate(selectedHive);
 
   const newWidth = parseInt(document.getElementById("editHiveWidth").value, 10);
   const newHeight = parseInt(document.getElementById("editHiveHeight").value, 10);
@@ -783,11 +790,39 @@ App.Modals.confirmDeleteInspection = function () {
   App.Modals.removeForageRecordForInspection(selectedHive, inspectionToDelete);
 
   hiveData.inspections.splice(index, 1);
+  App.Modals.syncHiveNextInspectionDate(selectedHive);
   App.Modals.closeConfirmDeleteInspection();
 
   // Refresh modal
   App.Modals.renderInspectionHistory();
   App.Canvas.saveLayout();
+};
+
+App.Modals.getLatestInspection = function (inspections = []) {
+  if (!Array.isArray(inspections) || inspections.length === 0) return null;
+
+  return inspections.reduce((latest, inspection) => {
+    if (!latest) return inspection;
+
+    const latestTime = new Date(`${latest.date || ""}T${latest.time || "00:00"}`).getTime();
+    const inspectionTime = new Date(`${inspection.date || ""}T${inspection.time || "00:00"}`).getTime();
+
+    if (Number.isNaN(latestTime)) return inspection;
+    if (Number.isNaN(inspectionTime)) return latest;
+
+    return inspectionTime >= latestTime ? inspection : latest;
+  }, null);
+};
+
+App.Modals.syncHiveNextInspectionDate = function (hiveObj) {
+  const hiveData = hiveObj?.hiveData;
+  if (!hiveData) return false;
+
+  const latestInspection = App.Modals.getLatestInspection(hiveData.inspections || []);
+  const nextInspectionDate = latestInspection?.nextInspection || "";
+  const changed = hiveData.nextInspectionDate !== nextInspectionDate;
+  hiveData.nextInspectionDate = nextInspectionDate;
+  return changed;
 };
 
 App.Modals.syncForageRecordForInspection = function (hiveObj, inspection) {
@@ -1446,6 +1481,8 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
   const inspection = hive.hiveData.inspections[inspectionIndex];
   if (!inspection) return;
 
+  const latestInspection = App.Modals.getLatestInspection(hive.hiveData.inspections || []);
+
   App.Modals.currentInspectionIndex = inspectionIndex;
 
   // Unit preference
@@ -1480,7 +1517,7 @@ App.Modals.openInspectionDetails = function (inspectionIndex) {
   queenSelect.value = inspection.queenStatus || "";
 
   document.getElementById("inspectionDetailsNextInspectionInput").value =
-    hive.hiveData.nextInspectionDate || "";
+    inspection.nextInspection || (inspection === latestInspection ? hive.hiveData.nextInspectionDate || "" : "");
 
   document.getElementById("inspectionDetailsNotesInput").value =
     (inspection.notes || "").replace(/\n/g, "\n");
@@ -1614,7 +1651,7 @@ App.Modals.saveInspectionDetails = function () {
   inspection.queenStatus =
     document.getElementById("inspectionDetailsQueenStatusInput").value || "";
 
-  hiveData.nextInspectionDate =
+  inspection.nextInspection =
     document.getElementById("inspectionDetailsNextInspectionInput").value || "";
 
   inspection.notes =
@@ -1652,6 +1689,7 @@ App.Modals.saveInspectionDetails = function () {
   selectedHive._objects[0].set("fill", color);
 
   App.Modals.syncForageRecordForInspection(selectedHive, inspection); 
+  App.Modals.syncHiveNextInspectionDate(selectedHive);
   App.Canvas.saveLayout();
   App.updateDueInspectionsBadge();
   App.Canvas.requestRender();
@@ -2647,7 +2685,7 @@ App.Modals.saveInspectionInput = function () {
   // Push into hive
   hiveData.inspections = hiveData.inspections || [];
   hiveData.inspections.push(newInspection);
-  hiveData.nextInspectionDate = nextInspection;
+  App.Modals.syncHiveNextInspectionDate(hiveObj);
 
   App.Modals.syncForageRecordForInspection(hiveObj, newInspection);
 
