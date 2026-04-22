@@ -10,6 +10,6 @@
  * ------------------------------------------------------------
  */ 
 
-App.Version = "v2.3.9";
-App.Release = "19/03/2026";
-App.Change = "Fix: Auto update version for installed app.<br>Persistent Inspection Due in Inspection History";
+App.Version = "v2.3.10";
+App.Release = "22/04/2026";
+App.Change = "Fixed bug: Save Apiary Notes";

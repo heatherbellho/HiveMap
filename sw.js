@@ -17,7 +17,7 @@
    - Keeps offline support for static assets
 ------------------------------------------------------------ */
 
-const CACHE_VERSION = 'v239';  // bump this every release
+const CACHE_VERSION = 'v2310';  // bump this every release
 const CACHE_NAME = `hivemap-static-${CACHE_VERSION}`;
 
 // Only cache static, non-JS assets
