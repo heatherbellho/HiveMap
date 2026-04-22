@@ -3269,7 +3269,13 @@ App.Modals.saveApiaryManager = function () {
   }
 
   let all = Storage.getAllApiaries();
-  const isRename = (mode === "edit");
+  const isEditMode = (mode === "edit");
+  const isRename = isEditMode && oldName && newName !== oldName;
+
+  if (isRename && all.includes(newName)) {
+    App.UI.showToast("That apiary name already exists.");
+    return;
+  }
 
   // CORE EDITION LIMIT: only 1 apiary allowed
 if (mode === "create") {
